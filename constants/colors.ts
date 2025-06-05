@@ -1,43 +1,37 @@
-export default {
-  primary: {
-    background: "#013025",
-    text: "#AC8901",
-    accent: "#AC8901",
-    muted: "#888888",
-    card: "#1E1E1E",
-    border: "#333333",
-    secondary: "#144237"
-  },
-  secondary: "#144237",
-  accent: "#AC8901",
+const colors = {
+  primary: '#007AFF',
+  secondary: '#5856D6',
+  
   background: {
-    dark: "#121212",
-    light: "#FFFFFF"
+    light: '#FFFFFF',
+    dark: '#000000',
   },
-  text: {
-    dark: "#FFFFFF",
-    light: "#000000"
-  },
+  
   card: {
-    dark: "#1E1E1E",
-    light: "#F5F5F5"
+    light: '#FFFFFF',
+    dark: '#1C1C1E',
   },
-  border: {
-    dark: "#333333",
-    light: "#EEEEEE"
+  
+  text: {
+    light: '#000000',
+    dark: '#FFFFFF',
   },
+  
   muted: {
-    dark: "#888888",
-    light: "#666666"
+    light: '#8E8E93',
+    dark: '#8E8E93',
   },
+  
+  border: {
+    light: '#C6C6C8',
+    dark: '#38383A',
+  },
+  
   status: {
-    success: "#4CAF50",
-    error: "#F44336",
-    warning: "#FF9800",
+    success: '#34C759',
+    error: '#FF3B30',
+    warning: '#FFCC00',
   },
-  // For backward compatibility
-  light: "#FFFFFF",
-  dark: "#121212",
-  white: "#FFFFFF",
-  black: "#000000",
 };
+
+export default colors;

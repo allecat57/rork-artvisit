@@ -1,33 +1,25 @@
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
-import { useColorScheme, Platform } from 'react-native';
-import { ThemeProvider } from '../context/ThemeContext';
-import { StripeProvider } from '../context/StripeContext';
-import { supabase } from '../config/supabase';
-import { useAuthStore } from '../store/useAuthStore';
-import * as Analytics from '../utils/analytics';
+import { useColorScheme } from 'react-native';
+import { ThemeProvider } from '@/context/ThemeContext';
+import { StripeProvider } from '@/context/StripeContext';
+import { supabase } from '@/lib/supabase';
+import { useAuthStore } from '@/store/useAuthStore';
+import * as Analytics from '@/utils/analytics';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const { user, isAuthenticated } = useAuthStore();
+  const isDark = colorScheme === 'dark';
+  const { user } = useAuthStore();
 
   useEffect(() => {
-    // Log app start event
     Analytics.logEvent('app_start', {
       timestamp: new Date().toISOString(),
-      platform: Platform.OS,
-      color_scheme: colorScheme
     });
     
-    // Check current session (without realtime subscription)
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         useAuthStore.getState().setUser(session.user);
-        
-        // Set user ID for analytics
-        Analytics.setUserId(session.user.id);
-        
-        // Log auth event
         Analytics.logEvent('auth_session_restored', {
           user_id: session.user.id
         });
@@ -41,9 +33,21 @@ export default function RootLayout() {
         <Stack
           screenOptions={{
             headerStyle: {
-              backgroundColor: colorScheme === 'dark' ? '#121212' : '#ffffff',
+              backgroundColor: isDark ? colors.background.dark : colors.background.light,
+              borderBottomWidth: 0.5,
+              borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+              shadowColor: 'transparent',
             },
-            headerTintColor: colorScheme === 'dark' ? '#ffffff' : '#000000',
+            headerTitleStyle: {
+              fontWeight: '600',
+              fontSize: 17,
+            },
+            headerTintColor: isDark ? colors.text.dark : colors.text.light,
+            headerBackTitleVisible: false,
+            headerShadowVisible: false,
+            contentStyle: {
+              backgroundColor: isDark ? colors.background.dark : colors.background.light,
+            },
           }}
         />
       </StripeProvider>

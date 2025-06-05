@@ -1,12 +1,41 @@
-// Re-export supabase client and utilities from config
-import { supabase, TABLES, isSupabaseConfigured, fetchTodos, createTodo, updateTodo, deleteTodo } from '@/config/supabase';
+import { createClient } from '@supabase/supabase-js';
 
-export { 
-  supabase, 
-  TABLES, 
-  isSupabaseConfigured,
-  fetchTodos,
-  createTodo,
-  updateTodo,
-  deleteTodo
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || '';
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export const isSupabaseConfigured = () => {
+  return supabaseUrl !== '' && supabaseAnonKey !== '';
+};
+
+export const TABLES = {
+  TODOS: 'todos',
+  PROFILES: 'profiles',
+  VENUES: 'venues',
+  EVENTS: 'events',
+};
+
+export const fetchTodos = async () => {
+  const { data, error } = await supabase.from(TABLES.TODOS).select('*');
+  if (error) throw error;
+  return data;
+};
+
+export const createTodo = async (text: string) => {
+  const { data, error } = await supabase.from(TABLES.TODOS).insert([{ text }]).select();
+  if (error) throw error;
+  return data[0];
+};
+
+export const updateTodo = async (id: string, text: string) => {
+  const { data, error } = await supabase.from(TABLES.TODOS).update({ text }).eq('id', id).select();
+  if (error) throw error;
+  return data[0];
+};
+
+export const deleteTodo = async (id: string) => {
+  const { error } = await supabase.from(TABLES.TODOS).delete().eq('id', id);
+  if (error) throw error;
+  return true;
 };
