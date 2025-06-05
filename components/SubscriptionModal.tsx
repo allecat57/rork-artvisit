@@ -236,7 +236,7 @@ export default function SubscriptionModal({
     }
     
     // Log analytics event
-    Analytics.sendAnalyticsEvent("subscription_tier_selected", {
+    Analytics.logEvent(Analytics.Events.SUBSCRIPTION_TIER_SELECTED, {
       tier_id: selectedTier,
       tier_name: selectedTierDetails.name,
       tier_price: selectedTierDetails.price,
@@ -252,7 +252,7 @@ export default function SubscriptionModal({
     // Check if user has payment method on file
     if (!currentPaymentMethod && !getSelectedTierDetails()?.isFree) {
       // Log analytics event
-      Analytics.sendAnalyticsEvent("subscription_payment_required", {
+      Analytics.logEvent(Analytics.Events.SUBSCRIPTION_PAYMENT_REQUIRED, {
         tier_id: selectedTier
       });
       
@@ -271,7 +271,7 @@ export default function SubscriptionModal({
     const last4 = cardNumber.length >= 4 ? cardNumber.substring(cardNumber.length - 4) : "****";
     
     // Log payment method update
-    Analytics.sendAnalyticsEvent("payment_method_added", {
+    Analytics.logEvent(Analytics.Events.PAYMENT_METHOD_ADDED, {
       card_type: getCardType(cardNumber),
       for_subscription: true
     });
@@ -299,7 +299,7 @@ export default function SubscriptionModal({
     });
     
     // Log payment method update
-    Analytics.sendAnalyticsEvent("stripe_payment_method_added", {
+    Analytics.logEvent(Analytics.Events.STRIPE_PAYMENT_METHOD_ADDED, {
       card_type: paymentMethod.card.brand,
       for_subscription: true
     });
@@ -347,7 +347,7 @@ export default function SubscriptionModal({
       }
       
       // Log analytics event
-      Analytics.sendAnalyticsEvent("subscription_processing_started", {
+      Analytics.logEvent(Analytics.Events.SUBSCRIPTION_PROCESSING_STARTED, {
         tier_id: selectedTier,
         tier_name: selectedTierDetails.name,
         tier_price: selectedTierDetails.price,
@@ -374,7 +374,7 @@ export default function SubscriptionModal({
         );
         
         // Log analytics event
-        Analytics.sendAnalyticsEvent("subscription_updated", {
+        Analytics.logEvent(Analytics.Events.SUBSCRIPTION_UPDATED, {
           previous_tier: currentSubscription.id,
           new_tier: selectedTier,
           subscription_id: currentSubscription.stripeSubscriptionId
@@ -387,7 +387,7 @@ export default function SubscriptionModal({
         );
         
         // Log analytics event
-        Analytics.sendAnalyticsEvent("subscription_created", {
+        Analytics.logEvent(Analytics.Events.SUBSCRIPTION_CREATED, {
           tier_id: selectedTier,
           subscription_id: result.id
         });
@@ -405,7 +405,7 @@ export default function SubscriptionModal({
       setModalState("confirmation");
       
       // Log analytics event
-      Analytics.sendAnalyticsEvent("subscription_error", {
+      Analytics.logEvent(Analytics.Events.SUBSCRIPTION_ERROR, {
         tier_id: selectedTier,
         error: error instanceof Error ? error.message : "Unknown error"
       });
@@ -417,7 +417,7 @@ export default function SubscriptionModal({
     
     if (selectedSubscriptionTier) {
       // Log subscription change
-      Analytics.sendAnalyticsEvent("change_subscription", {
+      Analytics.logEvent(Analytics.Events.CHANGE_SUBSCRIPTION, {
         previous_tier: currentSubscription?.id || "none",
         new_tier: selectedSubscriptionTier.id,
         price: selectedSubscriptionTier.price
@@ -470,7 +470,7 @@ export default function SubscriptionModal({
               setSelectedTier(tier.id);
               
               // Log analytics event
-              Analytics.sendAnalyticsEvent("subscription_tier_viewed", {
+              Analytics.logEvent(Analytics.Events.SUBSCRIPTION_TIER_VIEWED, {
                 tier_id: tier.id,
                 tier_name: tier.name,
                 tier_price: tier.price
@@ -535,7 +535,7 @@ export default function SubscriptionModal({
           title={currentSubscription ? "Continue" : "Select Plan"}
           onPress={handleContinue}
           variant="primary"
-          analyticsEventName="subscription_continue_button"
+          analyticsEventName={Analytics.Events.SUBSCRIPTION_CONTINUE_BUTTON}
         />
       </View>
     </>
@@ -646,13 +646,13 @@ export default function SubscriptionModal({
                 setModalState("selection");
                 
                 // Log analytics event
-                Analytics.sendAnalyticsEvent("subscription_confirmation_cancelled", {
+                Analytics.logEvent(Analytics.Events.SUBSCRIPTION_CONFIRMATION_CANCELLED, {
                   tier_id: selectedTier
                 });
               }}
               variant="outline"
               style={styles.cancelButton}
-              analyticsEventName="subscription_confirmation_cancel"
+              analyticsEventName={Analytics.Events.SUBSCRIPTION_CONFIRMATION_CANCEL}
             />
             <Button
               title={currentPaymentMethod ? "Confirm" : "Add Payment Method"}
@@ -661,7 +661,7 @@ export default function SubscriptionModal({
                   handleConfirmUpgrade();
                   
                   // Log analytics event
-                  Analytics.sendAnalyticsEvent("subscription_confirmed", {
+                  Analytics.logEvent(Analytics.Events.SUBSCRIPTION_CONFIRMED, {
                     tier_id: selectedTier,
                     tier_name: selectedTierDetails.name,
                     tier_price: selectedTierDetails.price
@@ -670,14 +670,14 @@ export default function SubscriptionModal({
                   setStripePaymentModalVisible(true);
                   
                   // Log analytics event
-                  Analytics.sendAnalyticsEvent("subscription_add_payment_method", {
+                  Analytics.logEvent(Analytics.Events.SUBSCRIPTION_ADD_PAYMENT_METHOD, {
                     tier_id: selectedTier
                   });
                 }
               }}
               variant="primary"
               style={styles.confirmButton}
-              analyticsEventName={currentPaymentMethod ? "subscription_confirm" : "subscription_add_payment"}
+              analyticsEventName={currentPaymentMethod ? Analytics.Events.SUBSCRIPTION_CONFIRM : Analytics.Events.SUBSCRIPTION_ADD_PAYMENT_METHOD}
             />
           </View>
         </View>
@@ -724,7 +724,7 @@ export default function SubscriptionModal({
                     onClose();
                     
                     // Log analytics event
-                    Analytics.sendAnalyticsEvent("subscription_modal_closed", {
+                    Analytics.logEvent(Analytics.Events.SUBSCRIPTION_MODAL_CLOSED, {
                       state: modalState
                     });
                   }}

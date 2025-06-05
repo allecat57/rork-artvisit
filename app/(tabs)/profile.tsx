@@ -112,7 +112,7 @@ export default function ProfileScreen() {
   
   const handleNotImplemented = () => {
     // Log not implemented event
-    Analytics.logEvent("feature_not_implemented", {
+    Analytics.logEvent(Analytics.Events.FEATURE_NOT_IMPLEMENTED, {
       screen: "profile"
     });
     
@@ -129,7 +129,7 @@ export default function ProfileScreen() {
       
       if (permissionResult.granted === false) {
         // Log permission denied
-        Analytics.logEvent("permission_denied", {
+        Analytics.logEvent(Analytics.Events.PERMISSION_DENIED, {
           permission: "photo_library",
           screen: "profile"
         });
@@ -155,7 +155,7 @@ export default function ProfileScreen() {
       }
     } catch (error) {
       // Log error
-      Analytics.logEvent("profile_photo_error", {
+      Analytics.logEvent(Analytics.Events.PROFILE_PHOTO_ERROR, {
         error_message: error instanceof Error ? error.message : "Unknown error"
       });
       
@@ -302,21 +302,21 @@ export default function ProfileScreen() {
             title="Visit History"
             onPress={() => router.push("/visit-history")}
             badge={visits.length}
-            analyticsEventName="view_visit_history"
+            analyticsEventName={Analytics.Events.VIEW_VISIT_HISTORY}
           />
           <ProfileOption
             icon={<Heart size={22} color={colors.primary.accent} />}
             title="Favorite Venues"
             onPress={() => router.push("/favorites")}
             badge={favorites.length}
-            analyticsEventName="view_favorites"
+            analyticsEventName={Analytics.Events.VIEW_FAVORITES}
           />
           <ProfileOption
             icon={<ShoppingBag size={22} color={colors.primary.accent} />}
             title="Purchase History"
             onPress={() => router.push("/purchase-history")}
             badge={purchases.length}
-            analyticsEventName="view_purchase_history"
+            analyticsEventName={Analytics.Events.VIEW_PURCHASE_HISTORY}
           />
         </View>
         
@@ -326,16 +326,16 @@ export default function ProfileScreen() {
             icon={<Camera size={22} color={colors.primary.accent} />}
             title="Change Profile Photo"
             onPress={handleChangeProfilePhoto}
-            analyticsEventName="change_profile_photo_tap"
+            analyticsEventName={Analytics.Events.CHANGE_PROFILE_PHOTO_TAP}
           />
           <ProfileOption
             icon={<CreditCard size={22} color={colors.primary.accent} />}
             title="Update Payment Method"
             onPress={() => {
-              Analytics.logEvent("open_payment_method_modal");
+              Analytics.logEvent(Analytics.Events.OPEN_PAYMENT_METHOD_MODAL);
               setPaymentModalVisible(true);
             }}
-            analyticsEventName="update_payment_method_tap"
+            analyticsEventName={Analytics.Events.UPDATE_PAYMENT_METHOD_TAP}
           />
           {paymentMethod && (
             <View style={styles.paymentInfoContainer}>
@@ -348,10 +348,10 @@ export default function ProfileScreen() {
             icon={<Ticket size={22} color={colors.primary.accent} />}
             title="Manage Subscription"
             onPress={() => {
-              Analytics.logEvent("open_subscription_modal");
+              Analytics.logEvent(Analytics.Events.OPEN_SUBSCRIPTION_MODAL);
               setSubscriptionModalVisible(true);
             }}
-            analyticsEventName="manage_subscription_tap"
+            analyticsEventName={Analytics.Events.MANAGE_SUBSCRIPTION_TAP}
             rightContent={
               subscription ? (
                 <View style={styles.subscriptionInfo}>
@@ -368,19 +368,19 @@ export default function ProfileScreen() {
             icon={<Shield size={22} color={colors.primary.accent} />}
             title="Privacy Settings"
             onPress={() => {
-              Analytics.logEvent("open_privacy_settings_modal");
+              Analytics.logEvent(Analytics.Events.OPEN_PRIVACY_SETTINGS_MODAL);
               setPrivacyModalVisible(true);
             }}
-            analyticsEventName="privacy_settings_tap"
+            analyticsEventName={Analytics.Events.PRIVACY_SETTINGS_TAP}
           />
           <ProfileOption
             icon={<Bell size={22} color={colors.primary.accent} />}
             title="Notifications"
             onPress={() => {
-              Analytics.logEvent("open_notifications_modal");
+              Analytics.logEvent(Analytics.Events.OPEN_NOTIFICATIONS_MODAL);
               setNotificationsModalVisible(true);
             }}
-            analyticsEventName="notifications_tap"
+            analyticsEventName={Analytics.Events.NOTIFICATIONS_TAP}
           />
         </View>
         
@@ -393,7 +393,7 @@ export default function ProfileScreen() {
               Analytics.logEvent(Analytics.Events.OPEN_HELP_CENTER);
               setHelpCenterModalVisible(true);
             }}
-            analyticsEventName="help_center_tap"
+            analyticsEventName={Analytics.Events.HELP_CENTER_TAP}
           />
         </View>
         
