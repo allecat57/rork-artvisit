@@ -48,8 +48,6 @@ export default function RootLayout() {
               color: '#AC8901', // Pastel gold accent for headers
             },
             headerTintColor: isDark ? colors.text.dark : colors.text.light,
-            headerBackTitleVisible: false,
-            headerShadowVisible: false,
             contentStyle: {
               backgroundColor: isDark ? colors.background.dark : '#FFFFFF',
             },

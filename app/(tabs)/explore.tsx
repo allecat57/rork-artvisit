@@ -24,7 +24,7 @@ export default function ExploreScreen() {
     fetchVenues();
     
     // Log screen view
-    Analytics.trackScreenView('explore', 'ExploreScreen');
+    Analytics.setCurrentScreen('explore', 'ExploreScreen');
   }, []);
 
   const featuredVenues = venues.filter(venue => venue.featured);
