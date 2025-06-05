@@ -20,14 +20,14 @@ export default function SearchBar({
 }: SearchBarProps) {
   return (
     <View style={[styles.container, style]}>
-      <Search size={20} color={colors.primary.muted} style={styles.icon} />
+      <Search size={20} color="#AC8901" style={styles.icon} />
       <TextInput
         style={styles.input}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={colors.primary.muted}
-        selectionColor={colors.primary.accent}
+        placeholderTextColor="#AC8901"
+        selectionColor="#AC8901"
       />
       {value.length > 0 && (
         <TouchableOpacity
@@ -37,7 +37,7 @@ export default function SearchBar({
             if (onClear) onClear();
           }}
         >
-          <X size={18} color={colors.primary.muted} />
+          <X size={18} color="#AC8901" />
         </TouchableOpacity>
       )}
     </View>
@@ -52,13 +52,15 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 48,
+    borderWidth: 1,
+    borderColor: "#AC8901",
   },
   icon: {
     marginRight: 8,
   },
   input: {
     flex: 1,
-    color: colors.primary.text,
+    color: "#AC8901",
     fontSize: 16,
     height: "100%",
     fontFamily: "Arapey",

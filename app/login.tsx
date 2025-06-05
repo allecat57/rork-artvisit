@@ -328,6 +328,7 @@ export default function LoginScreen() {
             variant="outline"
             style={styles.testAccountButton}
             analyticsEventName="use_test_account"
+            textStyle={{ color: "#AC8901" }}
           />
 
           <View style={styles.switchContainer}>
