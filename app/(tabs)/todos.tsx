@@ -21,7 +21,7 @@ export default function TodosScreen() {
   const colorScheme = useColorScheme();
   
   const isDark = colorScheme === 'dark';
-  const textColor = isDark ? colors.text.dark : colors.text.light;
+  const textColor = '#AC8901';
   const bgColor = isDark ? colors.background.dark : colors.background.light;
   const accentColor = colors.accent;
 
@@ -161,9 +161,9 @@ export default function TodosScreen() {
             Make sure you have a 'todos' table in your Supabase database with these columns:
           </Text>
           <Text style={[styles.codeBlock, { color: textColor }]}>
-            - id: uuid (primary key)
-            - title: text
-            - completed: boolean
+            - id: uuid (primary key){"\n"}
+            - title: text{"\n"}
+            - completed: boolean{"\n"}
             - created_at: timestamp with timezone
           </Text>
         </View>
