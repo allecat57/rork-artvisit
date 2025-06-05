@@ -50,7 +50,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     isDark,
     setTheme,
     toggleTheme,
-    colors: colors,
+    colors: colors, // In a real app, you'd have different color sets for light/dark
   };
   
   return (

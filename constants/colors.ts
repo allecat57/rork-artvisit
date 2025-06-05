@@ -1,39 +1,43 @@
-const colors = {
+export default {
   primary: {
-    main: '#007AFF',
-    accent: '#AC8901', // Pastel gold for accents
-    secondary: '#5856D6',
-    border: '#C6C6C8',
-    text: '#000000',
-    background: '#FFFFFF',
-    card: '#FFFFFF',
-    muted: '#8E8E93'
+    background: "#013025",
+    text: "#AC8901",
+    accent: "#AC8901",
+    muted: "#888888",
+    card: "#1E1E1E",
+    border: "#333333",
+    secondary: "#144237"
   },
+  secondary: "#144237",
+  accent: "#AC8901",
   background: {
-    light: '#FFFFFF',
-    dark: '#000000',
-  },
-  card: {
-    light: '#FFFFFF',
-    dark: '#1C1C1E',
+    dark: "#121212",
+    light: "#FFFFFF"
   },
   text: {
-    light: '#000000',
-    dark: '#FFFFFF',
+    dark: "#FFFFFF",
+    light: "#000000"
   },
-  muted: {
-    light: '#8E8E93',
-    dark: '#8E8E93',
+  card: {
+    dark: "#1E1E1E",
+    light: "#F5F5F5"
   },
   border: {
-    light: '#C6C6C8',
-    dark: '#38383A',
+    dark: "#333333",
+    light: "#EEEEEE"
+  },
+  muted: {
+    dark: "#888888",
+    light: "#666666"
   },
   status: {
-    success: '#34C759',
-    error: '#FF3B30',
-    warning: '#FFCC00',
+    success: "#4CAF50",
+    error: "#F44336",
+    warning: "#FF9800",
   },
+  // For backward compatibility
+  light: "#FFFFFF",
+  dark: "#121212",
+  white: "#FFFFFF",
+  black: "#000000",
 };
-
-export default colors;

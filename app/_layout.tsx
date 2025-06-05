@@ -1,37 +1,38 @@
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
-import { useColorScheme } from 'react-native';
-import { ThemeProvider } from '@/context/ThemeContext';
-import { StripeProvider } from '@/context/StripeContext';
-import { supabase, isSupabaseConfigured } from '@/config/supabase';
-import { useAuthStore } from '@/store/useAuthStore';
-import * as Analytics from '@/utils/analytics';
-import colors from '@/constants/colors';
+import { useColorScheme, Platform } from 'react-native';
+import { ThemeProvider } from '../context/ThemeContext';
+import { StripeProvider } from '../context/StripeContext';
+import { supabase } from '../config/supabase';
+import { useAuthStore } from '../store/useAuthStore';
+import * as Analytics from '../utils/analytics';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { user, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
+    // Log app start event
     Analytics.logEvent('app_start', {
       timestamp: new Date().toISOString(),
+      platform: Platform.OS,
+      color_scheme: colorScheme
     });
     
-    if (isSupabaseConfigured()) {
-      supabase?.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) {
-          useAuthStore.getState().setUser(session.user);
-          Analytics.logEvent('auth_session_restored', {
-            user_id: session.user.id
-          });
-        }
-      });
-    } else {
-      console.warn("Supabase is not configured. Skipping auth session check.");
-      Analytics.logEvent('auth_session_skipped', {
-        reason: 'supabase_not_configured'
-      });
-    }
+    // Check current session (without realtime subscription)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        useAuthStore.getState().setUser(session.user);
+        
+        // Set user ID for analytics
+        Analytics.setUserId(session.user.id);
+        
+        // Log auth event
+        Analytics.logEvent('auth_session_restored', {
+          user_id: session.user.id
+        });
+      }
+    });
   }, []);
 
   return (
@@ -40,17 +41,9 @@ export default function RootLayout() {
         <Stack
           screenOptions={{
             headerStyle: {
-              backgroundColor: isDark ? colors.background.dark : colors.background.light,
+              backgroundColor: colorScheme === 'dark' ? '#121212' : '#ffffff',
             },
-            headerTitleStyle: {
-              fontWeight: '600',
-              fontSize: 17,
-              color: colors.primary.accent,
-            },
-            headerTintColor: isDark ? colors.text.dark : colors.text.light,
-            contentStyle: {
-              backgroundColor: isDark ? colors.background.dark : colors.background.light,
-            },
+            headerTintColor: colorScheme === 'dark' ? '#ffffff' : '#000000',
           }}
         />
       </StripeProvider>

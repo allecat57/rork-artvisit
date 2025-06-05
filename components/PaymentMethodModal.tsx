@@ -79,8 +79,6 @@ export default function PaymentMethodModal({
 
   // Detect card type based on first digits
   const detectCardType = (number: string): "amex" | "other" | null => {
-    if (!number || number.length < 2) return null;
-    
     const cleaned = number.replace(/\D/g, "");
     
     // American Express cards start with 34 or 37

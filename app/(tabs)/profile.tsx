@@ -112,7 +112,7 @@ export default function ProfileScreen() {
   
   const handleNotImplemented = () => {
     // Log not implemented event
-    Analytics.logEvent(Analytics.Events.FEATURE_NOT_IMPLEMENTED, {
+    Analytics.logEvent("feature_not_implemented", {
       screen: "profile"
     });
     
@@ -129,7 +129,7 @@ export default function ProfileScreen() {
       
       if (permissionResult.granted === false) {
         // Log permission denied
-        Analytics.logEvent(Analytics.Events.PERMISSION_DENIED, {
+        Analytics.logEvent("permission_denied", {
           permission: "photo_library",
           screen: "profile"
         });
@@ -155,7 +155,7 @@ export default function ProfileScreen() {
       }
     } catch (error) {
       // Log error
-      Analytics.logEvent(Analytics.Events.PROFILE_PHOTO_ERROR, {
+      Analytics.logEvent("profile_photo_error", {
         error_message: error instanceof Error ? error.message : "Unknown error"
       });
       
@@ -168,7 +168,7 @@ export default function ProfileScreen() {
     // In a real app, you would securely send this to your backend
     // For this demo, we'll just store the last 4 digits of the card
     const cardNumber = paymentDetails.cardNumber.replace(/\s/g, "");
-    const last4 = cardNumber.length >= 4 ? cardNumber.substring(cardNumber.length - 4) : "****";
+    const last4 = cardNumber.substring(cardNumber.length - 4);
     
     // Log payment method update
     Analytics.logEvent(Analytics.Events.UPDATE_PAYMENT_METHOD, {
@@ -190,9 +190,6 @@ export default function ProfileScreen() {
   };
   
   const getCardType = (cardNumber: string) => {
-    if (!cardNumber || cardNumber.length < 1) {
-      return "Credit Card";
-    }
     // Very basic card type detection based on first digit
     const firstDigit = cardNumber.charAt(0);
     
@@ -302,21 +299,21 @@ export default function ProfileScreen() {
             title="Visit History"
             onPress={() => router.push("/visit-history")}
             badge={visits.length}
-            analyticsEventName={Analytics.Events.VIEW_VISIT_HISTORY}
+            analyticsEventName="view_visit_history"
           />
           <ProfileOption
             icon={<Heart size={22} color={colors.primary.accent} />}
             title="Favorite Venues"
             onPress={() => router.push("/favorites")}
             badge={favorites.length}
-            analyticsEventName={Analytics.Events.VIEW_FAVORITES}
+            analyticsEventName="view_favorites"
           />
           <ProfileOption
             icon={<ShoppingBag size={22} color={colors.primary.accent} />}
             title="Purchase History"
             onPress={() => router.push("/purchase-history")}
             badge={purchases.length}
-            analyticsEventName={Analytics.Events.VIEW_PURCHASE_HISTORY}
+            analyticsEventName="view_purchase_history"
           />
         </View>
         
@@ -326,16 +323,16 @@ export default function ProfileScreen() {
             icon={<Camera size={22} color={colors.primary.accent} />}
             title="Change Profile Photo"
             onPress={handleChangeProfilePhoto}
-            analyticsEventName={Analytics.Events.CHANGE_PROFILE_PHOTO_TAP}
+            analyticsEventName="change_profile_photo_tap"
           />
           <ProfileOption
             icon={<CreditCard size={22} color={colors.primary.accent} />}
             title="Update Payment Method"
             onPress={() => {
-              Analytics.logEvent(Analytics.Events.OPEN_PAYMENT_METHOD_MODAL);
+              Analytics.logEvent("open_payment_method_modal");
               setPaymentModalVisible(true);
             }}
-            analyticsEventName={Analytics.Events.UPDATE_PAYMENT_METHOD_TAP}
+            analyticsEventName="update_payment_method_tap"
           />
           {paymentMethod && (
             <View style={styles.paymentInfoContainer}>
@@ -348,10 +345,10 @@ export default function ProfileScreen() {
             icon={<Ticket size={22} color={colors.primary.accent} />}
             title="Manage Subscription"
             onPress={() => {
-              Analytics.logEvent(Analytics.Events.OPEN_SUBSCRIPTION_MODAL);
+              Analytics.logEvent("open_subscription_modal");
               setSubscriptionModalVisible(true);
             }}
-            analyticsEventName={Analytics.Events.MANAGE_SUBSCRIPTION_TAP}
+            analyticsEventName="manage_subscription_tap"
             rightContent={
               subscription ? (
                 <View style={styles.subscriptionInfo}>
@@ -368,19 +365,19 @@ export default function ProfileScreen() {
             icon={<Shield size={22} color={colors.primary.accent} />}
             title="Privacy Settings"
             onPress={() => {
-              Analytics.logEvent(Analytics.Events.OPEN_PRIVACY_SETTINGS_MODAL);
+              Analytics.logEvent("open_privacy_settings_modal");
               setPrivacyModalVisible(true);
             }}
-            analyticsEventName={Analytics.Events.PRIVACY_SETTINGS_TAP}
+            analyticsEventName="privacy_settings_tap"
           />
           <ProfileOption
             icon={<Bell size={22} color={colors.primary.accent} />}
             title="Notifications"
             onPress={() => {
-              Analytics.logEvent(Analytics.Events.OPEN_NOTIFICATIONS_MODAL);
+              Analytics.logEvent("open_notifications_modal");
               setNotificationsModalVisible(true);
             }}
-            analyticsEventName={Analytics.Events.NOTIFICATIONS_TAP}
+            analyticsEventName="notifications_tap"
           />
         </View>
         
@@ -393,7 +390,7 @@ export default function ProfileScreen() {
               Analytics.logEvent(Analytics.Events.OPEN_HELP_CENTER);
               setHelpCenterModalVisible(true);
             }}
-            analyticsEventName={Analytics.Events.HELP_CENTER_TAP}
+            analyticsEventName="help_center_tap"
           />
         </View>
         

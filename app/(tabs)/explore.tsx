@@ -24,7 +24,7 @@ export default function ExploreScreen() {
     fetchVenues();
     
     // Log screen view
-    Analytics.setCurrentScreen('explore', 'ExploreScreen');
+    Analytics.trackScreenView('explore', 'ExploreScreen');
   }, []);
 
   const featuredVenues = venues.filter(venue => venue.featured);
@@ -102,9 +102,9 @@ export default function ExploreScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>Explore</Text>
           <TouchableOpacity style={styles.locationButton} onPress={handleLocationPress}>
-            <MapPin size={16} color={colors.primary.main} />
+            <MapPin size={16} color={colors.primary.accent} />
             <Text style={styles.locationText} numberOfLines={1}>
-              {locationName || "Set location"}
+              {locationName || 'Set location'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -140,7 +140,7 @@ export default function ExploreScreen() {
           data={featuredVenues}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            item && <FeaturedVenueCard
+            <FeaturedVenueCard
               venue={item}
               onPress={() => handleVenuePress(item.id)}
             />
@@ -155,7 +155,7 @@ export default function ExploreScreen() {
             <Text style={styles.sectionTitle}>Nearby</Text>
             <View style={styles.venuesContainer}>
               {nearbyVenues.map((venue) => (
-                venue && <VenueCard
+                <VenueCard
                   key={venue.id}
                   venue={venue}
                   onPress={() => handleVenuePress(venue.id)}
@@ -171,7 +171,7 @@ export default function ExploreScreen() {
             .filter(venue => venue.rating >= 4.5)
             .slice(0, 4)
             .map((venue) => (
-              venue && <VenueCard
+              <VenueCard
                 key={venue.id}
                 venue={venue}
                 onPress={() => handleVenuePress(venue.id)}
@@ -186,7 +186,7 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.light,
+    backgroundColor: colors.primary.background,
   },
   header: {
     flexDirection: 'row',
@@ -198,12 +198,12 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.heading1,
-    color: colors.text.light,
+    color: colors.primary.text,
   },
   locationButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.card.light,
+    backgroundColor: colors.primary.card,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     ...typography.bodySmall,
-    color: colors.primary.main,
+    color: colors.primary.accent,
     marginLeft: 4,
   },
   searchBar: {
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.heading3,
-    color: colors.text.light,
+    color: colors.primary.text,
     marginHorizontal: 20,
     marginTop: 20,
     marginBottom: 15,
