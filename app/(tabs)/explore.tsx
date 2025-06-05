@@ -23,8 +23,8 @@ export default function ExploreScreen() {
   useEffect(() => {
     fetchVenues();
     
-    // Log screen view
-    Analytics.trackScreenView('explore', 'ExploreScreen');
+    // Log screen view using the correct function from analytics.ts
+    Analytics.setCurrentScreen('explore', 'ExploreScreen');
   }, []);
 
   const featuredVenues = venues.filter(venue => venue.featured);
