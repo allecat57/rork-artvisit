@@ -17,3 +17,8 @@ export interface Product {
   weight?: string;
   tags?: string[];
 }
+
+export interface CartItem {
+  product: Product;
+  quantity: number;
+}

@@ -70,7 +70,7 @@ export const useCartStore = create<CartState>()(
           }));
           
           // Log analytics event
-          Analytics.logEvent(Analytics.Events.ADD_TO_CART, {
+          Analytics.logEvent("add_to_cart", {
             product_id: product.id,
             product_name: product.title,
             price: product.price,
@@ -91,7 +91,7 @@ export const useCartStore = create<CartState>()(
           }));
           
           // Log analytics event
-          Analytics.logEvent(Analytics.Events.ADD_TO_CART, {
+          Analytics.logEvent("add_to_cart", {
             product_id: product.id,
             product_name: product.title,
             price: product.price,
@@ -120,7 +120,7 @@ export const useCartStore = create<CartState>()(
           }));
           
           // Log analytics event
-          Analytics.logEvent(Analytics.Events.REMOVE_FROM_CART, {
+          Analytics.logEvent("remove_from_cart", {
             product_id: productId,
             product_name: productToRemove.product.title,
             price: productToRemove.product.price,

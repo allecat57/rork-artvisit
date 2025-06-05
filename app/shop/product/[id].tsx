@@ -4,15 +4,15 @@ import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { User, DollarSign, Calendar, Ruler, Info, ShoppingBag, ArrowLeft } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import colors from "../../constants/colors";
-import typography from "../../constants/typography";
-import Button from "../../components/Button";
-import { products } from "../../mocks/products";
-import { Product } from "../../types/product";
-import { useCartStore } from "../../store/useCartStore";
-import { useAuthStore } from "../../store/useAuthStore";
-import * as Analytics from "../../utils/analytics";
-import CartButton from "../../components/CartButton";
+import colors from "@/constants/colors";
+import typography from "@/constants/typography";
+import Button from "@/components/Button";
+import { products } from "@/mocks/products";
+import { Product } from "@/types/product";
+import { useCartStore } from "@/store/useCartStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import * as Analytics from "@/utils/analytics";
+import CartButton from "@/components/CartButton";
 
 export default function ProductDetailScreen() {
   const { id, galleryId } = useLocalSearchParams();
@@ -31,7 +31,7 @@ export default function ProductDetailScreen() {
         // Log view event
         if (user) {
           // Log product view event
-          Analytics.logEvent(Analytics.Events.SCREEN_VIEW, {
+          Analytics.logEvent("screen_view", {
             screen_name: "ProductDetail",
             product_id: id,
             product_name: foundProduct.title,
@@ -49,7 +49,7 @@ export default function ProductDetailScreen() {
       // Log add to cart event
       if (user) {
         try {
-          Analytics.logEvent(Analytics.Events.ADD_TO_CART, {
+          Analytics.logEvent("add_to_cart", {
             user_id: user.id,
             gallery_id: galleryId,
             artwork_id: product.id,

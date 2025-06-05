@@ -2,23 +2,26 @@
 // This file provides a simplified analytics interface
 
 // Define event types
-export enum Events {
-  SCREEN_VIEW = "screen_view",
-  ADD_TO_CART = "add_to_cart",
-  REMOVE_FROM_CART = "remove_from_cart",
-  PURCHASE = "purchase",
-  LOGIN = "login",
-  SIGNUP = "signup",
-  SEARCH = "search",
-  FILTER = "filter",
-  FAVORITE = "favorite",
-  UNFAVORITE = "unfavorite",
-  SHARE = "share",
-  RESERVATION_CREATED = "reservation_created",
-  RESERVATION_CANCELLED = "reservation_cancelled",
-  SUBSCRIPTION_STARTED = "subscription_started",
-  SUBSCRIPTION_CANCELLED = "subscription_cancelled"
-}
+export const Events = {
+  SCREEN_VIEW: "screen_view",
+  ADD_TO_CART: "add_to_cart",
+  REMOVE_FROM_CART: "remove_from_cart",
+  PURCHASE: "purchase",
+  LOGIN: "login",
+  SIGNUP: "signup",
+  SEARCH: "search",
+  FILTER: "filter",
+  FAVORITE: "favorite",
+  UNFAVORITE: "unfavorite",
+  SHARE: "share",
+  RESERVATION_CREATED: "reservation_created",
+  RESERVATION_CANCELLED: "reservation_cancelled",
+  SUBSCRIPTION_STARTED: "subscription_started",
+  SUBSCRIPTION_CANCELLED: "subscription_cancelled",
+  USER_LOGIN: "user_login",
+  USER_LOGOUT: "user_logout",
+  USER_SIGNUP: "user_signup"
+};
 
 // Log an event with parameters
 export const logEvent = (eventName: string, params?: Record<string, any>) => {
@@ -43,6 +46,12 @@ export const sendAnalyticsEvent = async (eventName: string, params?: Record<stri
 // Set user properties
 export const setUserProperties = (properties: Record<string, any>) => {
   console.log("[Analytics] Setting user properties:", properties);
+  return Promise.resolve();
+};
+
+// Set user ID
+export const setUserId = (userId: string | null) => {
+  console.log(`[Analytics] Setting user ID: ${userId || "anonymous"}`);
   return Promise.resolve();
 };
 
