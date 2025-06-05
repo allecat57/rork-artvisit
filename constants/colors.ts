@@ -14,8 +14,8 @@ export default {
     dark: "#AC8901",
     light: "#AC8901",
     secondary: {
-      dark: "#B0B0B0",
-      light: "#E0E0E0"
+      dark: "#AC8901",
+      light: "#AC8901"
     }
   },
   card: {
@@ -23,12 +23,12 @@ export default {
     light: "#144237"
   },
   border: {
-    dark: "#2A2A2A",
-    light: "#2A2A2A"
+    dark: "#AC8901",
+    light: "#AC8901"
   },
   muted: {
-    dark: "#666666",
-    light: "#9CA3AF"
+    dark: "#AC8901",
+    light: "#AC8901"
   },
   status: {
     success: "#10B981",
@@ -43,5 +43,5 @@ export default {
   light: "#FFFFFF",
   dark: "#013025",
   white: "#FFFFFF",
-  black: "#000000",
+  black: "#AC8901",
 };

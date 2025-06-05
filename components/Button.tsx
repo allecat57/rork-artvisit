@@ -1,141 +1,180 @@
-import React from "react";
-import { 
-  StyleSheet, 
-  Text, 
-  TouchableOpacity, 
-  ActivityIndicator, 
-  View 
-} from "react-native";
-import colors from "../constants/colors";
-import typography from "../constants/typography";
-import * as Analytics from "../utils/analytics";
-import { logFirestoreEvent } from "../utils/firestoreEvents";
+import React from 'react';
+import {
+  TouchableOpacity,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  ViewStyle,
+  TextStyle,
+  StyleProp,
+} from 'react-native';
+import colors from '@/constants/colors';
+import typography from '@/constants/typography';
+import * as Analytics from '@/utils/analytics';
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: "primary" | "secondary" | "outline" | "text";
-  size?: "small" | "medium" | "large";
+  variant?: 'primary' | 'secondary' | 'outline' | 'text';
+  size?: 'small' | 'medium' | 'large';
   disabled?: boolean;
   loading?: boolean;
-  icon?: React.ReactNode;
-  iconPosition?: "left" | "right";
+  style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
   analyticsEventName?: string;
-  analyticsParams?: Record<string, any>;
-  firestoreEvent?: {
-    type: string;
-    userId: string;
-    galleryId?: string;
-    artworkId?: string;
-    venueId?: string;
-    eventId?: string;
-    additionalData?: Record<string, any>;
-  };
-  style?: any;
+  analyticsProperties?: Record<string, any>;
 }
 
-export default function Button({
+const Button: React.FC<ButtonProps> = ({
   title,
   onPress,
-  variant = "primary",
-  size = "medium",
+  variant = 'primary',
+  size = 'medium',
   disabled = false,
   loading = false,
-  icon,
-  iconPosition = "left",
+  style,
+  textStyle,
   analyticsEventName,
-  analyticsParams,
-  firestoreEvent,
-  style
-}: ButtonProps) {
-  const handlePress = async () => {
+  analyticsProperties = {},
+}) => {
+  const handlePress = () => {
     if (analyticsEventName) {
-      await Analytics.sendAnalyticsEvent(analyticsEventName, analyticsParams);
+      Analytics.logEvent(analyticsEventName, analyticsProperties);
     }
-    
-    if (firestoreEvent) {
-      await logFirestoreEvent(firestoreEvent);
-    }
-    
     onPress();
   };
 
   const getButtonStyle = () => {
-    let buttonStyle = [styles.button, styles[`${size}Button`]];
-    
-    if (variant === "primary") {
-      buttonStyle.push(styles.primaryButton);
-    } else if (variant === "secondary") {
-      buttonStyle.push(styles.secondaryButton);
-    } else if (variant === "outline") {
-      buttonStyle.push(styles.outlineButton);
-    } else if (variant === "text") {
-      buttonStyle.push(styles.textButton);
+    switch (variant) {
+      case 'primary':
+        return styles.primaryButton;
+      case 'secondary':
+        return styles.secondaryButton;
+      case 'outline':
+        return styles.outlineButton;
+      case 'text':
+        return styles.textButton;
+      default:
+        return styles.primaryButton;
     }
-    
-    if (disabled) {
-      buttonStyle.push(styles.disabledButton);
-    }
-    
-    if (style) {
-      buttonStyle.push(style);
-    }
-    
-    return buttonStyle;
   };
-  
+
   const getTextStyle = () => {
-    let textStyle = [styles.buttonText, styles[`${size}Text`]];
-    
-    if (variant === "primary") {
-      textStyle.push(styles.primaryText);
-    } else if (variant === "secondary") {
-      textStyle.push(styles.secondaryText);
-    } else if (variant === "outline") {
-      textStyle.push(styles.outlineText);
-    } else if (variant === "text") {
-      textStyle.push(styles.textButtonText);
+    switch (variant) {
+      case 'primary':
+        return styles.primaryText;
+      case 'secondary':
+        return styles.secondaryText;
+      case 'outline':
+        return styles.outlineText;
+      case 'text':
+        return styles.textButtonText;
+      default:
+        return styles.primaryText;
     }
-    
-    if (disabled) {
-      textStyle.push(styles.disabledText);
+  };
+
+  const getSizeStyle = () => {
+    switch (size) {
+      case 'small':
+        return styles.smallButton;
+      case 'medium':
+        return styles.mediumButton;
+      case 'large':
+        return styles.largeButton;
+      default:
+        return styles.mediumButton;
     }
-    
-    return textStyle;
+  };
+
+  const getTextSizeStyle = () => {
+    switch (size) {
+      case 'small':
+        return styles.smallText;
+      case 'medium':
+        return styles.mediumText;
+      case 'large':
+        return styles.largeText;
+      default:
+        return styles.mediumText;
+    }
   };
 
   return (
     <TouchableOpacity
-      style={getButtonStyle()}
+      style={[
+        styles.button,
+        getButtonStyle(),
+        getSizeStyle(),
+        disabled && styles.disabledButton,
+        style,
+      ]}
       onPress={handlePress}
       disabled={disabled || loading}
-      activeOpacity={0.7}
+      activeOpacity={0.8}
     >
       {loading ? (
-        <ActivityIndicator 
-          size="small" 
-          color={variant === "primary" ? "#FFFFFF" : colors.primary.accent} 
+        <ActivityIndicator
+          color={variant === 'primary' ? '#FFFFFF' : '#AC8901'}
+          size={size === 'small' ? 'small' : 'small'}
         />
       ) : (
-        <View style={styles.contentContainer}>
-          {icon && iconPosition === "left" && (
-            <View style={styles.iconLeft}>{icon}</View>
-          )}
-          <Text style={getTextStyle()}>{title}</Text>
-          {icon && iconPosition === "right" && (
-            <View style={styles.iconRight}>{icon}</View>
-          )}
-        </View>
+        <Text
+          style={[
+            styles.text,
+            getTextStyle(),
+            getTextSizeStyle(),
+            disabled && styles.disabledText,
+            textStyle,
+          ]}
+        >
+          {title}
+        </Text>
       )}
     </TouchableOpacity>
   );
-}
+};
 
 const styles = StyleSheet.create({
   button: {
     borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  primaryButton: {
+    backgroundColor: colors.accent,
+  },
+  secondaryButton: {
+    backgroundColor: colors.secondary,
+  },
+  outlineButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#AC8901',
+  },
+  textButton: {
+    backgroundColor: 'transparent',
+  },
+  disabledButton: {
+    opacity: 0.5,
+  },
+  text: {
+    fontWeight: '600',
+  },
+  primaryText: {
+    color: '#FFFFFF',
+  },
+  secondaryText: {
+    color: '#FFFFFF',
+  },
+  outlineText: {
+    color: '#AC8901',
+  },
+  textButtonText: {
+    color: '#AC8901',
+  },
+  disabledText: {
+    opacity: 0.7,
   },
   smallButton: {
     paddingVertical: 8,
@@ -149,62 +188,16 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 32,
   },
-  primaryButton: {
-    backgroundColor: colors.primary.accent,
-  },
-  secondaryButton: {
-    backgroundColor: colors.primary.secondary,
-  },
-  outlineButton: {
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: colors.primary.accent,
-  },
-  textButton: {
-    backgroundColor: "transparent",
-    paddingHorizontal: 0,
-    paddingVertical: 4,
-  },
-  disabledButton: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    fontWeight: "600",
-    textAlign: "center",
-  },
   smallText: {
-    ...typography.caption,
+    ...typography.buttonSmall,
   },
   mediumText: {
-    ...typography.body,
+    ...typography.button,
   },
   largeText: {
-    ...typography.heading4,
-  },
-  primaryText: {
-    color: "#FFFFFF",
-  },
-  secondaryText: {
-    color: colors.primary.accent,
-  },
-  outlineText: {
-    color: colors.primary.accent,
-  },
-  textButtonText: {
-    color: colors.primary.accent,
-  },
-  disabledText: {
-    opacity: 0.8,
-  },
-  contentContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  iconLeft: {
-    marginRight: 8,
-  },
-  iconRight: {
-    marginLeft: 8,
+    ...typography.button,
+    fontSize: 18,
   },
 });
+
+export default Button;

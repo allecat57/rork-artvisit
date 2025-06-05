@@ -226,7 +226,7 @@ export default function LoginScreen() {
             <View style={styles.inputContainer}>
               <User
                 size={20}
-                color={formErrors.name ? colors.status.error : colors.primary.muted}
+                color={formErrors.name ? colors.status.error : "#AC8901"}
                 style={styles.inputIcon}
               />
               <TextInput
@@ -235,7 +235,7 @@ export default function LoginScreen() {
                   formErrors.name ? styles.inputError : null,
                 ]}
                 placeholder="Full Name"
-                placeholderTextColor={colors.primary.muted}
+                placeholderTextColor="#AC8901"
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
@@ -249,7 +249,7 @@ export default function LoginScreen() {
           <View style={styles.inputContainer}>
             <Mail
               size={20}
-              color={formErrors.email ? colors.status.error : colors.primary.muted}
+              color={formErrors.email ? colors.status.error : "#AC8901"}
               style={styles.inputIcon}
             />
             <TextInput
@@ -258,7 +258,7 @@ export default function LoginScreen() {
                 formErrors.email ? styles.inputError : null,
               ]}
               placeholder="Email Address"
-              placeholderTextColor={colors.primary.muted}
+              placeholderTextColor="#AC8901"
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
@@ -272,7 +272,7 @@ export default function LoginScreen() {
           <View style={styles.inputContainer}>
             <Lock
               size={20}
-              color={formErrors.password ? colors.status.error : colors.primary.muted}
+              color={formErrors.password ? colors.status.error : "#AC8901"}
               style={styles.inputIcon}
             />
             <TextInput
@@ -281,7 +281,7 @@ export default function LoginScreen() {
                 formErrors.password ? styles.inputError : null,
               ]}
               placeholder="Password"
-              placeholderTextColor={colors.primary.muted}
+              placeholderTextColor="#AC8901"
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!showPassword}
@@ -291,9 +291,9 @@ export default function LoginScreen() {
               onPress={() => setShowPassword(!showPassword)}
             >
               {showPassword ? (
-                <EyeOff size={20} color={colors.primary.muted} />
+                <EyeOff size={20} color="#AC8901" />
               ) : (
-                <Eye size={20} color={colors.primary.muted} />
+                <Eye size={20} color="#AC8901" />
               )}
             </TouchableOpacity>
             {formErrors.password && (
@@ -362,7 +362,7 @@ const styles = StyleSheet.create({
   },
   logoText: {
     ...typography.heading1,
-    color: colors.primary.accent,
+    color: "#AC8901",
     marginBottom: 8,
     fontFamily: Platform.select({
       ios: "Georgia",
@@ -372,7 +372,7 @@ const styles = StyleSheet.create({
   },
   tagline: {
     ...typography.body,
-    color: colors.primary.muted,
+    color: "#AC8901",
   },
   formContainer: {
     paddingHorizontal: 24,
@@ -380,11 +380,11 @@ const styles = StyleSheet.create({
   title: {
     ...typography.heading2,
     marginBottom: 8,
-    color: colors.primary.text,
+    color: "#AC8901",
   },
   subtitle: {
     ...typography.body,
-    color: colors.primary.muted,
+    color: "#AC8901",
     marginBottom: 32,
   },
   errorText: {
@@ -405,9 +405,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingLeft: 48,
     paddingRight: 16,
-    color: colors.primary.text,
+    color: "#AC8901",
     borderWidth: 1,
-    borderColor: colors.primary.border,
+    borderColor: "#AC8901",
   },
   inputError: {
     borderColor: colors.status.error,
@@ -434,7 +434,7 @@ const styles = StyleSheet.create({
   },
   forgotPasswordText: {
     ...typography.bodySmall,
-    color: colors.primary.accent,
+    color: "#AC8901",
   },
   submitButton: {
     marginBottom: 24,
@@ -447,15 +447,16 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.primary.border,
+    backgroundColor: "#AC8901",
   },
   dividerText: {
     ...typography.bodySmall,
-    color: colors.primary.muted,
-    marginHorizontal: 16,
+    color: "#AC8901",
+    marginHorizontal: 8,
   },
   testAccountButton: {
     marginBottom: 32,
+    borderColor: "#AC8901",
   },
   switchContainer: {
     flexDirection: "row",
@@ -464,11 +465,11 @@ const styles = StyleSheet.create({
   },
   switchText: {
     ...typography.body,
-    color: colors.primary.muted,
+    color: "#AC8901",
   },
   switchActionText: {
     ...typography.body,
-    color: colors.primary.accent,
+    color: "#AC8901",
     fontWeight: "600",
     marginLeft: 8,
   },
