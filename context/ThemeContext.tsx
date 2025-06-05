@@ -44,13 +44,13 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     }
   };
   
-  // Provide the theme context value
+  // Provide the theme context value with enhanced colors
   const contextValue: ThemeContextType = {
     theme,
     isDark,
     setTheme,
     toggleTheme,
-    colors: colors, // In a real app, you'd have different color sets for light/dark
+    colors: colors,
   };
   
   return (

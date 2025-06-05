@@ -1,43 +1,47 @@
 export default {
-  primary: {
-    background: "#013025",
-    text: "#AC8901",
-    accent: "#AC8901",
-    muted: "#888888",
-    card: "#1E1E1E",
-    border: "#333333",
-    secondary: "#144237"
-  },
+  primary: "#013025",
   secondary: "#144237",
   accent: "#AC8901",
   background: {
-    dark: "#121212",
+    dark: "#0F0F0F",
     light: "#FFFFFF"
+  },
+  surface: {
+    dark: "#1A1A1A",
+    light: "#F8F9FA"
   },
   text: {
     dark: "#FFFFFF",
-    light: "#000000"
+    light: "#1A1A1A",
+    secondary: {
+      dark: "#B0B0B0",
+      light: "#6B7280"
+    }
   },
   card: {
     dark: "#1E1E1E",
-    light: "#F5F5F5"
+    light: "#FFFFFF"
   },
   border: {
-    dark: "#333333",
-    light: "#EEEEEE"
+    dark: "#2A2A2A",
+    light: "#E5E7EB"
   },
   muted: {
-    dark: "#888888",
-    light: "#666666"
+    dark: "#666666",
+    light: "#9CA3AF"
   },
   status: {
-    success: "#4CAF50",
-    error: "#F44336",
-    warning: "#FF9800",
+    success: "#10B981",
+    error: "#EF4444",
+    warning: "#F59E0B",
+    info: "#3B82F6"
   },
-  // For backward compatibility
+  // Semantic colors
+  destructive: "#EF4444",
+  constructive: "#10B981",
+  // Legacy support
   light: "#FFFFFF",
-  dark: "#121212",
+  dark: "#0F0F0F",
   white: "#FFFFFF",
   black: "#000000",
 };

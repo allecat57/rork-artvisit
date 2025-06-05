@@ -1,52 +1,50 @@
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
-import { useColorScheme, Platform } from 'react-native';
-import { ThemeProvider } from '../context/ThemeContext';
-import { StripeProvider } from '../context/StripeContext';
-import { supabase } from '../config/supabase';
-import { useAuthStore } from '../store/useAuthStore';
-import * as Analytics from '../utils/analytics';
+import { useColorScheme, Platform, StatusBar } from 'react-native';
+import { ThemeProvider, useTheme } from '@/context/ThemeContext';
+import { StripeProvider } from '@/context/StripeContext';
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const { user, isAuthenticated } = useAuthStore();
+function RootLayoutContent() {
+  const { isDark, colors } = useTheme();
 
   useEffect(() => {
-    // Log app start event
-    Analytics.logEvent('app_start', {
-      timestamp: new Date().toISOString(),
-      platform: Platform.OS,
-      color_scheme: colorScheme
-    });
-    
-    // Check current session (without realtime subscription)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        useAuthStore.getState().setUser(session.user);
-        
-        // Set user ID for analytics
-        Analytics.setUserId(session.user.id);
-        
-        // Log auth event
-        Analytics.logEvent('auth_session_restored', {
-          user_id: session.user.id
-        });
-      }
-    });
-  }, []);
+    // Set status bar style based on theme
+    if (Platform.OS === 'ios') {
+      StatusBar.setBarStyle(isDark ? 'light-content' : 'dark-content', true);
+    }
+  }, [isDark]);
 
   return (
+    <StripeProvider>
+      <Stack
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: isDark ? colors.background.dark : colors.background.light,
+            borderBottomWidth: 0,
+            elevation: 0,
+            shadowOpacity: 0.05,
+            shadowRadius: 8,
+            shadowOffset: { width: 0, height: 1 },
+            shadowColor: '#000000',
+          },
+          headerTintColor: isDark ? colors.text.dark : colors.text.light,
+          headerTitleStyle: {
+            fontSize: 18,
+            fontWeight: '600',
+          },
+          headerBackTitleVisible: false,
+          gestureEnabled: true,
+          animation: 'slide_from_right',
+        }}
+      />
+    </StripeProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
     <ThemeProvider>
-      <StripeProvider>
-        <Stack
-          screenOptions={{
-            headerStyle: {
-              backgroundColor: colorScheme === 'dark' ? '#121212' : '#ffffff',
-            },
-            headerTintColor: colorScheme === 'dark' ? '#ffffff' : '#000000',
-          }}
-        />
-      </StripeProvider>
+      <RootLayoutContent />
     </ThemeProvider>
   );
 }

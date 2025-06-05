@@ -1,60 +1,120 @@
 import { Tabs } from 'expo-router';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, Platform } from 'react-native';
 import { Home, Search, Calendar, User, CheckSquare } from 'lucide-react-native';
-import colors from '../../constants/colors';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const { isDark, colors } = useTheme();
   
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.primary,
-        tabBarInactiveTintColor: isDark ? colors.muted.dark : colors.muted.light,
+        tabBarActiveTintColor: colors.accent,
+        tabBarInactiveTintColor: isDark ? '#666666' : '#999999',
         tabBarStyle: {
-          backgroundColor: isDark ? colors.background.dark : colors.background.light,
-          borderTopColor: isDark ? colors.border.dark : colors.border.light,
+          backgroundColor: isDark ? '#1A1A1A' : '#FFFFFF',
+          borderTopWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0.1,
+          shadowRadius: 10,
+          shadowOffset: { width: 0, height: -2 },
+          shadowColor: '#000000',
+          height: Platform.OS === 'ios' ? 88 : 70,
+          paddingBottom: Platform.OS === 'ios' ? 28 : 10,
+          paddingTop: 10,
+          paddingHorizontal: 20,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 5,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '500',
+          marginTop: 2,
+        },
+        tabBarIconStyle: {
+          marginBottom: 2,
         },
         headerStyle: {
           backgroundColor: isDark ? colors.background.dark : colors.background.light,
+          borderBottomWidth: 0,
+          elevation: 0,
+          shadowOpacity: 0.05,
+          shadowRadius: 8,
+          shadowOffset: { width: 0, height: 1 },
+          shadowColor: '#000000',
         },
         headerTintColor: isDark ? colors.text.dark : colors.text.light,
+        headerTitleStyle: {
+          fontSize: 18,
+          fontWeight: '600',
+        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Home 
+              color={color} 
+              size={focused ? 24 : 22} 
+              strokeWidth={focused ? 2.5 : 2}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
           title: 'Explore',
-          tabBarIcon: ({ color, size }) => <Search color={color} size={size} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Search 
+              color={color} 
+              size={focused ? 24 : 22} 
+              strokeWidth={focused ? 2.5 : 2}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="events"
         options={{
           title: 'Events',
-          tabBarIcon: ({ color, size }) => <Calendar color={color} size={size} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <Calendar 
+              color={color} 
+              size={focused ? 24 : 22} 
+              strokeWidth={focused ? 2.5 : 2}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="todos"
         options={{
           title: 'Todos',
-          tabBarIcon: ({ color, size }) => <CheckSquare color={color} size={size} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <CheckSquare 
+              color={color} 
+              size={focused ? 24 : 22} 
+              strokeWidth={focused ? 2.5 : 2}
+            />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
+          tabBarIcon: ({ color, size, focused }) => (
+            <User 
+              color={color} 
+              size={focused ? 24 : 22} 
+              strokeWidth={focused ? 2.5 : 2}
+            />
+          ),
         }}
       />
     </Tabs>
