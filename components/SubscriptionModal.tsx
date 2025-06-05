@@ -268,7 +268,7 @@ export default function SubscriptionModal({
     // In a real app, you would securely send this to your backend
     // For this demo, we'll just store the last 4 digits of the card
     const cardNumber = paymentDetails.cardNumber.replace(/\s/g, "");
-    const last4 = cardNumber.substring(cardNumber.length - 4);
+    const last4 = cardNumber.length >= 4 ? cardNumber.substring(cardNumber.length - 4) : "****";
     
     // Log payment method update
     Analytics.sendAnalyticsEvent("payment_method_added", {
@@ -312,9 +312,12 @@ export default function SubscriptionModal({
   };
   
   const getCardType = (cardNumber: string) => {
+    if (!cardNumber || cardNumber.length < 2) {
+      return "Unknown Card";
+    }
     // Improved card type detection
     const firstDigit = cardNumber.charAt(0);
-    const firstTwoDigits = cardNumber.substring(0, 2);
+    const firstTwoDigits = cardNumber.length >= 2 ? cardNumber.substring(0, 2) : "";
     
     if (firstTwoDigits === "34" || firstTwoDigits === "37") {
       return "American Express";

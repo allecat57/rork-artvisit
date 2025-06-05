@@ -1,32 +1,34 @@
 const colors = {
-  primary: '#007AFF',
-  secondary: '#5856D6',
-  
+  primary: {
+    main: '#007AFF',
+    accent: '#AC8901', // Pastel gold for accents
+    secondary: '#5856D6',
+    border: '#C6C6C8',
+    text: '#000000',
+    background: '#FFFFFF',
+    card: '#FFFFFF',
+    muted: '#8E8E93'
+  },
   background: {
     light: '#FFFFFF',
     dark: '#000000',
   },
-  
   card: {
     light: '#FFFFFF',
     dark: '#1C1C1E',
   },
-  
   text: {
     light: '#000000',
     dark: '#FFFFFF',
   },
-  
   muted: {
     light: '#8E8E93',
     dark: '#8E8E93',
   },
-  
   border: {
     light: '#C6C6C8',
     dark: '#38383A',
   },
-  
   status: {
     success: '#34C759',
     error: '#FF3B30',

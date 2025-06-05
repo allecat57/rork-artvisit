@@ -40,16 +40,16 @@ export default function RootLayout() {
         <Stack
           screenOptions={{
             headerStyle: {
-              backgroundColor: isDark ? colors.background.dark : '#FFFFFF',
+              backgroundColor: isDark ? colors.background.dark : colors.background.light,
             },
             headerTitleStyle: {
               fontWeight: '600',
               fontSize: 17,
-              color: '#AC8901', // Pastel gold accent for headers
+              color: colors.primary.accent,
             },
             headerTintColor: isDark ? colors.text.dark : colors.text.light,
             contentStyle: {
-              backgroundColor: isDark ? colors.background.dark : '#FFFFFF',
+              backgroundColor: isDark ? colors.background.dark : colors.background.light,
             },
           }}
         />

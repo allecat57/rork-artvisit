@@ -102,7 +102,7 @@ export default function ExploreScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>Explore</Text>
           <TouchableOpacity style={styles.locationButton} onPress={handleLocationPress}>
-            <MapPin size={16} color={colors.primary} />
+            <MapPin size={16} color={colors.primary.main} />
             <Text style={styles.locationText} numberOfLines={1}>
               {locationName || "Set location"}
             </Text>
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     ...typography.bodySmall,
-    color: colors.primary,
+    color: colors.primary.main,
     marginLeft: 4,
   },
   searchBar: {

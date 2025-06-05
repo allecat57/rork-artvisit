@@ -23,7 +23,7 @@ export default function TodosScreen() {
   const isDark = colorScheme === 'dark';
   const textColor = isDark ? colors.text.dark : colors.text.light;
   const bgColor = isDark ? colors.background.dark : colors.background.light;
-  const accentColor = colors.primary;
+  const accentColor = colors.primary.main;
 
   useEffect(() => {
     fetchTodos();
@@ -42,7 +42,7 @@ export default function TodosScreen() {
         timestamp: new Date().toISOString()
       });
       
-      if (!isSupabaseConfigured()) {
+      if (!isSupabaseConfigured() || !supabase) {
         console.warn("Supabase is not configured. Returning empty todos.");
         setTodos([]);
         Analytics.logEvent('fetch_todos_skipped', {
@@ -52,7 +52,7 @@ export default function TodosScreen() {
         return;
       }
       
-      const { data, error: supabaseError } = await supabase!
+      const { data, error: supabaseError } = await supabase
         .from('todos')
         .select('*')
         .order('created_at', { ascending: false });
@@ -99,7 +99,7 @@ export default function TodosScreen() {
         todo.id === id ? { ...todo, completed: newStatus } : todo
       ));
       
-      if (!isSupabaseConfigured()) {
+      if (!isSupabaseConfigured() || !supabase) {
         console.warn("Supabase is not configured. Skipping update operation.");
         Analytics.logEvent('toggle_todo_status_skipped', {
           todo_id: id,
@@ -110,7 +110,7 @@ export default function TodosScreen() {
       }
       
       // Update in database
-      const { error: supabaseError } = await supabase!
+      const { error: supabaseError } = await supabase
         .from('todos')
         .update({ completed: newStatus })
         .eq('id', id);

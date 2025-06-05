@@ -1,8 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 
-// Make sure to use environment variables for sensitive data in production
-const supabaseUrl = "https://your-supabase-url.supabase.co";
-const supabaseAnonKey = "your-supabase-anon-key";
+// Use environment variables with fallback for development
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || "https://your-supabase-url.supabase.co";
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || "your-supabase-anon-key";
 
 // Check if Supabase is properly configured before creating client
 export const isSupabaseConfigured = (): boolean => {

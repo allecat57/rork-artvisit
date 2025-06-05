@@ -168,7 +168,7 @@ export default function ProfileScreen() {
     // In a real app, you would securely send this to your backend
     // For this demo, we'll just store the last 4 digits of the card
     const cardNumber = paymentDetails.cardNumber.replace(/\s/g, "");
-    const last4 = cardNumber.substring(cardNumber.length - 4);
+    const last4 = cardNumber.length >= 4 ? cardNumber.substring(cardNumber.length - 4) : "****";
     
     // Log payment method update
     Analytics.logEvent(Analytics.Events.UPDATE_PAYMENT_METHOD, {
@@ -190,6 +190,9 @@ export default function ProfileScreen() {
   };
   
   const getCardType = (cardNumber: string) => {
+    if (!cardNumber || cardNumber.length < 1) {
+      return "Credit Card";
+    }
     // Very basic card type detection based on first digit
     const firstDigit = cardNumber.charAt(0);
     
