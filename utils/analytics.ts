@@ -43,6 +43,17 @@ export const sendAnalyticsEvent = async (eventName: string, params?: Record<stri
   }
 };
 
+// Compatibility method for TimeFrame analytics
+export const sendToTimeFrameAnalytics = async (eventName: string, params?: Record<string, any>) => {
+  try {
+    await logEvent(eventName, params);
+    return true;
+  } catch (error) {
+    console.error("Error sending TimeFrame analytics event:", error);
+    return false;
+  }
+};
+
 // Set user properties
 export const setUserProperties = (properties: Record<string, any>) => {
   console.log("[Analytics] Setting user properties:", properties);

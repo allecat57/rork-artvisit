@@ -28,11 +28,8 @@ export default function TodosScreen() {
   useEffect(() => {
     fetchTodos();
     
-    // Log screen view to TimeFrame Analytics
-    Analytics.sendToTimeFrameAnalytics('screen_view', {
-      screen_name: 'Todos',
-      screen_class: 'TodosScreen'
-    });
+    // Log screen view to Analytics
+    Analytics.setCurrentScreen('Todos', 'TodosScreen');
   }, []);
 
   const fetchTodos = async () => {
@@ -40,8 +37,8 @@ export default function TodosScreen() {
       setLoading(true);
       setError(null);
       
-      // Log analytics event to TimeFrame
-      Analytics.sendToTimeFrameAnalytics('fetch_todos_started', {
+      // Log analytics event
+      Analytics.logEvent('fetch_todos_started', {
         timestamp: new Date().toISOString()
       });
       
@@ -56,8 +53,8 @@ export default function TodosScreen() {
 
       setTodos(data as Todo[] || []);
       
-      // Log analytics event to TimeFrame
-      Analytics.sendToTimeFrameAnalytics('fetch_todos_success', {
+      // Log analytics event
+      Analytics.logEvent('fetch_todos_success', {
         count: data?.length || 0,
         timestamp: new Date().toISOString()
       });
@@ -66,8 +63,8 @@ export default function TodosScreen() {
       console.error('Error fetching todos:', errorMessage);
       setError(errorMessage);
       
-      // Log analytics event to TimeFrame
-      Analytics.sendToTimeFrameAnalytics('fetch_todos_error', {
+      // Log analytics event
+      Analytics.logEvent('fetch_todos_error', {
         error_message: errorMessage,
         timestamp: new Date().toISOString()
       });
@@ -80,8 +77,8 @@ export default function TodosScreen() {
     try {
       const newStatus = !completed;
       
-      // Log analytics event to TimeFrame
-      Analytics.sendToTimeFrameAnalytics('toggle_todo_status', {
+      // Log analytics event
+      Analytics.logEvent('toggle_todo_status', {
         todo_id: id,
         new_status: newStatus ? 'completed' : 'incomplete',
         timestamp: new Date().toISOString()
@@ -102,8 +99,8 @@ export default function TodosScreen() {
         throw new Error(supabaseError.message);
       }
       
-      // Log analytics event to TimeFrame
-      Analytics.sendToTimeFrameAnalytics('toggle_todo_status_success', {
+      // Log analytics event
+      Analytics.logEvent('toggle_todo_status_success', {
         todo_id: id,
         new_status: newStatus ? 'completed' : 'incomplete',
         timestamp: new Date().toISOString()
@@ -114,8 +111,8 @@ export default function TodosScreen() {
       // Revert optimistic update on error
       fetchTodos();
       
-      // Log analytics event to TimeFrame
-      Analytics.sendToTimeFrameAnalytics('toggle_todo_status_error', {
+      // Log analytics event
+      Analytics.logEvent('toggle_todo_status_error', {
         todo_id: id,
         error_message: errorMessage,
         timestamp: new Date().toISOString()
@@ -194,8 +191,8 @@ export default function TodosScreen() {
       <TouchableOpacity 
         style={[styles.fab, { backgroundColor: accentColor }]}
         onPress={() => {
-          // Log analytics event to TimeFrame
-          Analytics.sendToTimeFrameAnalytics('add_todo_button_pressed', {
+          // Log analytics event
+          Analytics.logEvent('add_todo_button_pressed', {
             timestamp: new Date().toISOString()
           });
           
