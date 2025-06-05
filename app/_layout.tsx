@@ -41,10 +41,6 @@ export default function RootLayout() {
           screenOptions={{
             headerStyle: {
               backgroundColor: isDark ? colors.background.dark : '#FFFFFF',
-              borderBottomWidth: 0.5,
-              borderBottomColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
-              shadowColor: 'transparent',
-              elevation: 2,
             },
             headerTitleStyle: {
               fontWeight: '600',

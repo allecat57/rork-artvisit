@@ -52,7 +52,7 @@ export default function TodosScreen() {
         return;
       }
       
-      const { data, error: supabaseError } = await supabase
+      const { data, error: supabaseError } = await supabase!
         .from('todos')
         .select('*')
         .order('created_at', { ascending: false });
@@ -110,7 +110,7 @@ export default function TodosScreen() {
       }
       
       // Update in database
-      const { error: supabaseError } = await supabase
+      const { error: supabaseError } = await supabase!
         .from('todos')
         .update({ completed: newStatus })
         .eq('id', id);

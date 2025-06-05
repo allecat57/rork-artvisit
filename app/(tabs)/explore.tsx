@@ -102,9 +102,9 @@ export default function ExploreScreen() {
         <View style={styles.header}>
           <Text style={styles.title}>Explore</Text>
           <TouchableOpacity style={styles.locationButton} onPress={handleLocationPress}>
-            <MapPin size={16} color={colors.primary.accent} />
+            <MapPin size={16} color={colors.primary} />
             <Text style={styles.locationText} numberOfLines={1}>
-              {locationName || 'Set location'}
+              {locationName || "Set location"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -186,7 +186,7 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary.background,
+    backgroundColor: colors.background.light,
   },
   header: {
     flexDirection: 'row',
@@ -198,12 +198,12 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.heading1,
-    color: colors.primary.text,
+    color: colors.text.light,
   },
   locationButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card.light,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   },
   locationText: {
     ...typography.bodySmall,
-    color: colors.primary.accent,
+    color: colors.primary,
     marginLeft: 4,
   },
   searchBar: {
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.heading3,
-    color: colors.primary.text,
+    color: colors.text.light,
     marginHorizontal: 20,
     marginTop: 20,
     marginBottom: 15,
