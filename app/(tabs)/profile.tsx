@@ -163,7 +163,7 @@ export default function ProfileScreen() {
       Alert.alert("Error", "There was an error selecting your image");
     }
   };
-
+  
   const handleSavePaymentMethod = (paymentDetails: PaymentDetails) => {
     // In a real app, you would securely send this to your backend
     // For this demo, we'll just store the last 4 digits of the card

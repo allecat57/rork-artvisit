@@ -161,12 +161,9 @@ export default function TodosScreen() {
             Make sure you have a 'todos' table in your Supabase database with these columns:
           </Text>
           <Text style={[styles.codeBlock, { color: textColor }]}>
-            - id: uuid (primary key){"
-"}
-            - title: text{"
-"}
-            - completed: boolean{"
-"}
+            - id: uuid (primary key){"\n"}
+            - title: text{"\n"}
+            - completed: boolean{"\n"}
             - created_at: timestamp with timezone
           </Text>
         </View>
