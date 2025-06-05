@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { supabase } from '../../config/supabase';
+import { supabase, isSupabaseConfigured } from '../../config/supabase';
 import { CheckSquare, Square, Plus } from 'lucide-react-native';
 import { useColorScheme } from 'react-native';
 import colors from '../../constants/colors';
@@ -41,6 +41,16 @@ export default function TodosScreen() {
       Analytics.logEvent('fetch_todos_started', {
         timestamp: new Date().toISOString()
       });
+      
+      if (!isSupabaseConfigured()) {
+        console.warn("Supabase is not configured. Returning empty todos.");
+        setTodos([]);
+        Analytics.logEvent('fetch_todos_skipped', {
+          reason: 'supabase_not_configured',
+          timestamp: new Date().toISOString()
+        });
+        return;
+      }
       
       const { data, error: supabaseError } = await supabase
         .from('todos')
@@ -88,6 +98,16 @@ export default function TodosScreen() {
       setTodos(todos.map(todo => 
         todo.id === id ? { ...todo, completed: newStatus } : todo
       ));
+      
+      if (!isSupabaseConfigured()) {
+        console.warn("Supabase is not configured. Skipping update operation.");
+        Analytics.logEvent('toggle_todo_status_skipped', {
+          todo_id: id,
+          reason: 'supabase_not_configured',
+          timestamp: new Date().toISOString()
+        });
+        return;
+      }
       
       // Update in database
       const { error: supabaseError } = await supabase

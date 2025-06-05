@@ -26,3 +26,8 @@ export const setUserId = (userId: string | null) => {
   console.log(`[Analytics] Setting user ID: ${userId}`);
   return Promise.resolve();
 };
+
+export const sendToTimeFrameAnalytics = (data: any) => {
+  console.log(`[Analytics] Sending to timeframe analytics`, data);
+  return Promise.resolve();
+};

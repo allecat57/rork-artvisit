@@ -140,7 +140,7 @@ export default function ExploreScreen() {
           data={featuredVenues}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <FeaturedVenueCard
+            item && <FeaturedVenueCard
               venue={item}
               onPress={() => handleVenuePress(item.id)}
             />
@@ -155,7 +155,7 @@ export default function ExploreScreen() {
             <Text style={styles.sectionTitle}>Nearby</Text>
             <View style={styles.venuesContainer}>
               {nearbyVenues.map((venue) => (
-                <VenueCard
+                venue && <VenueCard
                   key={venue.id}
                   venue={venue}
                   onPress={() => handleVenuePress(venue.id)}
@@ -171,7 +171,7 @@ export default function ExploreScreen() {
             .filter(venue => venue.rating >= 4.5)
             .slice(0, 4)
             .map((venue) => (
-              <VenueCard
+              venue && <VenueCard
                 key={venue.id}
                 venue={venue}
                 onPress={() => handleVenuePress(venue.id)}

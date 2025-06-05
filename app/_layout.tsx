@@ -3,28 +3,35 @@ import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { StripeProvider } from '@/context/StripeContext';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured } from '@/config/supabase';
 import { useAuthStore } from '@/store/useAuthStore';
 import * as Analytics from '@/utils/analytics';
+import colors from '@/constants/colors';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const { user } = useAuthStore();
 
   useEffect(() => {
     Analytics.logEvent('app_start', {
       timestamp: new Date().toISOString(),
     });
     
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        useAuthStore.getState().setUser(session.user);
-        Analytics.logEvent('auth_session_restored', {
-          user_id: session.user.id
-        });
-      }
-    });
+    if (isSupabaseConfigured()) {
+      supabase?.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          useAuthStore.getState().setUser(session.user);
+          Analytics.logEvent('auth_session_restored', {
+            user_id: session.user.id
+          });
+        }
+      });
+    } else {
+      console.warn("Supabase is not configured. Skipping auth session check.");
+      Analytics.logEvent('auth_session_skipped', {
+        reason: 'supabase_not_configured'
+      });
+    }
   }, []);
 
   return (
@@ -33,20 +40,22 @@ export default function RootLayout() {
         <Stack
           screenOptions={{
             headerStyle: {
-              backgroundColor: isDark ? colors.background.dark : colors.background.light,
+              backgroundColor: isDark ? colors.background.dark : '#FFFFFF',
               borderBottomWidth: 0.5,
-              borderBottomColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+              borderBottomColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)',
               shadowColor: 'transparent',
+              elevation: 2,
             },
             headerTitleStyle: {
               fontWeight: '600',
               fontSize: 17,
+              color: '#AC8901', // Pastel gold accent for headers
             },
             headerTintColor: isDark ? colors.text.dark : colors.text.light,
             headerBackTitleVisible: false,
             headerShadowVisible: false,
             contentStyle: {
-              backgroundColor: isDark ? colors.background.dark : colors.background.light,
+              backgroundColor: isDark ? colors.background.dark : '#FFFFFF',
             },
           }}
         />
