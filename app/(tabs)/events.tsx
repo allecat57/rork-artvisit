@@ -56,7 +56,7 @@ export default function EventsScreen() {
   };
 
   // Convert events to proper Event type with featured property
-  const formattedEvents: Event[] = allEvents.map(event => ({
+  const formattedEvents: Event[] = allEvents.map((event: Event) => ({
     ...event,
     featured: event.featured || event.isFeatured || false // Map isFeatured to featured
   }));

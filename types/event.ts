@@ -17,9 +17,9 @@ export interface Event {
   capacity: number;
   remainingSpots: number;
   accessLevel: AccessLevel;
-  featured: boolean;
+  featured?: boolean;
   isFeatured?: boolean; // For backward compatibility
-  tags: string[];
+  tags?: string[];
   type: string;
 }
 

@@ -1,7 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
-import { useRouter } from "expo-router";
-import { ShoppingBag } from "lucide-react-native";
+import { ShoppingCart, Star } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import { Product } from "@/types/product";
@@ -10,41 +9,22 @@ import * as Analytics from "@/utils/analytics";
 
 interface ProductCardProps {
   product: Product;
-  compact?: boolean;
   onPress?: () => void;
+  compact?: boolean;
 }
 
-export default function ProductCard({ product, compact = false, onPress }: ProductCardProps) {
-  const router = useRouter();
-  const addToCart = useCartStore(state => state.addToCart);
-  
-  const handlePress = () => {
-    // Log analytics event
-    Analytics.logEvent("product_card_click", {
-      product_id: product.id,
-      product_title: product.title,
-      product_category: product.category,
-      product_price: product.price
-    });
-    
-    // Use the provided onPress handler or navigate to product details
-    if (onPress) {
-      onPress();
-    } else {
-      router.push(`/shop/product/${product.id}`);
-    }
-  };
+export default function ProductCard({ product, onPress, compact = false }: ProductCardProps) {
+  const { addToCart } = useCartStore();
   
   const handleAddToCart = (e: any) => {
     e.stopPropagation();
-    
     addToCart(product, 1);
     
     // Log analytics event
     Analytics.logEvent(Analytics.Events.ADD_TO_CART, {
       product_id: product.id,
-      product_title: product.title,
-      product_price: product.price,
+      product_name: product.title,
+      price: product.price,
       quantity: 1
     });
   };
@@ -53,22 +33,20 @@ export default function ProductCard({ product, compact = false, onPress }: Produ
     return (
       <TouchableOpacity 
         style={styles.compactContainer} 
-        onPress={handlePress}
+        onPress={onPress}
         activeOpacity={0.7}
       >
-        <Image source={{ uri: product.imageUrl }} style={styles.compactImage} />
+        <Image source={{ uri: product.image }} style={styles.compactImage} />
         <View style={styles.compactContent}>
-          <Text style={[typography.bodySmall, styles.compactArtist]}>{product.artist}</Text>
-          <Text style={[typography.bodySmall, styles.compactTitle]} numberOfLines={2}>
-            {product.title}
-          </Text>
+          <Text style={styles.compactCategory}>{product.category}</Text>
+          <Text style={styles.compactTitle} numberOfLines={2}>{product.title}</Text>
           <View style={styles.compactFooter}>
-            <Text style={styles.compactPrice}>${product.price}</Text>
+            <Text style={styles.compactPrice}>${product.price.toFixed(2)}</Text>
             <TouchableOpacity 
-              style={styles.compactAddButton}
+              style={styles.compactCartButton}
               onPress={handleAddToCart}
             >
-              <ShoppingBag size={14} color={colors.primary.background} />
+              <ShoppingCart size={16} color={colors.primary.background} />
             </TouchableOpacity>
           </View>
         </View>
@@ -79,35 +57,32 @@ export default function ProductCard({ product, compact = false, onPress }: Produ
   return (
     <TouchableOpacity 
       style={styles.container} 
-      onPress={handlePress}
+      onPress={onPress}
       activeOpacity={0.7}
     >
-      <Image source={{ uri: product.imageUrl }} style={styles.image} />
+      <Image source={{ uri: product.image }} style={styles.image} />
       
-      {!product.inStock && (
-        <View style={styles.outOfStockBadge}>
-          <Text style={styles.outOfStockText}>Out of Stock</Text>
+      {product.featured && (
+        <View style={styles.featuredBadge}>
+          <Star size={12} color={colors.primary.background} />
+          <Text style={styles.featuredText}>Featured</Text>
         </View>
       )}
       
       <View style={styles.content}>
-        <Text style={[typography.bodySmall, styles.artist]}>{product.artist}</Text>
-        <Text style={[typography.heading4, styles.title]} numberOfLines={2}>
-          {product.title}
-        </Text>
+        <Text style={styles.category}>{product.category}</Text>
+        <Text style={styles.title} numberOfLines={2}>{product.title}</Text>
+        <Text style={styles.description} numberOfLines={2}>{product.description}</Text>
         
         <View style={styles.footer}>
-          <Text style={styles.price}>${product.price}</Text>
-          
-          {product.inStock && (
-            <TouchableOpacity 
-              style={styles.addButton}
-              onPress={handleAddToCart}
-            >
-              <ShoppingBag size={16} color={colors.primary.background} />
-              <Text style={styles.addButtonText}>Add to Cart</Text>
-            </TouchableOpacity>
-          )}
+          <Text style={styles.price}>${product.price.toFixed(2)}</Text>
+          <TouchableOpacity 
+            style={styles.cartButton}
+            onPress={handleAddToCart}
+          >
+            <ShoppingCart size={18} color={colors.primary.background} />
+            <Text style={styles.cartButtonText}>Add</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </TouchableOpacity>
@@ -119,38 +94,48 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary.card,
     borderRadius: 12,
     overflow: "hidden",
-    marginBottom: 16,
+    width: 220,
     borderWidth: 1,
     borderColor: colors.primary.border,
-    width: 250,
   },
   image: {
     width: "100%",
-    height: 180,
+    height: 160,
     resizeMode: "cover",
   },
-  outOfStockBadge: {
+  featuredBadge: {
     position: "absolute",
     top: 12,
-    right: 12,
-    backgroundColor: colors.status.error,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 16,
+    left: 12,
+    backgroundColor: colors.primary.accent,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
-  outOfStockText: {
+  featuredText: {
     ...typography.caption,
-    color: "#FFFFFF",
+    color: colors.primary.background,
     fontWeight: "600",
+    marginLeft: 4,
   },
   content: {
-    padding: 16,
+    padding: 12,
   },
-  artist: {
+  category: {
+    ...typography.caption,
     color: colors.primary.muted,
     marginBottom: 4,
   },
   title: {
+    ...typography.bodySmall,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  description: {
+    ...typography.caption,
+    color: colors.primary.muted,
     marginBottom: 12,
   },
   footer: {
@@ -159,22 +144,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   price: {
-    ...typography.heading4,
+    ...typography.body,
+    fontWeight: "700",
     color: colors.primary.text,
   },
-  addButton: {
+  cartButton: {
     backgroundColor: colors.primary.accent,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
-  addButtonText: {
-    ...typography.bodySmall,
+  cartButtonText: {
+    ...typography.caption,
     color: colors.primary.background,
     fontWeight: "600",
-    marginLeft: 6,
+    marginLeft: 4,
   },
   
   // Compact styles
@@ -188,7 +174,7 @@ const styles = StyleSheet.create({
   },
   compactImage: {
     width: "100%",
-    height: 140,
+    height: 120,
     resizeMode: "cover",
   },
   compactContent: {
@@ -196,11 +182,13 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "space-between",
   },
-  compactArtist: {
+  compactCategory: {
+    ...typography.caption,
     color: colors.primary.muted,
     fontSize: 10,
   },
   compactTitle: {
+    ...typography.caption,
     fontWeight: "600",
     marginVertical: 4,
   },
@@ -211,12 +199,12 @@ const styles = StyleSheet.create({
   },
   compactPrice: {
     ...typography.bodySmall,
+    fontWeight: "700",
     color: colors.primary.text,
-    fontWeight: "600",
   },
-  compactAddButton: {
+  compactCartButton: {
     backgroundColor: colors.primary.accent,
     padding: 6,
-    borderRadius: 6,
+    borderRadius: 16,
   },
 });

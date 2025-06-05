@@ -1,188 +1,171 @@
 import { Product } from "@/types/product";
 
+export const productCategories = [
+  "Prints",
+  "Books",
+  "Apparel",
+  "Accessories",
+  "Home Decor",
+  "Stationery",
+  "Jewelry",
+  "Limited Editions"
+];
+
 export const products: Product[] = [
   {
-    id: "p1",
-    title: "Abstract Harmony",
-    artist: "Elena Mikhailova",
-    description: "A vibrant exploration of color and form, this abstract piece invites viewers to find their own meaning within its dynamic composition. Layers of acrylic paint create depth and texture, while bold brushstrokes convey a sense of movement and energy.",
-    price: 1200,
-    imageUrl: "https://images.unsplash.com/photo-1549887552-cb1071d3e5ca?q=80&w=1000",
-    gallery: "Metropolitan Museum of Art",
-    medium: "Acrylic on Canvas",
-    dimensions: "36\" x 48\"",
-    year: "2023",
-    inStock: true,
-    category: "Abstract",
-    featured: true
+    id: "prod-001",
+    title: "Abstract Composition Print",
+    description: "Limited edition print of an abstract composition by contemporary artist Jane Smith.",
+    price: 45.00,
+    image: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8YWJzdHJhY3QlMjBhcnR8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60",
+    category: "Prints",
+    featured: true,
+    inventory: 25,
+    dimensions: "16 x 20 inches",
+    weight: "0.5 kg",
+    tags: ["abstract", "contemporary", "limited edition"]
   },
   {
-    id: "p2",
-    title: "Urban Reflections",
-    artist: "Marcus Chen",
-    description: "This cityscape captures the essence of urban life through reflections in rain-soaked streets. The interplay of light and shadow creates a moody atmosphere, while careful attention to architectural details grounds the piece in reality.",
-    price: 950,
-    imageUrl: "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=1000",
-    gallery: "Museum of Modern Art",
-    medium: "Oil on Canvas",
-    dimensions: "24\" x 36\"",
-    year: "2022",
-    inStock: true,
-    category: "Landscape",
-    featured: false
+    id: "prod-002",
+    title: "Museum Exhibition Catalog",
+    description: "Comprehensive catalog of the museum's latest exhibition featuring essays and high-quality reproductions.",
+    price: 35.00,
+    image: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8OXx8Ym9va3xlbnwwfHwwfHw%3D&auto=format&fit=crop&w=500&q=60",
+    category: "Books",
+    featured: false,
+    inventory: 50,
+    dimensions: "9 x 11 inches",
+    weight: "1.2 kg",
+    tags: ["exhibition", "catalog", "art history"]
   },
   {
-    id: "p3",
-    title: "Serenity in Blue",
-    artist: "Sophia Williams",
-    description: "A meditative seascape that evokes a sense of calm and tranquility. The artist's masterful use of blue tones creates depth and movement in the water, while the minimal horizon line draws the viewer's gaze into the distance.",
-    price: 850,
-    imageUrl: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?q=80&w=1000",
-    gallery: "Guggenheim Museum",
-    medium: "Watercolor on Paper",
-    dimensions: "18\" x 24\"",
-    year: "2023",
-    inStock: true,
-    category: "Seascape",
-    featured: true
+    id: "prod-003",
+    title: "Artist Collaboration T-Shirt",
+    description: "Limited edition t-shirt featuring artwork by renowned artist John Doe.",
+    price: 28.00,
+    image: "https://images.unsplash.com/photo-1576566588028-4147f3842f27?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8MTB8fHRzaGlydHxlbnwwfHwwfHw%3D&auto=format&fit=crop&w=500&q=60",
+    category: "Apparel",
+    featured: true,
+    inventory: 30,
+    dimensions: "Sizes S-XL",
+    weight: "0.2 kg",
+    tags: ["apparel", "collaboration", "wearable art"]
   },
   {
-    id: "p4",
-    title: "Fragmented Memory",
-    artist: "David Alvarez",
-    description: "This mixed media piece explores the nature of memory through fragmented images and textures. Layers of collage, paint, and photographic elements create a rich tapestry of visual information that rewards repeated viewing.",
-    price: 1400,
-    imageUrl: "https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?q=80&w=1000",
-    gallery: "Whitney Museum of American Art",
-    medium: "Mixed Media",
-    dimensions: "30\" x 40\"",
-    year: "2021",
-    inStock: false,
-    category: "Mixed Media",
-    featured: false
+    id: "prod-004",
+    title: "Handcrafted Ceramic Mug",
+    description: "Artisan-made ceramic mug inspired by the museum's architecture.",
+    price: 24.00,
+    image: "https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8Y2VyYW1pYyUyMG11Z3xlbnwwfHwwfHw%3D&auto=format&fit=crop&w=500&q=60",
+    category: "Home Decor",
+    featured: false,
+    inventory: 15,
+    dimensions: "4 x 3.5 inches",
+    weight: "0.3 kg",
+    tags: ["ceramics", "handcrafted", "home"]
   },
   {
-    id: "p5",
-    title: "Golden Autumn",
-    artist: "Emma Thompson",
-    description: "A celebration of autumn's golden hues, this landscape captures the warmth and richness of the season. Impressionistic brushwork creates a sense of movement in the foliage, while careful composition guides the viewer through the scene.",
-    price: 1100,
-    imageUrl: "https://images.unsplash.com/photo-1579762593175-20226054cad0?q=80&w=1000",
-    gallery: "National Gallery of Art",
-    medium: "Oil on Canvas",
-    dimensions: "24\" x 30\"",
-    year: "2022",
-    inStock: true,
-    category: "Landscape",
-    featured: false
+    id: "prod-005",
+    title: "Art History Notebook Set",
+    description: "Set of three notebooks featuring famous artworks from the museum's collection.",
+    price: 18.00,
+    image: "https://images.unsplash.com/photo-1531346878377-a5be20888e57?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8bm90ZWJvb2t8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60",
+    category: "Stationery",
+    featured: false,
+    inventory: 40,
+    dimensions: "5 x 8 inches",
+    weight: "0.4 kg",
+    tags: ["stationery", "notebook", "art history"]
   },
   {
-    id: "p6",
-    title: "Geometric Tension",
-    artist: "Robert Kim",
-    description: "This bold geometric abstraction explores the tension between order and chaos. Precise lines and shapes create a structured composition, while unexpected color relationships and subtle texture variations add complexity and interest.",
-    price: 1300,
-    imageUrl: "https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?q=80&w=1000",
-    gallery: "Museum of Modern Art",
-    medium: "Acrylic on Canvas",
-    dimensions: "36\" x 36\"",
-    year: "2023",
-    inStock: true,
-    category: "Abstract",
-    featured: true
+    id: "prod-006",
+    title: "Sculptural Silver Earrings",
+    description: "Handcrafted silver earrings inspired by modernist sculpture.",
+    price: 65.00,
+    image: "https://images.unsplash.com/photo-1575863438850-fb1c06a38885?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8ZWFycmluZ3N8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60",
+    category: "Jewelry",
+    featured: true,
+    inventory: 10,
+    dimensions: "1.5 inches long",
+    weight: "0.02 kg",
+    tags: ["jewelry", "silver", "handcrafted"]
   },
   {
-    id: "p7",
-    title: "Whispers of Light",
-    artist: "Nadia Johnson",
-    description: "This ethereal landscape captures the magical quality of light filtering through morning mist. Soft edges and a limited palette create a dreamlike atmosphere, inviting the viewer to pause and contemplate the quiet beauty of nature.",
-    price: 980,
-    imageUrl: "https://images.unsplash.com/photo-1578301978018-3c2583353a69?q=80&w=1000",
-    gallery: "The Art Institute of Chicago",
-    medium: "Oil on Linen",
-    dimensions: "20\" x 30\"",
-    year: "2022",
-    inStock: true,
-    category: "Landscape",
-    featured: false
+    id: "prod-007",
+    title: "Limited Edition Art Poster",
+    description: "Signed and numbered poster from the museum's recent blockbuster exhibition.",
+    price: 75.00,
+    image: "https://images.unsplash.com/photo-1554188248-986adbb73be4?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8OXx8cG9zdGVyfGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=500&q=60",
+    category: "Limited Editions",
+    featured: true,
+    inventory: 5,
+    dimensions: "24 x 36 inches",
+    weight: "0.3 kg",
+    tags: ["limited edition", "signed", "collectible"]
   },
   {
-    id: "p8",
-    title: "Urban Rhythm",
-    artist: "James Wilson",
-    description: "A dynamic street scene that captures the energy and rhythm of city life. Bold colors and gestural brushwork convey movement and sound, while architectural elements provide structure and context.",
-    price: 1150,
-    imageUrl: "https://images.unsplash.com/photo-1578301978018-b4e9d3001ea9?q=80&w=1000",
-    gallery: "Museum of Fine Arts",
-    medium: "Acrylic on Canvas",
-    dimensions: "30\" x 40\"",
-    year: "2023",
-    inStock: true,
-    category: "Urban",
-    featured: false
+    id: "prod-008",
+    title: "Artistic Silk Scarf",
+    description: "Luxurious silk scarf featuring a pattern based on a famous painting in our collection.",
+    price: 85.00,
+    image: "https://images.unsplash.com/photo-1584030373081-f37b7bb4fa8e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8c2NhcmZ8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60",
+    category: "Accessories",
+    featured: false,
+    inventory: 12,
+    dimensions: "36 x 36 inches",
+    weight: "0.1 kg",
+    tags: ["silk", "accessories", "wearable art"]
   },
   {
-    id: "p9",
-    title: "Botanical Study No. 3",
-    artist: "Clara Martinez",
-    description: "Part of a series exploring botanical forms, this detailed study combines scientific observation with artistic interpretation. Delicate linework and subtle washes of color highlight the intricate structures and patterns found in nature.",
-    price: 750,
-    imageUrl: "https://images.unsplash.com/photo-1579783901586-d88db74b4fe4?q=80&w=1000",
-    gallery: "Metropolitan Museum of Art",
-    medium: "Ink and Watercolor on Paper",
-    dimensions: "16\" x 20\"",
-    year: "2022",
-    inStock: true,
-    category: "Botanical",
-    featured: false
+    id: "prod-009",
+    title: "Contemporary Art Desk Calendar",
+    description: "Monthly calendar featuring contemporary artworks from the museum's collection.",
+    price: 22.00,
+    image: "https://images.unsplash.com/photo-1506784365847-bbad939e9335?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8M3x8Y2FsZW5kYXJ8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60",
+    category: "Stationery",
+    featured: false,
+    inventory: 35,
+    dimensions: "6 x 6 inches",
+    weight: "0.3 kg",
+    tags: ["calendar", "contemporary art", "desk accessory"]
   },
   {
-    id: "p10",
-    title: "Celestial Dreams",
-    artist: "Michael Zhang",
-    description: "This cosmic-inspired abstract piece explores the vastness of space and the human imagination. Deep blues and purples create a sense of infinite depth, while metallic accents suggest distant stars and celestial bodies.",
-    price: 1500,
-    imageUrl: "https://images.unsplash.com/photo-1578301978162-38d0ec0363ae?q=80&w=1000",
-    gallery: "The Getty Center",
-    medium: "Mixed Media on Canvas",
-    dimensions: "40\" x 60\"",
-    year: "2023",
-    inStock: true,
-    category: "Abstract",
-    featured: true
+    id: "prod-010",
+    title: "Artistic Jigsaw Puzzle",
+    description: "1000-piece jigsaw puzzle featuring a masterpiece from the museum's collection.",
+    price: 32.00,
+    image: "https://images.unsplash.com/photo-1586165368502-1bad197a6461?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8amlnc2F3JTIwcHV6emxlfGVufDB8fDB8fA%3D%3D&auto=format&fit=crop&w=500&q=60",
+    category: "Home Decor",
+    featured: false,
+    inventory: 20,
+    dimensions: "20 x 27 inches (completed)",
+    weight: "0.7 kg",
+    tags: ["puzzle", "game", "masterpiece"]
+  },
+  {
+    id: "prod-011",
+    title: "Artist Monograph",
+    description: "Comprehensive monograph on the work of contemporary artist Sarah Johnson.",
+    price: 55.00,
+    image: "https://images.unsplash.com/photo-1589998059171-988d887df646?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8OHx8YXJ0JTIwYm9va3xlbnwwfHwwfHw%3D&auto=format&fit=crop&w=500&q=60",
+    category: "Books",
+    featured: true,
+    inventory: 15,
+    dimensions: "9.5 x 12 inches",
+    weight: "1.8 kg",
+    tags: ["monograph", "contemporary art", "artist"]
+  },
+  {
+    id: "prod-012",
+    title: "Decorative Art Coasters",
+    description: "Set of four coasters featuring details from famous paintings.",
+    price: 18.00,
+    image: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxzZWFyY2h8Mnx8Y29hc3RlcnN8ZW58MHx8MHx8&auto=format&fit=crop&w=500&q=60",
+    category: "Home Decor",
+    featured: false,
+    inventory: 30,
+    dimensions: "4 x 4 inches each",
+    weight: "0.2 kg",
+    tags: ["coasters", "home decor", "masterpieces"]
   }
 ];
-
-export const productCategories = [
-  "All",
-  "Abstract",
-  "Landscape",
-  "Seascape",
-  "Urban",
-  "Botanical",
-  "Mixed Media"
-];
-
-export const getProductsByCategory = (category: string) => {
-  if (category === "All") return products;
-  return products.filter(product => product.category === category);
-};
-
-export const searchProducts = (query: string) => {
-  const lowercaseQuery = query.toLowerCase();
-  return products.filter(
-    product => 
-      product.title.toLowerCase().includes(lowercaseQuery) ||
-      product.artist.toLowerCase().includes(lowercaseQuery) ||
-      product.gallery.toLowerCase().includes(lowercaseQuery) ||
-      product.category.toLowerCase().includes(lowercaseQuery)
-  );
-};
-
-// Export as part of mocks object to match import in shop.tsx
-export const mocks = {
-  products,
-  productCategories,
-  getProductsByCategory,
-  searchProducts
-};

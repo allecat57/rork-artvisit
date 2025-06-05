@@ -13,10 +13,9 @@ interface EventCardProps {
   compact?: boolean;
   onPress?: () => void;
   hasAccess?: boolean;
-  isPremiumUser?: boolean;
 }
 
-export default function EventCard({ event, compact = false, onPress, hasAccess = true, isPremiumUser = false }: EventCardProps) {
+export default function EventCard({ event, compact = false, onPress, hasAccess = true }: EventCardProps) {
   const router = useRouter();
   const isUserRegistered = useEventsStore(state => state.isUserRegisteredForEvent(event.id));
   
