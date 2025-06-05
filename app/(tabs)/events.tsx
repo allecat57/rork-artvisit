@@ -124,7 +124,7 @@ export default function EventsScreen() {
         style={styles.filterButton}
         onPress={() => setShowFilters(!showFilters)}
       >
-        <Filter size={20} color={colors.primary.text} />
+        <Filter size={20} color={colors.text.dark} />
       </TouchableOpacity>
     </View>
   );
@@ -215,7 +215,7 @@ export default function EventsScreen() {
       <View style={styles.upcomingContainer}>
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleContainer}>
-            <Calendar size={18} color={colors.primary.text} style={styles.sectionIcon} />
+            <Calendar size={18} color={colors.text.dark} style={styles.sectionIcon} />
             <Text style={styles.sectionTitle}>Upcoming Events</Text>
           </View>
           <TouchableOpacity>
@@ -250,7 +250,7 @@ export default function EventsScreen() {
       
       {filteredEvents.length === 0 ? (
         <EmptyState
-          icon={<Search size={40} color={colors.primary.muted} />}
+          icon={<Search size={40} color={colors.muted.dark} />}
           title="No events found"
           message={searchQuery ? `No events matching "${searchQuery}"` : "There are no events available at this time."}
         />
@@ -273,7 +273,7 @@ export default function EventsScreen() {
         title: "Events",
         headerTitleStyle: typography.heading3,
         headerShadowVisible: false,
-        headerStyle: { backgroundColor: colors.primary.background }
+        headerStyle: { backgroundColor: colors.background.dark }
       }} />
       
       {renderHeader()}
@@ -281,7 +281,7 @@ export default function EventsScreen() {
       
       {isLoading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary.accent} />
+          <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.loadingText}>Loading events...</Text>
         </View>
       ) : (
@@ -325,11 +325,11 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card.dark,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.primary.border,
+    borderColor: colors.border.dark,
   },
   filtersContainer: {
     paddingHorizontal: 16,
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   },
   filtersTitle: {
     ...typography.bodySmall,
-    color: colors.primary.muted,
+    color: colors.muted.dark,
     marginBottom: 8,
   },
   filterOptions: {
@@ -349,19 +349,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card.dark,
     borderWidth: 1,
-    borderColor: colors.primary.border,
+    borderColor: colors.border.dark,
   },
   filterOptionActive: {
-    backgroundColor: colors.primary.accent,
+    backgroundColor: colors.accent,
   },
   filterOptionText: {
     ...typography.caption,
-    color: colors.primary.text,
+    color: colors.text.dark,
   },
   filterOptionTextActive: {
-    color: colors.primary.background,
+    color: colors.background.dark,
     fontWeight: "600",
   },
   content: {
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...typography.body,
-    color: colors.primary.muted,
+    color: colors.muted.dark,
     marginTop: 12,
   },
   featuredContainer: {
@@ -395,11 +395,11 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.heading4,
-    color: colors.primary.text,
+    color: colors.text.dark,
   },
   seeAllText: {
     ...typography.bodySmall,
-    color: colors.primary.accent,
+    color: colors.accent,
   },
   featuredList: {
     paddingRight: 16,

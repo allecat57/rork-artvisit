@@ -85,7 +85,7 @@ export default function ShopScreen() {
         style={styles.cartButton}
         onPress={() => router.push("/shop/cart")}
       >
-        <ShoppingCart size={20} color={colors.primary.text} />
+        <ShoppingCart size={20} color={colors.text.dark} />
         {cartItemCount > 0 && (
           <View style={styles.cartBadge}>
             <Text style={styles.cartBadgeText}>{cartItemCount}</Text>
@@ -174,7 +174,7 @@ export default function ShopScreen() {
       
       {filteredProducts.length === 0 ? (
         <EmptyState
-          icon={<Search size={40} color={colors.primary.muted} />}
+          icon={<Search size={40} color={colors.muted.dark} />}
           title="No products found"
           message={searchQuery ? `No products matching "${searchQuery}"` : "There are no products available at this time."}
         />
@@ -206,7 +206,7 @@ export default function ShopScreen() {
         title: "Shop",
         headerTitleStyle: typography.heading3,
         headerShadowVisible: false,
-        headerStyle: { backgroundColor: colors.primary.background }
+        headerStyle: { backgroundColor: colors.background.dark }
       }} />
       
       {renderHeader()}
@@ -236,17 +236,17 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card.dark,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.primary.border,
+    borderColor: colors.border.dark,
   },
   cartBadge: {
     position: "absolute",
     top: -4,
     right: -4,
-    backgroundColor: colors.primary.accent,
+    backgroundColor: colors.accent,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   },
   cartBadgeText: {
     ...typography.caption,
-    color: colors.primary.background,
+    color: colors.background.dark,
     fontWeight: "bold",
     fontSize: 10,
   },
@@ -268,19 +268,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card.dark,
     borderWidth: 1,
-    borderColor: colors.primary.border,
+    borderColor: colors.border.dark,
   },
   categoryButtonActive: {
-    backgroundColor: colors.primary.accent,
+    backgroundColor: colors.accent,
   },
   categoryButtonText: {
     ...typography.caption,
-    color: colors.primary.text,
+    color: colors.text.dark,
   },
   categoryButtonTextActive: {
-    color: colors.primary.background,
+    color: colors.background.dark,
     fontWeight: "600",
   },
   content: {
@@ -298,11 +298,11 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.heading4,
-    color: colors.primary.text,
+    color: colors.text.dark,
   },
   seeAllText: {
     ...typography.bodySmall,
-    color: colors.primary.accent,
+    color: colors.accent,
   },
   featuredList: {
     gap: 16,
