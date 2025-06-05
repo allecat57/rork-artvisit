@@ -11,8 +11,8 @@ export default {
     light: "#144237"
   },
   text: {
-    dark: "#FFFFFF",
-    light: "#FFFFFF",
+    dark: "#AC8901",
+    light: "#AC8901",
     secondary: {
       dark: "#B0B0B0",
       light: "#E0E0E0"
