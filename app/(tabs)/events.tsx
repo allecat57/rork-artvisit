@@ -1,249 +1,310 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Calendar, Filter } from 'lucide-react-native';
-import { useEventsStore } from '@/store/useEventsStore';
-import { useAuthStore } from '@/store/useAuthStore';
-import EventCard from '@/components/EventCard';
-import SearchBar from '@/components/SearchBar';
-import SubscriptionRequiredCard from '@/components/SubscriptionRequiredCard';
-import colors from '@/constants/colors';
-import typography from '@/constants/typography';
-import * as Analytics from '@/utils/analytics';
-import { Event, AccessLevel } from '@/types/event';
+import React, { useEffect, useState } from "react";
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
+import { Stack, useRouter } from "expo-router";
+import { Filter, Calendar, Search } from "lucide-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useEventsStore } from "@/store/useEventsStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import EventCard from "@/components/EventCard";
+import SubscriptionRequiredCard from "@/components/SubscriptionRequiredCard";
+import SearchBar from "@/components/SearchBar";
+import EmptyState from "@/components/EmptyState";
+import colors from "@/constants/colors";
+import typography from "@/constants/typography";
+import { Event, AccessLevel } from "@/types/event";
+import * as Analytics from "@/utils/analytics";
 
 export default function EventsScreen() {
   const router = useRouter();
+  const { allEvents, isLoading, fetchEvents, getAccessibleEvents, getFeaturedEvents, getUpcomingEvents } = useEventsStore();
   const { user } = useAuthStore();
-  const { allEvents, isLoading, fetchEvents } = useEventsStore();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
-  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
-
-  // Define user's access level - in a real app, this would come from the user object
-  const userAccessLevel: AccessLevel = user?.subscription?.level as AccessLevel || AccessLevel.FREE;
-
+  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterType, setFilterType] = useState<string | null>(null);
+  const [showSubscriptionCard, setShowSubscriptionCard] = useState(false);
+  
+  // Get user's subscription level
+  const userSubscriptionLevel = user?.subscription?.id as AccessLevel || AccessLevel.FREE;
+  
   useEffect(() => {
+    // Fetch events when component mounts
     fetchEvents();
     
-    // Log screen view
-    Analytics.trackScreenView('events', 'EventsScreen');
+    // Log analytics event
+    Analytics.logEvent("view_events_screen", {
+      user_id: user?.id || "guest",
+      subscription_level: userSubscriptionLevel
+    });
   }, []);
-
-  const handleEventPress = (eventId: string, event: Event) => {
+  
+  // Filter events based on search query and filter type
+  const filteredEvents = React.useMemo(() => {
+    let events = getAccessibleEvents();
+    
+    // Apply search filter
+    if (searchQuery) {
+      events = events.filter((event: Event) => 
+        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (event.tags && event.tags.some(tag => 
+          tag.toLowerCase().includes(searchQuery.toLowerCase())
+        ))
+      );
+    }
+    
+    // Apply type filter
+    if (filterType) {
+      events = events.filter((event: Event) => event.type === filterType);
+    }
+    
+    return events;
+  }, [searchQuery, filterType, allEvents, userSubscriptionLevel]);
+  
+  // Get unique event types for filter
+  const eventTypes = React.useMemo(() => {
+    const types = new Set<string>();
+    allEvents.forEach((event: Event) => {
+      if (event.type) {
+        types.add(event.type);
+      }
+    });
+    return Array.from(types);
+  }, [allEvents]);
+  
+  // Handle event card press
+  const handleEventPress = (event: Event) => {
     // Check if user has access to this event
-    if (hasAccessToEvent(event.accessLevel)) {
-      router.push(`/event/${eventId}`);
+    const hasAccess = userSubscriptionLevel >= event.accessLevel;
+    
+    if (hasAccess) {
+      // Navigate to event details
+      router.push(`/event/${event.id}`);
       
-      // Log event selection
-      Analytics.logEvent('select_event', {
-        event_id: eventId,
+      // Log analytics event
+      Analytics.logEvent("select_event", {
+        event_id: event.id,
         event_title: event.title,
-        event_type: event.type
+        event_type: event.type,
+        user_id: user?.id || "guest"
       });
     } else {
-      setShowSubscriptionModal(true);
+      // Show subscription required card
+      setShowSubscriptionCard(true);
       
-      // Log subscription required
-      Analytics.logEvent('subscription_required', {
-        event_id: eventId,
+      // Log analytics event
+      Analytics.logEvent("subscription_required", {
+        event_id: event.id,
         event_title: event.title,
-        event_access_level: event.accessLevel,
-        user_access_level: userAccessLevel
+        required_level: event.accessLevel,
+        user_level: userSubscriptionLevel,
+        user_id: user?.id || "guest"
       });
     }
   };
-
-  // Convert events to proper Event type with featured property
-  const formattedEvents: Event[] = allEvents.map((event: Event) => ({
-    ...event,
-    featured: event.featured || event.isFeatured || false // Map isFeatured to featured
-  }));
-
-  // Filter events based on search query and selected filter
-  const filteredEvents = formattedEvents.filter(event => {
-    const matchesSearch = 
-      event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      event.location.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesFilter = !selectedFilter || event.type === selectedFilter;
-    
-    return matchesSearch && matchesFilter;
-  });
-
-  // Get featured events
-  const featuredEvents = formattedEvents.filter(event => event.featured);
-
-  // Get upcoming events (next 7 days)
-  const now = new Date();
-  const nextWeek = new Date();
-  nextWeek.setDate(now.getDate() + 7);
   
-  const upcomingEvents = formattedEvents.filter(event => {
-    const eventDate = new Date(event.date);
-    return eventDate >= now && eventDate <= nextWeek;
-  }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-
-  // Check if user has access to an event based on access level
-  const hasAccessToEvent = (eventAccessLevel: AccessLevel): boolean => {
-    const accessLevels = Object.values(AccessLevel);
-    const userLevelIndex = accessLevels.indexOf(userAccessLevel);
-    const eventLevelIndex = accessLevels.indexOf(eventAccessLevel);
-    
-    return userLevelIndex >= eventLevelIndex;
+  // Handle subscription upgrade
+  const handleUpgradeSubscription = () => {
+    router.push("/profile");
+    setShowSubscriptionCard(false);
   };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    
-    // Log search
-    if (query.trim()) {
-      Analytics.logEvent('search_events', {
-        search_term: query
-      });
-    }
-  };
-
-  const handleFilterPress = (filter: string) => {
-    setSelectedFilter(selectedFilter === filter ? null : filter);
-    
-    // Log filter selection
-    Analytics.logEvent('filter_events', {
-      filter: filter,
-      active: selectedFilter !== filter
-    });
-  };
-
-  const filters = [
-    { id: 'exhibition_opening', label: 'Openings' },
-    { id: 'workshop', label: 'Workshops' },
-    { id: 'artist_talk', label: 'Talks' },
-    { id: 'curator_tour', label: 'Tours' },
-    { id: 'family_event', label: 'Family' },
-  ];
-
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Events</Text>
-          <TouchableOpacity style={styles.calendarButton}>
-            <Calendar size={20} color={colors.primary.accent} />
+  
+  // Render header with search and filters
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <SearchBar
+        placeholder="Search events..."
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        onClear={() => setSearchQuery("")}
+      />
+      
+      <TouchableOpacity 
+        style={styles.filterButton}
+        onPress={() => setShowFilters(!showFilters)}
+      >
+        <Filter size={20} color={colors.primary.text} />
+      </TouchableOpacity>
+    </View>
+  );
+  
+  // Render filter options
+  const renderFilters = () => (
+    showFilters && (
+      <View style={styles.filtersContainer}>
+        <Text style={styles.filtersTitle}>Event Type</Text>
+        <View style={styles.filterOptions}>
+          <TouchableOpacity
+            style={[
+              styles.filterOption,
+              filterType === null && styles.filterOptionActive
+            ]}
+            onPress={() => setFilterType(null)}
+          >
+            <Text style={[
+              styles.filterOptionText,
+              filterType === null && styles.filterOptionTextActive
+            ]}>All</Text>
           </TouchableOpacity>
-        </View>
-
-        <SearchBar
-          placeholder="Search events..."
-          value={searchQuery}
-          onChangeText={handleSearch}
-          style={styles.searchBar}
-        />
-
-        <View style={styles.filtersContainer}>
-          {filters.map(filter => (
+          
+          {eventTypes.map((type) => (
             <TouchableOpacity
-              key={filter.id}
+              key={type}
               style={[
-                styles.filterButton,
-                selectedFilter === filter.id && styles.filterButtonActive
+                styles.filterOption,
+                filterType === type && styles.filterOptionActive
               ]}
-              onPress={() => handleFilterPress(filter.id)}
+              onPress={() => setFilterType(type)}
             >
-              <Text
-                style={[
-                  styles.filterText,
-                  selectedFilter === filter.id && styles.filterTextActive
-                ]}
-              >
-                {filter.label}
-              </Text>
+              <Text style={[
+                styles.filterOptionText,
+                filterType === type && styles.filterOptionTextActive
+              ]}>{type}</Text>
             </TouchableOpacity>
           ))}
         </View>
-
-        {featuredEvents.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>Featured Events</Text>
-            <FlatList
-              data={featuredEvents}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <EventCard
-                  event={item}
-                  onPress={() => handleEventPress(item.id, item)}
-                  hasAccess={hasAccessToEvent(item.accessLevel)}
-                />
-              )}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.eventsContainer}
-            />
-          </>
-        )}
-
-        {upcomingEvents.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>Upcoming This Week</Text>
-            <View style={styles.upcomingEventsContainer}>
-              {upcomingEvents.slice(0, 3).map((event) => (
-                <EventCard
-                  key={event.id}
-                  event={event}
-                  onPress={() => handleEventPress(event.id, event)}
-                  hasAccess={hasAccessToEvent(event.accessLevel)}
-                  compact
-                />
-              ))}
-            </View>
-          </>
-        )}
-
-        <Text style={styles.sectionTitle}>All Events</Text>
-        <View style={styles.allEventsContainer}>
-          {filteredEvents.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              onPress={() => handleEventPress(event.id, event)}
-              hasAccess={hasAccessToEvent(event.accessLevel)}
-            />
-          ))}
-        </View>
-
-        <View style={styles.subscriptionContainer}>
-          <Text style={styles.subscriptionTitle}>Unlock Premium Events</Text>
-          <Text style={styles.subscriptionDescription}>
-            Upgrade to Explorer or Collector to access exclusive events, private views, and more.
-          </Text>
-          <TouchableOpacity 
-            style={styles.subscriptionButton}
-            onPress={() => {
-              // Log subscription interest
-              Analytics.logEvent('view_subscription_plans', {
-                source: 'events_screen'
-              });
-              
-              // Navigate to subscription page
-              router.push('/subscription');
-            }}
-          >
-            <Text style={styles.subscriptionButtonText}>View Membership Options</Text>
+      </View>
+    )
+  );
+  
+  // Render featured events section
+  const renderFeaturedEvents = () => {
+    const featuredEvents = getFeaturedEvents();
+    
+    if (featuredEvents.length === 0) {
+      return null;
+    }
+    
+    return (
+      <View style={styles.featuredContainer}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Featured Events</Text>
+          <TouchableOpacity>
+            <Text style={styles.seeAllText}>See All</Text>
           </TouchableOpacity>
         </View>
-
-        {showSubscriptionModal && (
-          <SubscriptionRequiredCard
-            onClose={() => setShowSubscriptionModal(false)}
-            onUpgrade={() => {
-              setShowSubscriptionModal(false);
-              router.push('/subscription');
-            }}
-            requiredLevel={AccessLevel.EXPLORER}
+        
+        <FlatList
+          data={featuredEvents}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <EventCard 
+              event={item} 
+              onPress={() => handleEventPress(item)}
+              hasAccess={userSubscriptionLevel >= item.accessLevel}
+            />
+          )}
+          contentContainerStyle={styles.featuredList}
+        />
+      </View>
+    );
+  };
+  
+  // Render upcoming events section
+  const renderUpcomingEvents = () => {
+    const upcomingEvents = getUpcomingEvents();
+    
+    if (upcomingEvents.length === 0) {
+      return null;
+    }
+    
+    return (
+      <View style={styles.upcomingContainer}>
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitleContainer}>
+            <Calendar size={18} color={colors.primary.text} style={styles.sectionIcon} />
+            <Text style={styles.sectionTitle}>Upcoming Events</Text>
+          </View>
+          <TouchableOpacity>
+            <Text style={styles.seeAllText}>See All</Text>
+          </TouchableOpacity>
+        </View>
+        
+        <FlatList
+          data={upcomingEvents.slice(0, 3)}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <EventCard 
+              key={item.id}
+              event={item} 
+              onPress={() => handleEventPress(item)}
+              hasAccess={userSubscriptionLevel >= item.accessLevel}
+              compact={true}
+            />
+          )}
+          contentContainerStyle={styles.upcomingList}
+        />
+      </View>
+    );
+  };
+  
+  // Render all events section
+  const renderAllEvents = () => (
+    <View style={styles.allEventsContainer}>
+      <Text style={styles.sectionTitle}>All Events</Text>
+      
+      {filteredEvents.length === 0 ? (
+        <EmptyState
+          icon={<Search size={40} color={colors.primary.muted} />}
+          title="No events found"
+          message={searchQuery ? `No events matching "${searchQuery}"` : "There are no events available at this time."}
+        />
+      ) : (
+        filteredEvents.map((event) => (
+          <EventCard 
+            key={event.id}
+            event={event} 
+            onPress={() => handleEventPress(event)}
+            hasAccess={userSubscriptionLevel >= event.accessLevel}
           />
-        )}
-      </ScrollView>
+        ))
+      )}
+    </View>
+  );
+  
+  return (
+    <SafeAreaView style={styles.container} edges={["bottom"]}>
+      <Stack.Screen options={{ 
+        title: "Events",
+        headerTitleStyle: typography.heading3,
+        headerShadowVisible: false,
+        headerStyle: { backgroundColor: colors.primary.background }
+      }} />
+      
+      {renderHeader()}
+      {renderFilters()}
+      
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary.accent} />
+          <Text style={styles.loadingText}>Loading events...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={[1]}
+          renderItem={() => (
+            <View style={styles.content}>
+              {renderFeaturedEvents()}
+              {renderUpcomingEvents()}
+              {renderAllEvents()}
+            </View>
+          )}
+          keyExtractor={() => "events-list"}
+        />
+      )}
+      
+      {showSubscriptionCard && (
+        <SubscriptionRequiredCard
+          requiredLevel={AccessLevel.EXPLORER}
+          onUpgrade={handleUpgradeSubscription}
+          onClose={() => setShowSubscriptionCard(false)}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -254,98 +315,104 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary.background,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 15,
-  },
-  title: {
-    ...typography.heading1,
-    color: colors.primary.text,
-  },
-  calendarButton: {
-    backgroundColor: colors.primary.card,
-    padding: 10,
-    borderRadius: 20,
-  },
-  searchBar: {
-    marginHorizontal: 20,
-    marginBottom: 20,
-  },
-  filtersContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-    flexWrap: 'wrap',
-    gap: 10,
-  },
-  filterButton: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: colors.primary.card,
-  },
-  filterButtonActive: {
-    backgroundColor: colors.primary.accent,
-  },
-  filterText: {
-    ...typography.bodySmall,
-    color: colors.primary.text,
-  },
-  filterTextActive: {
-    color: colors.primary.background,
-    fontWeight: '600',
-  },
-  sectionTitle: {
-    ...typography.heading3,
-    color: colors.primary.text,
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 15,
-  },
-  eventsContainer: {
-    paddingHorizontal: 20,
-    gap: 16,
-  },
-  upcomingEventsContainer: {
-    paddingHorizontal: 20,
+    paddingVertical: 12,
     gap: 12,
   },
-  allEventsContainer: {
-    paddingHorizontal: 20,
-    gap: 16,
-    marginBottom: 20,
-  },
-  subscriptionContainer: {
-    margin: 20,
-    padding: 20,
+  filterButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.primary.card,
-    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
     borderColor: colors.primary.border,
   },
-  subscriptionTitle: {
-    ...typography.heading3,
-    color: colors.primary.text,
+  filtersContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  filtersTitle: {
+    ...typography.bodySmall,
+    color: colors.primary.muted,
     marginBottom: 8,
   },
-  subscriptionDescription: {
+  filterOptions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  filterOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: colors.primary.card,
+    borderWidth: 1,
+    borderColor: colors.primary.border,
+  },
+  filterOptionActive: {
+    backgroundColor: colors.primary.accent,
+  },
+  filterOptionText: {
+    ...typography.caption,
+    color: colors.primary.text,
+  },
+  filterOptionTextActive: {
+    color: colors.primary.background,
+    fontWeight: "600",
+  },
+  content: {
+    padding: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
     ...typography.body,
     color: colors.primary.muted,
+    marginTop: 12,
+  },
+  featuredContainer: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  sectionTitleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  sectionIcon: {
+    marginRight: 8,
+  },
+  sectionTitle: {
+    ...typography.heading4,
+    color: colors.primary.text,
+  },
+  seeAllText: {
+    ...typography.bodySmall,
+    color: colors.primary.accent,
+  },
+  featuredList: {
+    paddingRight: 16,
+    gap: 16,
+  },
+  upcomingContainer: {
+    marginBottom: 24,
+  },
+  upcomingList: {
+    paddingRight: 16,
+    gap: 12,
+  },
+  allEventsContainer: {
     marginBottom: 16,
-  },
-  subscriptionButton: {
-    backgroundColor: colors.primary.accent,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  subscriptionButtonText: {
-    ...typography.buttonText,
-    color: colors.primary.background,
-    fontWeight: '600',
   },
 });

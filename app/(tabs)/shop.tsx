@@ -1,167 +1,220 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { ShoppingBag } from 'lucide-react-native';
-import { useCartStore } from '@/store/useCartStore';
-import ProductCard from '@/components/ProductCard';
-import SearchBar from '@/components/SearchBar';
-import colors from '@/constants/colors';
-import typography from '@/constants/typography';
-import * as Analytics from '@/utils/analytics';
-import { products, productCategories } from '@/mocks/products';
-import { Product } from '@/types/product';
+import React, { useState, useEffect } from "react";
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, ScrollView } from "react-native";
+import { Stack, useRouter } from "expo-router";
+import { ShoppingCart, Search, Tag } from "lucide-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useCartStore } from "@/store/useCartStore";
+import ProductCard from "@/components/ProductCard";
+import SearchBar from "@/components/SearchBar";
+import EmptyState from "@/components/EmptyState";
+import colors from "@/constants/colors";
+import typography from "@/constants/typography";
+import { products, productCategories } from "@/mocks/products";
+import { Product } from "@/types/product";
+import * as Analytics from "@/utils/analytics";
 
 export default function ShopScreen() {
   const router = useRouter();
-  const { getCurrentUserCart, getCartItemCount } = useCartStore();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const cartItemCount = useCartStore(state => state.getCartItemCount());
   
-  // Get cart data
-  const cart = getCurrentUserCart();
-  const totalItems = getCartItemCount();
-
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  
   useEffect(() => {
-    // Log screen view
-    Analytics.trackScreenView('shop', 'ShopScreen');
+    // Set featured products
+    setFeaturedProducts(products.filter(product => product.featured));
+    
+    // Log analytics event
+    Analytics.logEvent("view_shop_screen", {});
   }, []);
   
-  // Get unique categories from products
-  const categories = Array.from(new Set(products.map((product: Product) => product.category)));
-  
   // Filter products based on search query and selected category
-  const filteredProducts = products.filter((product: Product) => {
-    const matchesSearch = 
-      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredProducts = React.useMemo(() => {
+    let filtered = products;
     
-    const matchesCategory = !selectedCategory || product.category === selectedCategory;
+    // Apply search filter
+    if (searchQuery) {
+      filtered = filtered.filter((product: Product) => 
+        product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (product.tags && product.tags.some(tag => 
+          tag.toLowerCase().includes(searchQuery.toLowerCase())
+        ))
+      );
+    }
     
-    return matchesSearch && matchesCategory;
-  });
+    // Apply category filter
+    if (selectedCategory) {
+      filtered = filtered.filter((product: Product) => product.category === selectedCategory);
+    }
+    
+    return filtered;
+  }, [searchQuery, selectedCategory]);
   
-  // Get featured products
-  const featuredProducts = products.filter((product: Product) => product.featured);
-
+  // Calculate products by category
+  const productsByCategory = React.useMemo(() => {
+    return productCategories.reduce((acc: Record<string, number>, category) => {
+      acc[category] = products.filter(item => item.category === category).length;
+      return acc;
+    }, {});
+  }, []);
+  
+  // Handle product card press
   const handleProductPress = (productId: string) => {
     router.push(`/shop/product/${productId}`);
     
-    // Log product selection
-    Analytics.logEvent('select_product', {
+    // Log analytics event
+    Analytics.logEvent("select_product", {
       product_id: productId
     });
   };
-
-  const handleCartPress = () => {
-    router.push('/shop/cart');
-    
-    // Log cart view
-    Analytics.logEvent('view_cart', {
-      cart_size: totalItems,
-      cart_value: cart.reduce((total: number, item: any) => total + (item.product.price * item.quantity), 0)
-    });
-  };
-
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    
-    // Log search
-    if (query.trim()) {
-      Analytics.logEvent('search_products', {
-        search_term: query
-      });
+  
+  // Render header with search and cart
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <SearchBar
+        placeholder="Search products..."
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        onClear={() => setSearchQuery("")}
+      />
+      
+      <TouchableOpacity 
+        style={styles.cartButton}
+        onPress={() => router.push("/shop/cart")}
+      >
+        <ShoppingCart size={20} color={colors.primary.text} />
+        {cartItemCount > 0 && (
+          <View style={styles.cartBadge}>
+            <Text style={styles.cartBadgeText}>{cartItemCount}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    </View>
+  );
+  
+  // Render category filters
+  const renderCategories = () => (
+    <ScrollView 
+      horizontal 
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.categoriesContainer}
+    >
+      <TouchableOpacity
+        style={[
+          styles.categoryButton,
+          selectedCategory === null && styles.categoryButtonActive
+        ]}
+        onPress={() => setSelectedCategory(null)}
+      >
+        <Text style={[
+          styles.categoryButtonText,
+          selectedCategory === null && styles.categoryButtonTextActive
+        ]}>All</Text>
+      </TouchableOpacity>
+      
+      {productCategories.map((category) => (
+        <TouchableOpacity
+          key={category}
+          style={[
+            styles.categoryButton,
+            selectedCategory === category && styles.categoryButtonActive
+          ]}
+          onPress={() => setSelectedCategory(category)}
+        >
+          <Text style={[
+            styles.categoryButtonText,
+            selectedCategory === category && styles.categoryButtonTextActive
+          ]}>{category} ({productsByCategory[category]})</Text>
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
+  );
+  
+  // Render featured products section
+  const renderFeaturedProducts = () => {
+    if (featuredProducts.length === 0) {
+      return null;
     }
-  };
-
-  const handleCategoryPress = (category: string) => {
-    setSelectedCategory(selectedCategory === category ? null : category);
     
-    // Log category selection
-    Analytics.logEvent('filter_products', {
-      category: category,
-      active: selectedCategory !== category
-    });
-  };
-
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Shop</Text>
-          <TouchableOpacity style={styles.cartButton} onPress={handleCartPress}>
-            <ShoppingBag size={20} color={colors.primary.accent} />
-            {totalItems > 0 && (
-              <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{totalItems}</Text>
-              </View>
-            )}
+    return (
+      <View style={styles.featuredContainer}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Featured Products</Text>
+          <TouchableOpacity>
+            <Text style={styles.seeAllText}>See All</Text>
           </TouchableOpacity>
         </View>
-
-        <SearchBar
-          placeholder="Search products..."
-          value={searchQuery}
-          onChangeText={handleSearch}
-          style={styles.searchBar}
-        />
-
-        <View style={styles.categoriesContainer}>
-          {categories.map((category: string) => (
-            <TouchableOpacity
-              key={category}
-              style={[
-                styles.categoryButton,
-                selectedCategory === category && styles.categoryButtonActive
-              ]}
-              onPress={() => handleCategoryPress(category)}
-            >
-              <Text
-                style={[
-                  styles.categoryText,
-                  selectedCategory === category && styles.categoryTextActive
-                ]}
-              >
-                {category}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {featuredProducts.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>Featured</Text>
-            <FlatList
-              data={featuredProducts}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <ProductCard
-                  product={item}
-                  onPress={() => handleProductPress(item.id)}
-                />
-              )}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.productsContainer}
+        
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.featuredList}
+        >
+          {featuredProducts.map((product) => (
+            <ProductCard 
+              key={product.id}
+              product={product} 
+              onPress={() => handleProductPress(product.id)}
             />
-          </>
-        )}
-
-        <Text style={styles.sectionTitle}>All Products</Text>
-        <View style={styles.gridContainer}>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  };
+  
+  // Render all products grid
+  const renderProductGrid = () => (
+    <View style={styles.productsContainer}>
+      <Text style={styles.sectionTitle}>
+        {selectedCategory ? selectedCategory : "All Products"}
+      </Text>
+      
+      {filteredProducts.length === 0 ? (
+        <EmptyState
+          icon={<Search size={40} color={colors.primary.muted} />}
+          title="No products found"
+          message={searchQuery ? `No products matching "${searchQuery}"` : "There are no products available at this time."}
+        />
+      ) : (
+        <View style={styles.productsGrid}>
           {filteredProducts.map((product: Product, index: number) => (
-            <View key={product.id} style={[
-              styles.gridItem,
-              index % 2 === 0 ? { marginRight: 8 } : { marginLeft: 8 }
-            ]}>
-              <ProductCard
-                product={product}
+            <View 
+              key={product.id} 
+              style={[
+                styles.productGridItem,
+                index % 2 === 0 ? { marginRight: 8 } : { marginLeft: 8 }
+              ]}
+            >
+              <ProductCard 
+                product={product} 
                 onPress={() => handleProductPress(product.id)}
-                compact
+                compact={true}
               />
             </View>
           ))}
         </View>
+      )}
+    </View>
+  );
+  
+  return (
+    <SafeAreaView style={styles.container} edges={["bottom"]}>
+      <Stack.Screen options={{ 
+        title: "Shop",
+        headerTitleStyle: typography.heading3,
+        headerShadowVisible: false,
+        headerStyle: { backgroundColor: colors.primary.background }
+      }} />
+      
+      {renderHeader()}
+      {renderCategories()}
+      
+      <ScrollView style={styles.content}>
+        {renderFeaturedProducts()}
+        {renderProductGrid()}
       </ScrollView>
     </SafeAreaView>
   );
@@ -173,87 +226,98 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary.background,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 15,
-  },
-  title: {
-    ...typography.heading1,
-    color: colors.primary.text,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
   },
   cartButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.primary.card,
-    padding: 10,
-    borderRadius: 20,
-    position: 'relative',
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.primary.border,
   },
   cartBadge: {
-    position: 'absolute',
-    top: -5,
-    right: -5,
+    position: "absolute",
+    top: -4,
+    right: -4,
     backgroundColor: colors.primary.accent,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
   },
   cartBadgeText: {
     ...typography.caption,
     color: colors.primary.background,
-    fontWeight: '600',
+    fontWeight: "bold",
     fontSize: 10,
   },
-  searchBar: {
-    marginHorizontal: 20,
-    marginBottom: 20,
-  },
   categoriesContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    marginBottom: 20,
-    flexWrap: 'wrap',
-    gap: 10,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    gap: 8,
   },
   categoryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
     backgroundColor: colors.primary.card,
+    borderWidth: 1,
+    borderColor: colors.primary.border,
   },
   categoryButtonActive: {
     backgroundColor: colors.primary.accent,
   },
-  categoryText: {
-    ...typography.bodySmall,
+  categoryButtonText: {
+    ...typography.caption,
     color: colors.primary.text,
   },
-  categoryTextActive: {
+  categoryButtonTextActive: {
     color: colors.primary.background,
-    fontWeight: '600',
+    fontWeight: "600",
+  },
+  content: {
+    flex: 1,
+  },
+  featuredContainer: {
+    padding: 16,
+    paddingBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 12,
   },
   sectionTitle: {
-    ...typography.heading3,
+    ...typography.heading4,
     color: colors.primary.text,
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 15,
   },
-  productsContainer: {
-    paddingHorizontal: 20,
+  seeAllText: {
+    ...typography.bodySmall,
+    color: colors.primary.accent,
+  },
+  featuredList: {
     gap: 16,
   },
-  gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 20,
-    marginBottom: 20,
+  productsContainer: {
+    padding: 16,
   },
-  gridItem: {
-    width: '48%',
+  productsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: 12,
+    marginBottom: 24,
+  },
+  productGridItem: {
+    width: "48%",
     marginBottom: 16,
   },
 });
