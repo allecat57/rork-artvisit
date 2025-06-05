@@ -312,7 +312,7 @@ export default function EventsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary.background,
+    backgroundColor: '#013025',
   },
   header: {
     flexDirection: "row",

@@ -104,7 +104,7 @@ export default function ExploreScreen() {
           <TouchableOpacity style={styles.locationButton} onPress={handleLocationPress}>
             <MapPin size={16} color={colors.primary.accent} />
             <Text style={styles.locationText} numberOfLines={1}>
-              {locationName || 'Set location'}
+              {locationName || "Set location"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -186,7 +186,7 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary.background,
+    backgroundColor: '#013025',
   },
   header: {
     flexDirection: 'row',
