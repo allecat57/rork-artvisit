@@ -66,12 +66,9 @@ export default function HomeScreen() {
         contentContainerStyle={styles.featuredContainer}
       >
         {data.slice(0, 5).map((venue) => (
-          <FeaturedVenueCard
+          venue && <FeaturedVenueCard
             key={venue.id}
-            id={venue.id}
-            name={venue.name}
-            imageUrl={venue.imageUrl}
-            location={venue.location}
+            venue={venue}
             onPress={() => handleVenuePress(venue.id)}
             useGoldText
           />
@@ -93,13 +90,9 @@ export default function HomeScreen() {
             contentContainerStyle={styles.featuredContainer}
           >
             {featuredVenues.map((venue) => (
-              <FeaturedVenueCard
+              venue && <FeaturedVenueCard
                 key={venue.id}
-                id={venue.id}
-                name={venue.name}
-                imageUrl={venue.imageUrl}
-                location={venue.location}
-                featured
+                venue={venue}
                 onPress={() => handleVenuePress(venue.id)}
                 useGoldText
               />

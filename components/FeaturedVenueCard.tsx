@@ -30,6 +30,10 @@ export default function FeaturedVenueCard({
   onPress,
   useGoldText = false,
 }: FeaturedVenueCardProps) {
+  if (!venue) {
+    return null; // Return null if venue is undefined
+  }
+
   const { id, name, imageUrl, location, featured = false } = venue;
   const { isFavorite, addFavorite, removeFavorite } = useFavoritesStore();
   const favorite = isFavorite(id);
