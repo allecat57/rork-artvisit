@@ -4,16 +4,15 @@ import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { User, DollarSign, Calendar, Ruler, Info, ShoppingBag, ArrowLeft } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import colors from "@/constants/colors";
-import typography from "@/constants/typography";
-import Button from "@/components/Button";
-import { products } from "@/mocks/products";
-import { Product } from "@/types/product";
-import { useCartStore } from "@/store/useCartStore";
-import { useAuthStore } from "@/store/useAuthStore";
-import * as Analytics from "@/utils/analytics";
-import { logEvent } from "@/utils/logEvent";
-import CartButton from "@/components/CartButton";
+import colors from "../../constants/colors";
+import typography from "../../constants/typography";
+import Button from "../../components/Button";
+import { products } from "../../mocks/products";
+import { Product } from "../../types/product";
+import { useCartStore } from "../../store/useCartStore";
+import { useAuthStore } from "../../store/useAuthStore";
+import * as Analytics from "../../utils/analytics";
+import CartButton from "../../components/CartButton";
 
 export default function ProductDetailScreen() {
   const { id, galleryId } = useLocalSearchParams();
@@ -31,12 +30,13 @@ export default function ProductDetailScreen() {
         
         // Log view event
         if (user) {
-          logEvent({
-            type: "view_product",
-            userId: user.id,
-            galleryId: galleryId as string,
-            artworkId: id
-          }).catch(err => console.error("Error logging view event:", err));
+          // Log product view event
+          Analytics.logEvent(Analytics.Events.SCREEN_VIEW, {
+            screen_name: "ProductDetail",
+            product_id: id,
+            product_name: foundProduct.title,
+            gallery_id: galleryId
+          });
         }
       }
     }
@@ -44,16 +44,17 @@ export default function ProductDetailScreen() {
   
   const handleAddToCart = async () => {
     if (product) {
-      addToCart(product);
+      addToCart(product, 1);
       
       // Log add to cart event
       if (user) {
         try {
-          await logEvent({
-            type: "add_to_cart",
-            userId: user.id,
-            galleryId: galleryId as string,
-            artworkId: product.id
+          Analytics.logEvent(Analytics.Events.ADD_TO_CART, {
+            user_id: user.id,
+            gallery_id: galleryId,
+            artwork_id: product.id,
+            price: product.price,
+            currency: "USD"
           });
           console.log("Add to cart event logged!");
         } catch (error) {
@@ -102,6 +103,7 @@ export default function ProductDetailScreen() {
           title: product.title,
           headerLeft: () => (
             <Button
+              title="Back"
               onPress={() => router.back()}
               variant="text"
               icon={<ArrowLeft size={24} color={colors.primary.text} />}
@@ -116,7 +118,7 @@ export default function ProductDetailScreen() {
       
       <ScrollView showsVerticalScrollIndicator={false}>
         <Image
-          source={{ uri: product.imageUrl }}
+          source={{ uri: product.imageUrl || product.image }}
           style={styles.image}
           contentFit="cover"
           transition={300}
@@ -154,7 +156,7 @@ export default function ProductDetailScreen() {
             <View style={styles.detailItem}>
               <Ruler size={16} color={colors.primary.muted} />
               <Text style={[typography.bodySmall, styles.detailLabel]}>Dimensions</Text>
-              <Text style={[typography.body, styles.detailValue]}>{product.dimensions}</Text>
+              <Text style={[typography.body, styles.detailValue]}>{product.dimensions || "Not specified"}</Text>
             </View>
             
             <View style={styles.detailItem}>

@@ -2,11 +2,11 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack } from 'expo-router';
-import Button from '@/components/Button';
-import colors from '@/constants/colors';
-import typography from '@/constants/typography';
-import * as Analytics from '@/utils/analytics';
-import { useAnalytics } from '@/hooks/useAnalytics';
+import Button from '../components/Button';
+import colors from '../constants/colors';
+import typography from '../constants/typography';
+import * as Analytics from '../utils/analytics';
+import { useAnalytics } from '../hooks/useAnalytics';
 
 export default function ExampleUsagePage() {
   const { trackEvent, trackScreenView } = useAnalytics();

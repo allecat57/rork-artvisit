@@ -13,9 +13,10 @@ interface CartState {
   getCurrentUserCart: () => CartItem[];
   getCartItemCount: () => number;
   getCartTotal: () => number;
+  getCartItemById: (productId: string) => CartItem | undefined; // Added this method
   
   // Actions
-  addToCart: (product: Product, quantity: number) => void;
+  addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -41,7 +42,13 @@ export const useCartStore = create<CartState>()(
         return cart.reduce((total, item) => total + (item.product.price * item.quantity), 0);
       },
       
-      addToCart: (product: Product, quantity: number) => {
+      // Added method to get cart item by product ID
+      getCartItemById: (productId: string) => {
+        const cart = get().getCurrentUserCart();
+        return cart.find(item => item.product.id === productId);
+      },
+      
+      addToCart: (product: Product, quantity = 1) => { // Made quantity optional with default value
         const userId = useAuthStore.getState().user?.id || "guest";
         const userCart = get().cartItems[userId] || [];
         

@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import * as Analytics from '@/utils/analytics';
+import * as Analytics from '../utils/analytics';
 
 /**
  * Hook for tracking analytics events

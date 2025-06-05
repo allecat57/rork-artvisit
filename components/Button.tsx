@@ -6,10 +6,10 @@ import {
   ActivityIndicator, 
   View 
 } from "react-native";
-import colors from "@/constants/colors";
-import typography from "@/constants/typography";
-import * as Analytics from "@/utils/analytics";
-import { logFirestoreEvent } from "@/utils/firestoreEvents";
+import colors from "../constants/colors";
+import typography from "../constants/typography";
+import * as Analytics from "../utils/analytics";
+import { logFirestoreEvent } from "../utils/firestoreEvents";
 
 interface ButtonProps {
   title: string;

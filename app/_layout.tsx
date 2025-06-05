@@ -12,8 +12,8 @@ export default function RootLayout() {
   const { user, isAuthenticated } = useAuthStore();
 
   useEffect(() => {
-    // Log app start event to TimeFrame Analytics
-    Analytics.sendToTimeFrameAnalytics('app_start', {
+    // Log app start event
+    Analytics.logEvent('app_start', {
       timestamp: new Date().toISOString(),
       platform: Platform.OS,
       color_scheme: colorScheme
@@ -27,8 +27,8 @@ export default function RootLayout() {
         // Set user ID for analytics
         Analytics.setUserId(session.user.id);
         
-        // Log auth event to TimeFrame Analytics
-        Analytics.sendToTimeFrameAnalytics('auth_session_restored', {
+        // Log auth event
+        Analytics.logEvent('auth_session_restored', {
           user_id: session.user.id
         });
       }

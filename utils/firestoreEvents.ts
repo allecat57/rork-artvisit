@@ -1,7 +1,7 @@
 // This file now uses Supabase instead of Firestore for event tracking
-import { supabase } from "@/lib/supabase";
-import { getSessionUserId } from "@/utils/auth";
-import * as Analytics from '@/utils/analytics';
+import { supabase } from "../lib/supabase";
+import { getSessionUserId } from "./auth";
+import * as Analytics from './analytics';
 
 // Generic event logging function that uses Supabase instead of Firestore
 export const logFirestoreEvent = async (params: { 
