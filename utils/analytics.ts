@@ -1,3 +1,6 @@
+// analytics.ts
+// This file provides a simplified analytics interface
+
 // Define event types
 export enum Events {
   SCREEN_VIEW = "screen_view",
@@ -7,27 +10,50 @@ export enum Events {
   LOGIN = "login",
   SIGNUP = "signup",
   SEARCH = "search",
-  SHARE = "share",
+  FILTER = "filter",
   FAVORITE = "favorite",
-  UNFAVORITE = "unfavorite"
+  UNFAVORITE = "unfavorite",
+  SHARE = "share",
+  RESERVATION_CREATED = "reservation_created",
+  RESERVATION_CANCELLED = "reservation_cancelled",
+  SUBSCRIPTION_STARTED = "subscription_started",
+  SUBSCRIPTION_CANCELLED = "subscription_cancelled"
 }
 
-// Log event function
+// Log an event with parameters
 export const logEvent = (eventName: string, params?: Record<string, any>) => {
-  // Just log to console in development
-  console.log(`[Analytics] ${eventName}`, params);
+  // In a real app, this would send to an analytics service
+  console.log(`[Analytics] Event: ${eventName}`, params);
   
-  // In a real app, you would send this to your analytics service
-  // For example: firebase.analytics().logEvent(eventName, params);
+  // Return a promise to simulate async operation
+  return Promise.resolve();
 };
 
 // Send analytics event (wrapper for logEvent)
 export const sendAnalyticsEvent = async (eventName: string, params?: Record<string, any>) => {
   try {
-    logEvent(eventName, params);
+    await logEvent(eventName, params);
     return true;
   } catch (error) {
     console.error("Error sending analytics event:", error);
     return false;
   }
+};
+
+// Set user properties
+export const setUserProperties = (properties: Record<string, any>) => {
+  console.log("[Analytics] Setting user properties:", properties);
+  return Promise.resolve();
+};
+
+// Set current screen
+export const setCurrentScreen = (screenName: string, screenClass?: string) => {
+  console.log(`[Analytics] Screen view: ${screenName}`, screenClass ? `(${screenClass})` : "");
+  return logEvent(Events.SCREEN_VIEW, { screen_name: screenName, screen_class: screenClass });
+};
+
+// Reset analytics data (for logout)
+export const resetAnalytics = () => {
+  console.log("[Analytics] Reset analytics data");
+  return Promise.resolve();
 };
