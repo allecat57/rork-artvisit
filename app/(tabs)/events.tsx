@@ -28,7 +28,7 @@ export default function EventsScreen() {
     fetchEvents();
     
     // Log screen view
-    Analytics.logScreenView('events', 'EventsScreen');
+    Analytics.trackScreenView('events', 'EventsScreen');
   }, []);
 
   const handleEventPress = (eventId: string, event: Event) => {
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary.card,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: colors.primary.accent,
+    borderColor: colors.primary.border,
   },
   subscriptionTitle: {
     ...typography.heading3,

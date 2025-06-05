@@ -11,6 +11,7 @@ import { products } from "@/mocks/products";
 import { Product } from "@/types/product";
 import { useCartStore } from "@/store/useCartStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import * as Analytics from "@/utils/analytics";
 import { logEvent } from "@/utils/logEvent";
 import CartButton from "@/components/CartButton";
 

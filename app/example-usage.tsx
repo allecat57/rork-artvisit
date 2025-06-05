@@ -6,16 +6,15 @@ import Button from '@/components/Button';
 import colors from '@/constants/colors';
 import typography from '@/constants/typography';
 import * as Analytics from '@/utils/analytics';
-import { logEvent, logVisit, logPurchase, logBooking, logEventRegistration } from '@/utils/firestoreEvents';
 import { useAnalytics } from '@/hooks/useAnalytics';
 
 export default function ExampleUsagePage() {
-  const { logEvent: logAnalyticsEvent, logFirestoreEvent } = useAnalytics();
+  const { trackEvent, trackScreenView } = useAnalytics();
   const userId = "user123"; // In a real app, get this from your auth store
   
   useEffect(() => {
     // Log screen view when component mounts
-    Analytics.logScreenView('ExampleUsage', 'ExampleUsagePage');
+    Analytics.trackScreenView('ExampleUsage', 'ExampleUsagePage');
   }, []);
   
   const handleGoogleAnalyticsEvent = () => {
@@ -28,59 +27,37 @@ export default function ExampleUsagePage() {
   
   const handleFirestoreEvent = async () => {
     // Using the Firestore events utility
-    await logEvent({
-      type: "button_click",
-      userId,
-      additionalData: {
-        button_name: 'firestore_example',
-        screen: 'example_usage'
-      }
-    });
+    console.log("Logging firestore event");
+    // This would normally call a firestore logging function
   };
   
   const handleVisitLog = async () => {
     // Log a visit to a venue
-    await logVisit(userId, "venue123", {
-      duration_minutes: 60,
-      entry_method: "ticket"
-    });
+    console.log("Logging visit");
+    // This would normally call a visit logging function
   };
   
   const handlePurchaseLog = async () => {
     // Log a purchase
-    await logPurchase(userId, "venue123", "artwork456", 99.99, "USD", {
-      payment_method: "credit_card",
-      is_gift: false
-    });
+    console.log("Logging purchase");
+    // This would normally call a purchase logging function
   };
   
   const handleBookingLog = async () => {
     // Log a booking
-    await logBooking(
-      userId, 
-      "venue123", 
-      `booking_${Date.now()}`, 
-      new Date(Date.now() + 86400000), // tomorrow
-      "10:00 AM",
-      2,
-      { special_requests: "Window seat" }
-    );
+    console.log("Logging booking");
+    // This would normally call a booking logging function
   };
   
   const handleEventRegistrationLog = async () => {
     // Log an event registration
-    await logEventRegistration(
-      userId,
-      "event789",
-      "venue123",
-      2,
-      { ticket_type: "VIP" }
-    );
+    console.log("Logging event registration");
+    // This would normally call an event registration logging function
   };
   
   const handleHookExample = () => {
     // Using the useAnalytics hook
-    logAnalyticsEvent('hook_example', {
+    trackEvent('hook_example', {
       method: 'useAnalytics hook',
       screen: 'example_usage'
     });
@@ -88,14 +65,8 @@ export default function ExampleUsagePage() {
   
   const handleFirestoreHookExample = () => {
     // Using the useAnalytics hook for Firestore
-    logFirestoreEvent({
-      type: 'hook_example',
-      userId,
-      additionalData: {
-        method: 'useAnalytics hook',
-        screen: 'example_usage'
-      }
-    });
+    console.log("Logging firestore event with hook");
+    // This would normally call a firestore logging function through the hook
   };
   
   const handleButtonComponentExample = () => {
@@ -201,11 +172,6 @@ export default function ExampleUsagePage() {
             onPress={handleButtonComponentExample}
             variant="secondary"
             style={styles.button}
-            firestoreEvent={{
-              type: "button_component_click",
-              userId,
-              additionalData: { component: "Button", screen: "example_usage" }
-            }}
           />
         </View>
       </ScrollView>

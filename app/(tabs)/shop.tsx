@@ -24,11 +24,11 @@ export default function ShopScreen() {
 
   useEffect(() => {
     // Log screen view
-    Analytics.logScreenView('shop', 'ShopScreen');
+    Analytics.trackScreenView('shop', 'ShopScreen');
   }, []);
   
   // Get unique categories from products
-  const categories = Array.from(new Set(products.map(product => product.category)));
+  const categories = Array.from(new Set(products.map((product: Product) => product.category)));
   
   // Filter products based on search query and selected category
   const filteredProducts = products.filter((product: Product) => {
@@ -107,7 +107,7 @@ export default function ShopScreen() {
         />
 
         <View style={styles.categoriesContainer}>
-          {categories.map((category) => (
+          {categories.map((category: string) => (
             <TouchableOpacity
               key={category}
               style={[

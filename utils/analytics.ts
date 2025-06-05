@@ -112,6 +112,11 @@ export function logTiming(category: string, variable: string, value: number) {
   });
 }
 
+// Send analytics event (for backward compatibility)
+export function sendAnalyticsEvent(eventName: string, eventParams?: Record<string, any>) {
+  logEvent(eventName, eventParams);
+}
+
 export default {
   logEvent,
   trackScreenView,
@@ -120,5 +125,6 @@ export default {
   setUserId,
   logError,
   logTiming,
-  Events
+  Events,
+  sendAnalyticsEvent
 };
