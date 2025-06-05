@@ -23,7 +23,7 @@ export default function TodosScreen() {
   const isDark = colorScheme === 'dark';
   const textColor = isDark ? colors.text.dark : colors.text.light;
   const bgColor = isDark ? colors.background.dark : colors.background.light;
-  const accentColor = colors.primary;
+  const accentColor = colors.accent;
 
   useEffect(() => {
     fetchTodos();
