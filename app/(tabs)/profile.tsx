@@ -76,7 +76,7 @@ const ProfileOption = ({
       ) : rightContent ? (
         rightContent
       ) : (
-        <ChevronRight size={20} color={colors.primary.muted} />
+        <ChevronRight size={20} color={colors.accent} />
       )}
     </TouchableOpacity>
   );
@@ -273,10 +273,10 @@ export default function ProfileScreen() {
             {profileImage ? (
               <Image source={{ uri: profileImage }} style={styles.avatar} />
             ) : (
-              <User size={40} color={colors.primary.accent} />
+              <User size={40} color={colors.accent} />
             )}
             <View style={styles.cameraIconContainer}>
-              <Camera size={16} color={colors.primary.background} />
+              <Camera size={16} color={colors.background.dark} />
             </View>
           </TouchableOpacity>
           <Text style={[typography.heading2, styles.name]}>{user?.name || "Guest User"}</Text>
@@ -295,21 +295,21 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={[typography.heading3, styles.sectionTitle]}>Your Activity</Text>
           <ProfileOption
-            icon={<CheckCircle size={22} color={colors.primary.accent} />}
+            icon={<CheckCircle size={22} color={colors.accent} />}
             title="Visit History"
             onPress={() => router.push("/visit-history")}
             badge={visits.length}
             analyticsEventName="view_visit_history"
           />
           <ProfileOption
-            icon={<Heart size={22} color={colors.primary.accent} />}
+            icon={<Heart size={22} color={colors.accent} />}
             title="Favorite Venues"
             onPress={() => router.push("/favorites")}
             badge={favorites.length}
             analyticsEventName="view_favorites"
           />
           <ProfileOption
-            icon={<ShoppingBag size={22} color={colors.primary.accent} />}
+            icon={<ShoppingBag size={22} color={colors.accent} />}
             title="Purchase History"
             onPress={() => router.push("/purchase-history")}
             badge={purchases.length}
@@ -320,13 +320,13 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={[typography.heading3, styles.sectionTitle]}>Settings</Text>
           <ProfileOption
-            icon={<Camera size={22} color={colors.primary.accent} />}
+            icon={<Camera size={22} color={colors.accent} />}
             title="Change Profile Photo"
             onPress={handleChangeProfilePhoto}
             analyticsEventName="change_profile_photo_tap"
           />
           <ProfileOption
-            icon={<CreditCard size={22} color={colors.primary.accent} />}
+            icon={<CreditCard size={22} color={colors.accent} />}
             title="Update Payment Method"
             onPress={() => {
               Analytics.logEvent("open_payment_method_modal");
@@ -342,7 +342,7 @@ export default function ProfileScreen() {
             </View>
           )}
           <ProfileOption
-            icon={<Ticket size={22} color={colors.primary.accent} />}
+            icon={<Ticket size={22} color={colors.accent} />}
             title="Manage Subscription"
             onPress={() => {
               Analytics.logEvent("open_subscription_modal");
@@ -357,12 +357,12 @@ export default function ProfileScreen() {
                   </Text>
                 </View>
               ) : (
-                <ChevronRight size={20} color={colors.primary.muted} />
+                <ChevronRight size={20} color={colors.muted.dark} />
               )
             }
           />
           <ProfileOption
-            icon={<Shield size={22} color={colors.primary.accent} />}
+            icon={<Shield size={22} color={colors.accent} />}
             title="Privacy Settings"
             onPress={() => {
               Analytics.logEvent("open_privacy_settings_modal");
@@ -371,7 +371,7 @@ export default function ProfileScreen() {
             analyticsEventName="privacy_settings_tap"
           />
           <ProfileOption
-            icon={<Bell size={22} color={colors.primary.accent} />}
+            icon={<Bell size={22} color={colors.accent} />}
             title="Notifications"
             onPress={() => {
               Analytics.logEvent("open_notifications_modal");
@@ -384,7 +384,7 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <Text style={[typography.heading3, styles.sectionTitle]}>Support</Text>
           <ProfileOption
-            icon={<HelpCircle size={22} color={colors.primary.accent} />}
+            icon={<HelpCircle size={22} color={colors.accent} />}
             title="Help Center"
             onPress={() => {
               Analytics.logEvent(Analytics.Events.OPEN_HELP_CENTER);
@@ -437,20 +437,20 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary.background,
+    backgroundColor: '#013025',
   },
   header: {
     alignItems: "center",
     paddingVertical: 24,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.primary.border,
+    borderBottomColor: colors.border.dark,
   },
   avatarContainer: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: colors.primary.secondary,
+    backgroundColor: colors.secondary,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
@@ -465,20 +465,21 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: colors.primary.accent,
+    backgroundColor: colors.accent,
     width: 28,
     height: 28,
     borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: colors.primary.background,
+    borderColor: '#013025',
   },
   name: {
     marginBottom: 4,
+    color: '#AC8901',
   },
   email: {
-    color: colors.primary.muted,
+    color: '#AC8901',
     marginBottom: 16,
   },
   subscriptionBadge: {
@@ -500,21 +501,22 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: colors.primary.accent,
+    borderColor: colors.accent,
   },
   editButtonText: {
     ...typography.bodySmall,
-    color: colors.primary.accent,
+    color: colors.accent,
     fontWeight: "600",
   },
   section: {
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.primary.border,
+    borderBottomColor: colors.border.dark,
   },
   sectionTitle: {
     marginBottom: 16,
+    color: '#AC8901',
   },
   optionContainer: {
     flexDirection: "row",
@@ -532,9 +534,10 @@ const styles = StyleSheet.create({
   },
   optionTitle: {
     flex: 1,
+    color: '#AC8901',
   },
   badgeContainer: {
-    backgroundColor: colors.primary.accent,
+    backgroundColor: colors.accent,
     borderRadius: 12,
     paddingHorizontal: 8,
     paddingVertical: 2,
@@ -543,11 +546,11 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     ...typography.caption,
-    color: colors.primary.background,
+    color: '#013025',
     fontWeight: "bold",
   },
   paymentInfoContainer: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card.dark,
     borderRadius: 8,
     padding: 12,
     marginLeft: 56,
@@ -556,7 +559,7 @@ const styles = StyleSheet.create({
   },
   paymentInfoText: {
     ...typography.bodySmall,
-    color: colors.primary.muted,
+    color: '#AC8901',
   },
   subscriptionInfo: {
     borderRadius: 8,
@@ -565,7 +568,7 @@ const styles = StyleSheet.create({
   },
   subscriptionPrice: {
     ...typography.bodySmall,
-    color: colors.primary.accent,
+    color: colors.accent,
     fontWeight: "600",
   },
   logoutButton: {
@@ -587,7 +590,7 @@ const styles = StyleSheet.create({
   },
   versionText: {
     ...typography.caption,
-    color: colors.primary.muted,
+    color: '#AC8901',
     textAlign: "center",
     marginTop: 16,
     marginBottom: 24,
