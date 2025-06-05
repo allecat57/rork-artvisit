@@ -54,6 +54,12 @@ export const sendToTimeFrameAnalytics = async (eventName: string, params?: Recor
   }
 };
 
+// Track screen view (alias for setCurrentScreen)
+export const trackScreenView = (screenName: string, screenClass?: string) => {
+  console.log(`[Analytics] Screen view: ${screenName}`, screenClass ? `(${screenClass})` : "");
+  return logEvent(Events.SCREEN_VIEW, { screen_name: screenName, screen_class: screenClass });
+};
+
 // Set user properties
 export const setUserProperties = (properties: Record<string, any>) => {
   console.log("[Analytics] Setting user properties:", properties);
