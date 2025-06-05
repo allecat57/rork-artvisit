@@ -3,28 +3,28 @@ export default {
   secondary: "#144237",
   accent: "#AC8901",
   background: {
-    dark: "#0F0F0F",
-    light: "#FFFFFF"
+    dark: "#013025",
+    light: "#013025"
   },
   surface: {
-    dark: "#1A1A1A",
-    light: "#F8F9FA"
+    dark: "#144237",
+    light: "#144237"
   },
   text: {
     dark: "#FFFFFF",
-    light: "#1A1A1A",
+    light: "#FFFFFF",
     secondary: {
       dark: "#B0B0B0",
-      light: "#6B7280"
+      light: "#E0E0E0"
     }
   },
   card: {
-    dark: "#1E1E1E",
-    light: "#FFFFFF"
+    dark: "#144237",
+    light: "#144237"
   },
   border: {
     dark: "#2A2A2A",
-    light: "#E5E7EB"
+    light: "#2A2A2A"
   },
   muted: {
     dark: "#666666",
@@ -41,7 +41,7 @@ export default {
   constructive: "#10B981",
   // Legacy support
   light: "#FFFFFF",
-  dark: "#0F0F0F",
+  dark: "#013025",
   white: "#FFFFFF",
   black: "#000000",
 };

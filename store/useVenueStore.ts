@@ -10,7 +10,7 @@ import { categories } from "@/mocks/categories";
 
 interface VenueState {
   venues: Venue[];
-  categories: any[]; // Add categories property
+  categories: any[];
   reservations: Reservation[];
   selectedVenue: Venue | null;
   searchQuery: string;
@@ -24,7 +24,7 @@ interface VenueState {
   updateReservation: (id: string, updatedReservation: Reservation) => void;
   cancelReservation: (reservationId: string) => void;
   fetchUserReservations: (userId: string) => Promise<void>;
-  fetchVenues: () => void; // Add fetchVenues method
+  fetchVenues: () => void;
   
   // Selectors
   getVenueById: (id: string) => Venue | undefined;
@@ -50,48 +50,59 @@ const getCurrentUserId = (): string | null => {
 export const useVenueStore = create<VenueState>()(
   persist(
     (set, get) => ({
-      venues: venues,
-      categories: categories, // Add categories from mocks
+      venues: venues || [],
+      categories: categories || [],
       reservations: [],
       selectedVenue: null,
       searchQuery: "",
       isLoading: false,
       
-      setVenues: (venues) => set({ venues }),
+      setVenues: (venues) => set({ venues: venues || [] }),
       setSelectedVenue: (venue) => set({ selectedVenue: venue }),
-      setSearchQuery: (query) => set({ searchQuery: query }),
+      setSearchQuery: (query) => set({ searchQuery: query || "" }),
       
       fetchVenues: () => {
-        // In a real app, this would fetch from an API
-        // For now, we'll just use the mock data
         set({ isLoading: true });
         
-        // Simulate network delay
-        setTimeout(() => {
-          set({ 
-            venues: venues,
-            categories: categories,
-            isLoading: false 
-          });
-        }, 500);
+        try {
+          // Simulate network delay
+          setTimeout(() => {
+            set({ 
+              venues: venues || [],
+              categories: categories || [],
+              isLoading: false 
+            });
+          }, 500);
+        } catch (error) {
+          console.error("Error fetching venues:", error);
+          set({ isLoading: false });
+        }
       },
       
       addReservation: (reservation) => {
+        if (!reservation) return;
+        
         console.log("Adding reservation:", reservation);
         set((state) => ({ 
           reservations: [...state.reservations, reservation] 
         }));
         
         // Log analytics event
-        Analytics.logEvent('add_reservation', {
-          venue_id: reservation.venueId,
-          user_id: reservation.userId,
-          date: reservation.date,
-          party_size: reservation.partySize
-        });
+        try {
+          Analytics.logEvent('add_reservation', {
+            venue_id: reservation.venueId,
+            user_id: reservation.userId,
+            date: reservation.date,
+            party_size: reservation.partySize
+          });
+        } catch (error) {
+          console.warn("Analytics error:", error);
+        }
       },
       
       updateReservation: (id, updatedReservation) => {
+        if (!id || !updatedReservation) return;
+        
         set((state) => ({
           reservations: state.reservations.map(reservation => 
             reservation.id === id ? updatedReservation : reservation
@@ -99,14 +110,20 @@ export const useVenueStore = create<VenueState>()(
         }));
         
         // Log analytics event
-        Analytics.logEvent('update_reservation', {
-          reservation_id: id,
-          venue_id: updatedReservation.venueId,
-          user_id: updatedReservation.userId
-        });
+        try {
+          Analytics.logEvent('update_reservation', {
+            reservation_id: id,
+            venue_id: updatedReservation.venueId,
+            user_id: updatedReservation.userId
+          });
+        } catch (error) {
+          console.warn("Analytics error:", error);
+        }
       },
       
       cancelReservation: (reservationId) => {
+        if (!reservationId) return;
+        
         const reservation = get().getReservationById(reservationId);
         
         set((state) => ({ 
@@ -115,21 +132,24 @@ export const useVenueStore = create<VenueState>()(
         
         // Log analytics event
         if (reservation) {
-          Analytics.logEvent('cancel_reservation', {
-            reservation_id: reservationId,
-            venue_id: reservation.venueId,
-            user_id: reservation.userId
-          });
+          try {
+            Analytics.logEvent('cancel_reservation', {
+              reservation_id: reservationId,
+              venue_id: reservation.venueId,
+              user_id: reservation.userId
+            });
+          } catch (error) {
+            console.warn("Analytics error:", error);
+          }
         }
       },
       
       fetchUserReservations: async (userId) => {
+        if (!userId) return;
+        
         set({ isLoading: true });
         
         try {
-          // Since Firebase is removed, we'll just use local data
-          // In a real app, you would fetch from your backend or Supabase here
-          
           // Log analytics event
           Analytics.logEvent('fetch_user_reservations', {
             user_id: userId
@@ -144,38 +164,49 @@ export const useVenueStore = create<VenueState>()(
           set({ isLoading: false });
           
           // Log analytics event
-          Analytics.logEvent('fetch_user_reservations_error', {
-            user_id: userId,
-            error: error instanceof Error ? error.message : "Unknown error"
-          });
+          try {
+            Analytics.logEvent('fetch_user_reservations_error', {
+              user_id: userId,
+              error: error instanceof Error ? error.message : "Unknown error"
+            });
+          } catch (analyticsError) {
+            console.warn("Analytics error:", analyticsError);
+          }
         }
       },
       
       getVenueById: (id) => {
         if (!id) return undefined;
-        return get().venues.find(venue => venue.id === id);
+        const venues = get().venues || [];
+        return venues.find(venue => venue && venue.id === id);
       },
       
       getReservationById: (id) => {
         if (!id) return undefined;
-        return get().reservations.find(reservation => reservation.id === id);
+        const reservations = get().reservations || [];
+        return reservations.find(reservation => reservation && reservation.id === id);
       },
       
       getVenuesByCategory: (category) => {
-        return get().venues.filter(venue => {
+        if (!category) return [];
+        const venues = get().venues || [];
+        
+        return venues.filter(venue => {
+          if (!venue) return false;
+          
           // Match by exact category name
           if (venue.category === category) return true;
           
           // For "Museums Near You", also include venues with "museum" in their type
           if (category === "Museums Near You" && 
-              (venue.type.toLowerCase().includes("museum") || 
+              venue.type && (venue.type.toLowerCase().includes("museum") || 
                venue.category === "museum")) {
             return true;
           }
           
           // For "Art Galleries Near You", also include venues with "gallery" or "art" in their type
           if (category === "Art Galleries Near You" && 
-              (venue.type.toLowerCase().includes("gallery") || 
+              venue.type && (venue.type.toLowerCase().includes("gallery") || 
                venue.type.toLowerCase().includes("art") ||
                venue.category === "gallery")) {
             return true;
@@ -186,25 +217,35 @@ export const useVenueStore = create<VenueState>()(
       },
       
       getFeaturedVenues: () => {
-        return get().venues.filter(venue => venue.featured);
+        const venues = get().venues || [];
+        return venues.filter(venue => venue && venue.featured);
       },
       
       searchVenues: (query) => {
+        if (!query) return [];
+        const venues = get().venues || [];
         const lowercaseQuery = query.toLowerCase();
-        return get().venues.filter(
-          venue => 
-            venue.name.toLowerCase().includes(lowercaseQuery) ||
-            venue.type.toLowerCase().includes(lowercaseQuery) ||
-            venue.location.toLowerCase().includes(lowercaseQuery)
-        );
+        
+        return venues.filter(venue => {
+          if (!venue) return false;
+          
+          return (
+            (venue.name && venue.name.toLowerCase().includes(lowercaseQuery)) ||
+            (venue.type && venue.type.toLowerCase().includes(lowercaseQuery)) ||
+            (venue.location && venue.location.toLowerCase().includes(lowercaseQuery))
+          );
+        });
       },
       
       getUserReservations: () => {
         const userId = getCurrentUserId();
         if (!userId) return [];
         
-        return get().reservations.filter(reservation => 
-          reservation.userId === userId && (!reservation.type || reservation.type === "venue")
+        const reservations = get().reservations || [];
+        return reservations.filter(reservation => 
+          reservation && 
+          reservation.userId === userId && 
+          (!reservation.type || reservation.type === "venue")
         );
       },
       
@@ -212,7 +253,9 @@ export const useVenueStore = create<VenueState>()(
         const userId = getCurrentUserId();
         if (!userId) return [];
         
-        return get().reservations.filter(reservation => 
+        const reservations = get().reservations || [];
+        return reservations.filter(reservation => 
+          reservation &&
           reservation.userId === userId && 
           reservation.type === "event" &&
           reservation.eventId

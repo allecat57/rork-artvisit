@@ -14,7 +14,7 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType>({
   theme: 'system',
-  isDark: false,
+  isDark: true, // Default to dark since our app uses dark theme
   setTheme: () => {},
   toggleTheme: () => {},
   colors: colors,
@@ -28,27 +28,22 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const systemColorScheme = useColorScheme();
-  const [theme, setTheme] = useState<ThemeType>('system');
+  const [theme, setTheme] = useState<ThemeType>('dark'); // Default to dark theme
   
-  // Determine if we're in dark mode based on theme setting and system preference
-  const isDark = theme === 'system' 
-    ? systemColorScheme === 'dark'
-    : theme === 'dark';
+  // Since our app uses a dark theme (#013025), we'll always use dark mode
+  const isDark = true;
   
-  // Toggle between light and dark themes
+  // Toggle between light and dark themes (though we're keeping it dark)
   const toggleTheme = () => {
-    if (theme === 'system') {
-      setTheme(isDark ? 'light' : 'dark');
-    } else {
-      setTheme(theme === 'light' ? 'dark' : 'light');
-    }
+    // For now, we'll keep it as dark theme since the design is dark
+    console.log('Theme toggle requested, but keeping dark theme for consistency');
   };
   
   // Provide the theme context value with enhanced colors
   const contextValue: ThemeContextType = {
-    theme,
-    isDark,
-    setTheme,
+    theme: 'dark',
+    isDark: true,
+    setTheme: () => {}, // Keep dark theme
     toggleTheme,
     colors: colors,
   };

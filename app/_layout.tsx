@@ -10,7 +10,7 @@ function RootLayoutContent() {
   useEffect(() => {
     // Set status bar style based on theme
     if (Platform.OS === 'ios') {
-      StatusBar.setBarStyle(isDark ? 'light-content' : 'dark-content', true);
+      StatusBar.setBarStyle('light-content', true);
     }
   }, [isDark]);
 
@@ -19,7 +19,7 @@ function RootLayoutContent() {
       <Stack
         screenOptions={{
           headerStyle: {
-            backgroundColor: isDark ? colors.background.dark : colors.background.light,
+            backgroundColor: '#013025',
             borderBottomWidth: 0,
             elevation: 0,
             shadowOpacity: 0.05,
@@ -27,14 +27,18 @@ function RootLayoutContent() {
             shadowOffset: { width: 0, height: 1 },
             shadowColor: '#000000',
           },
-          headerTintColor: isDark ? colors.text.dark : colors.text.light,
+          headerTintColor: '#FFFFFF',
           headerTitleStyle: {
             fontSize: 18,
             fontWeight: '600',
+            color: '#FFFFFF',
           },
           headerBackTitleVisible: false,
           gestureEnabled: true,
           animation: 'slide_from_right',
+          contentStyle: {
+            backgroundColor: '#013025',
+          },
         }}
       />
     </StripeProvider>

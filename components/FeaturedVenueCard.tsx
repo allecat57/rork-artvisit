@@ -30,8 +30,10 @@ export default function FeaturedVenueCard({
   onPress,
   useGoldText = false,
 }: FeaturedVenueCardProps) {
-  if (!venue) {
-    return null; // Return null if venue is undefined
+  // Early return if venue is undefined or null
+  if (!venue || !venue.id) {
+    console.warn('FeaturedVenueCard: venue is undefined or missing id');
+    return null;
   }
 
   const { id, name, imageUrl, location, featured = false } = venue;
@@ -43,7 +45,11 @@ export default function FeaturedVenueCard({
     
     // Provide haptic feedback on iOS/Android
     if (Platform.OS !== 'web') {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      try {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      } catch (error) {
+        console.warn('Haptics not available:', error);
+      }
     }
     
     if (favorite) {
@@ -53,14 +59,20 @@ export default function FeaturedVenueCard({
     }
   };
 
+  const handlePress = () => {
+    if (onPress) {
+      onPress();
+    }
+  };
+
   return (
     <TouchableOpacity 
       style={styles.container} 
-      onPress={onPress}
+      onPress={handlePress}
       activeOpacity={0.9}
     >
       <Image
-        source={{ uri: imageUrl }}
+        source={{ uri: imageUrl || 'https://via.placeholder.com/400x220' }}
         style={styles.image}
         contentFit="cover"
         transition={300}
@@ -72,7 +84,7 @@ export default function FeaturedVenueCard({
         <View style={styles.topContainer}>
           {featured && (
             <View style={styles.featuredBadge}>
-              <Award size={14} color={colors.primary.background} />
+              <Award size={14} color={colors.background.dark} />
               <Text style={styles.featuredText}>Featured</Text>
             </View>
           )}
@@ -94,14 +106,14 @@ export default function FeaturedVenueCard({
             typography.heading3, 
             styles.name, 
             useGoldText && styles.goldText
-          ]} numberOfLines={2}>{name}</Text>
+          ]} numberOfLines={2}>{name || 'Unnamed Venue'}</Text>
           <View style={styles.locationContainer}>
-            <MapPin size={16} color={useGoldText ? "#AC8901" : colors.primary.muted} />
+            <MapPin size={16} color={useGoldText ? "#AC8901" : colors.muted.dark} />
             <Text style={[
               typography.bodySmall, 
               styles.location,
               useGoldText && styles.goldLocationText
-            ]}>{location}</Text>
+            ]}>{location || 'Location not specified'}</Text>
           </View>
         </View>
       </LinearGradient>
@@ -134,7 +146,8 @@ const styles = StyleSheet.create({
   },
   name: {
     fontFamily,
-    fontSize: 18, // Reduced from 20px to 18px to make it less busy
+    fontSize: 18,
+    color: '#FFFFFF',
     textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
@@ -150,7 +163,7 @@ const styles = StyleSheet.create({
   location: {
     fontFamily,
     marginLeft: 4,
-    color: colors.primary.muted,
+    color: '#B0B0B0',
   },
   goldLocationText: {
     color: "#AC8901",
@@ -166,7 +179,7 @@ const styles = StyleSheet.create({
   featuredText: {
     ...typography.caption,
     fontFamily,
-    color: colors.primary.background,
+    color: colors.background.dark,
     fontWeight: "600",
     marginLeft: 4,
   },

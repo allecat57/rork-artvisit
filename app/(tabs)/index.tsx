@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -24,25 +24,35 @@ const fontFamily = Platform.select({
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { getFeaturedVenues, venues } = useVenueStore();
+  const { getFeaturedVenues, venues, fetchVenues } = useVenueStore();
+  
+  // Fetch venues on component mount
+  useEffect(() => {
+    fetchVenues();
+  }, [fetchVenues]);
+
   const featuredVenues = getFeaturedVenues();
 
-  const museums = venues.filter((venue) =>
-    ["museum", "Museums Near You"].some((k) =>
-      venue.type?.toLowerCase().includes(k) ||
+  const museums = venues.filter((venue) => {
+    if (!venue) return false;
+    return ["museum", "Museums Near You"].some((k) =>
+      (venue.type && venue.type.toLowerCase().includes(k)) ||
       venue.category === k
-    )
-  );
+    );
+  });
 
-  const artGalleries = venues.filter((venue) =>
-    ["gallery", "art", "Art Galleries Near You"].some((k) =>
-      venue.type?.toLowerCase().includes(k) ||
+  const artGalleries = venues.filter((venue) => {
+    if (!venue) return false;
+    return ["gallery", "art", "Art Galleries Near You"].some((k) =>
+      (venue.type && venue.type.toLowerCase().includes(k)) ||
       venue.category === k
-    )
-  );
+    );
+  });
 
   const handleVenuePress = (venueId: string) => {
-    router.push(`/venue/${venueId}`);
+    if (venueId) {
+      router.push(`/venue/${venueId}`);
+    }
   };
 
   const navigateToCategory = (categoryId: string, title: string) => {
@@ -57,7 +67,7 @@ export default function HomeScreen() {
         </Text>
         <TouchableOpacity onPress={onPress} style={styles.viewAllButton}>
           <Text style={styles.viewAllText}>View All</Text>
-          <ChevronRight size={16} color={colors.primary.accent} />
+          <ChevronRight size={16} color={colors.accent} />
         </TouchableOpacity>
       </View>
       <ScrollView
@@ -65,14 +75,17 @@ export default function HomeScreen() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.featuredContainer}
       >
-        {data.slice(0, 5).map((venue) => (
-          venue && <FeaturedVenueCard
-            key={venue.id}
-            venue={venue}
-            onPress={() => handleVenuePress(venue.id)}
-            useGoldText
-          />
-        ))}
+        {data.slice(0, 5).map((venue) => {
+          if (!venue || !venue.id) return null;
+          return (
+            <FeaturedVenueCard
+              key={venue.id}
+              venue={venue}
+              onPress={() => handleVenuePress(venue.id)}
+              useGoldText
+            />
+          );
+        })}
       </ScrollView>
     </View>
   );
@@ -89,14 +102,17 @@ export default function HomeScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.featuredContainer}
           >
-            {featuredVenues.map((venue) => (
-              venue && <FeaturedVenueCard
-                key={venue.id}
-                venue={venue}
-                onPress={() => handleVenuePress(venue.id)}
-                useGoldText
-              />
-            ))}
+            {featuredVenues.map((venue) => {
+              if (!venue || !venue.id) return null;
+              return (
+                <FeaturedVenueCard
+                  key={venue.id}
+                  venue={venue}
+                  onPress={() => handleVenuePress(venue.id)}
+                  useGoldText
+                />
+              );
+            })}
           </ScrollView>
         </View>
 
@@ -115,7 +131,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary.background,
+    backgroundColor: '#013025',
   },
   scrollContent: {
     paddingTop: 12,
