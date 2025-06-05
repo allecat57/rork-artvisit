@@ -129,7 +129,7 @@ export default function ProductDetailScreen() {
           
           <View style={styles.artistRow}>
             <User size={18} color={colors.primary.muted} />
-            <Text style={[typography.body, styles.artist]}>{product.artist}</Text>
+            <Text style={[typography.body, styles.artist]}>{product.artist || "Unknown Artist"}</Text>
           </View>
           
           <View style={styles.priceContainer}>
@@ -150,7 +150,7 @@ export default function ProductDetailScreen() {
             <View style={styles.detailItem}>
               <Info size={16} color={colors.primary.muted} />
               <Text style={[typography.bodySmall, styles.detailLabel]}>Medium</Text>
-              <Text style={[typography.body, styles.detailValue]}>{product.medium}</Text>
+              <Text style={[typography.body, styles.detailValue]}>{product.medium || "Not specified"}</Text>
             </View>
             
             <View style={styles.detailItem}>
@@ -162,7 +162,7 @@ export default function ProductDetailScreen() {
             <View style={styles.detailItem}>
               <Calendar size={16} color={colors.primary.muted} />
               <Text style={[typography.bodySmall, styles.detailLabel]}>Year</Text>
-              <Text style={[typography.body, styles.detailValue]}>{product.year}</Text>
+              <Text style={[typography.body, styles.detailValue]}>{product.year || "Not specified"}</Text>
             </View>
             
             <View style={styles.detailItem}>
@@ -182,7 +182,7 @@ export default function ProductDetailScreen() {
           
           <View style={styles.galleryContainer}>
             <Text style={[typography.bodySmall, styles.galleryLabel]}>Available at</Text>
-            <Text style={[typography.body, styles.galleryName]}>{product.gallery}</Text>
+            <Text style={[typography.body, styles.galleryName]}>{product.gallery || "Main Gallery"}</Text>
           </View>
         </View>
       </ScrollView>

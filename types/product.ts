@@ -4,15 +4,15 @@ export interface Product {
   description: string;
   price: number;
   image: string;
-  imageUrl: string; // Added for compatibility
+  imageUrl?: string; // Made optional
   category: string;
   featured: boolean;
   inventory: number;
-  inStock: boolean; // Added for compatibility
-  artist: string; // Added for compatibility
-  medium: string; // Added for compatibility
-  year: string; // Added for compatibility
-  gallery: string; // Added for compatibility
+  inStock?: boolean; // Made optional
+  artist?: string; // Made optional
+  medium?: string; // Made optional
+  year?: string; // Made optional
+  gallery?: string; // Made optional
   dimensions?: string;
   weight?: string;
   tags?: string[];
