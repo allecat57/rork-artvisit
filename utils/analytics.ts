@@ -40,6 +40,11 @@ export const logScreenView = (screenName: string, params?: Record<string, any>) 
   });
 };
 
+// Track screen view (alias for logScreenView)
+export const trackScreenView = (screenName: string, screenClass?: string) => {
+  return logScreenView(screenName, { screen_class: screenClass });
+};
+
 // Send analytics event (wrapper for logEvent)
 export const sendAnalyticsEvent = async (eventName: string, params?: Record<string, any>) => {
   try {
@@ -67,6 +72,12 @@ export const setUserId = (userId: string | null) => {
 export const setCurrentScreen = (screenName: string, screenClass?: string) => {
   console.log(`[Analytics] Screen view: ${screenName}`, screenClass ? `(${screenClass})` : "");
   return logEvent(Events.SCREEN_VIEW, { screen_name: screenName, screen_class: screenClass });
+};
+
+// Log error
+export const logError = (error: Error, fatal: boolean = false) => {
+  console.error(`[Analytics] Error (fatal: ${fatal}):`, error);
+  return Promise.resolve();
 };
 
 // Reset analytics data (for logout)

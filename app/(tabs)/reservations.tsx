@@ -207,8 +207,8 @@ export default function ReservationsScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={[colors.primary.accent]}
-            tintColor={colors.primary.accent}
+            colors={[colors.accent]}
+            tintColor={colors.accent}
           />
         }
       />
@@ -234,7 +234,7 @@ export default function ReservationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary.background,
+    backgroundColor: colors.background,
   },
   title: {
     marginHorizontal: 20,
