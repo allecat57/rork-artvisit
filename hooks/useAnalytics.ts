@@ -10,7 +10,7 @@ export function useAnalytics() {
   }, []);
 
   const trackScreenView = useCallback((screenName: string, screenClass?: string) => {
-    Analytics.trackScreenView(screenName, screenClass);
+    Analytics.logScreenView(screenName, { screenClass });
   }, []);
 
   const setUserProperties = useCallback((properties: Record<string, any>) => {

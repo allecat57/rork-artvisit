@@ -134,7 +134,7 @@ export const useAuthStore = create<AuthState>()(
               
               set({ user: newUser, isAuthenticated: true, isLoading: false });
               
-              // Log analytics event to TimeFrame
+              // Log analytics event
               Analytics.logEvent(Analytics.Events.USER_LOGIN, {
                 method: "supabase",
                 user_id: newUser.id,
@@ -152,7 +152,7 @@ export const useAuthStore = create<AuthState>()(
           if (email === TEST_USER.email && password === "password") {
             set({ user: TEST_USER, isAuthenticated: true, isLoading: false });
             
-            // Log analytics event to TimeFrame
+            // Log analytics event
             Analytics.logEvent(Analytics.Events.USER_LOGIN, {
               method: "test_user",
               user_id: TEST_USER.id,
@@ -184,7 +184,7 @@ export const useAuthStore = create<AuthState>()(
           
           set({ user: newUser, isAuthenticated: true, isLoading: false });
           
-          // Log analytics event to TimeFrame
+          // Log analytics event
           Analytics.logEvent(Analytics.Events.USER_LOGIN, {
             method: "demo_mode",
             user_id: newUser.id,
@@ -202,7 +202,7 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false 
           });
           
-          // Log analytics event for login failure to TimeFrame
+          // Log analytics event for login failure
           Analytics.logEvent("login_error", {
             error_message: error instanceof Error ? error.message : "Unknown error",
             email: email
@@ -220,7 +220,7 @@ export const useAuthStore = create<AuthState>()(
           // Clear user ID from analytics
           Analytics.setUserId(null);
           
-          // Log analytics event to TimeFrame
+          // Log analytics event
           Analytics.logEvent(Analytics.Events.USER_LOGOUT, {
             user_id: userId
           });
@@ -290,7 +290,7 @@ export const useAuthStore = create<AuthState>()(
               
               set({ user: newUser, isAuthenticated: true, isLoading: false });
               
-              // Log analytics event to TimeFrame
+              // Log analytics event
               Analytics.logEvent(Analytics.Events.USER_SIGNUP, {
                 method: "supabase",
                 user_id: newUser.id,
@@ -322,7 +322,7 @@ export const useAuthStore = create<AuthState>()(
           
           set({ user: newUser, isAuthenticated: true, isLoading: false });
           
-          // Log analytics event to TimeFrame
+          // Log analytics event
           Analytics.logEvent(Analytics.Events.USER_SIGNUP, {
             method: "demo_mode",
             user_id: newUser.id,
@@ -340,7 +340,7 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false 
           });
           
-          // Log analytics event for signup failure to TimeFrame
+          // Log analytics event for signup failure
           Analytics.logEvent("signup_error", {
             error_message: error instanceof Error ? error.message : "Unknown error",
             email: email
@@ -357,7 +357,7 @@ export const useAuthStore = create<AuthState>()(
       loginAsTestUser: () => {
         set({ user: TEST_USER, isAuthenticated: true, error: null });
         
-        // Log analytics event to TimeFrame
+        // Log analytics event
         Analytics.logEvent(Analytics.Events.USER_LOGIN, {
           method: "test_user_direct",
           user_id: TEST_USER.id,
@@ -419,7 +419,7 @@ export const useAuthStore = create<AuthState>()(
           
           console.log("Test user profile set up successfully");
           
-          // Log analytics event to TimeFrame
+          // Log analytics event
           Analytics.logEvent("test_user_profile_setup", {
             user_id: TEST_USER.id
           });

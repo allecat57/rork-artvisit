@@ -12,6 +12,7 @@ import typography from "@/constants/typography";
 import { Reservation } from "@/types/reservation";
 import { Venue } from "@/types/venue";
 import Button from "@/components/Button";
+import * as Analytics from "@/utils/analytics";
 
 export default function ReservationsScreen() {
   const router = useRouter();
@@ -38,6 +39,11 @@ export default function ReservationsScreen() {
     if (!b.date) return -1;
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
+  
+  // Log screen view
+  useEffect(() => {
+    Analytics.logScreenView("Reservations");
+  }, []);
   
   // Fetch user reservations on mount and when user changes
   useEffect(() => {
@@ -197,7 +203,7 @@ export default function ReservationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#013025",
+    backgroundColor: colors.primary,
   },
   title: {
     marginHorizontal: 20,

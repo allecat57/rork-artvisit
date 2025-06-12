@@ -264,7 +264,7 @@ export const useProfileStore = create<ProfileState>()(
           const currentProfile = state.profiles[userId] || createDefaultProfile(userId);
           
           // Log analytics event
-          Analytics.sendAnalyticsEvent('profile_image_updated', {
+          Analytics.logEvent('profile_image_updated', {
             has_image: !!imageUri
           });
           
@@ -301,7 +301,7 @@ export const useProfileStore = create<ProfileState>()(
           const currentProfile = state.profiles[userId] || createDefaultProfile(userId);
           
           // Log analytics event
-          Analytics.sendAnalyticsEvent('payment_method_updated', {
+          Analytics.logEvent('payment_method_updated', {
             card_type: paymentMethod?.cardType || 'none',
             has_stripe_id: !!paymentMethod?.stripePaymentMethodId
           });
@@ -374,7 +374,7 @@ export const useProfileStore = create<ProfileState>()(
           const currentProfile = state.profiles[userId] || createDefaultProfile(userId);
           
           // Log analytics event
-          Analytics.sendAnalyticsEvent('subscription_updated', {
+          Analytics.logEvent('subscription_updated', {
             subscription_id: subscription?.id || 'none',
             subscription_name: subscription?.name || 'none',
             price: subscription?.price || 0,
@@ -463,7 +463,7 @@ export const useProfileStore = create<ProfileState>()(
           const currentProfile = state.profiles[userId] || createDefaultProfile(userId);
           
           // Log analytics event
-          Analytics.sendAnalyticsEvent('stripe_customer_id_set', {
+          Analytics.logEvent('stripe_customer_id_set', {
             customer_id: customerId
           });
           
@@ -563,7 +563,7 @@ export const useProfileStore = create<ProfileState>()(
               };
               
               // Log analytics event
-              Analytics.sendAnalyticsEvent('default_subscription_created', {
+              Analytics.logEvent('default_subscription_created', {
                 user_id: userId
               });
               

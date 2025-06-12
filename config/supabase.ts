@@ -69,14 +69,172 @@ export interface Database {
           updated_at?: string;
         };
       };
+      events: {
+        Row: {
+          id: string;
+          title: string;
+          description: string;
+          image: string;
+          date: string;
+          end_date: string;
+          location: string;
+          price: number;
+          capacity: number;
+          remaining_spots: number;
+          access_level: string;
+          is_featured: boolean;
+          tags: string[];
+          type: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          title: string;
+          description: string;
+          image: string;
+          date: string;
+          end_date?: string;
+          location: string;
+          price: number;
+          capacity: number;
+          remaining_spots?: number;
+          access_level: string;
+          is_featured?: boolean;
+          tags?: string[];
+          type: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          title?: string;
+          description?: string;
+          image?: string;
+          date?: string;
+          end_date?: string;
+          location?: string;
+          price?: number;
+          capacity?: number;
+          remaining_spots?: number;
+          access_level?: string;
+          is_featured?: boolean;
+          tags?: string[];
+          type?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      event_registrations: {
+        Row: {
+          id: string;
+          event_id: string;
+          user_id: string;
+          registration_date: string;
+          number_of_tickets: number;
+          total_price: number;
+          confirmation_code: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          user_id: string;
+          registration_date: string;
+          number_of_tickets: number;
+          total_price: number;
+          confirmation_code: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          event_id?: string;
+          user_id?: string;
+          registration_date?: string;
+          number_of_tickets?: number;
+          total_price?: number;
+          confirmation_code?: string;
+          created_at?: string;
+        };
+      };
+      profiles: {
+        Row: {
+          id: string;
+          user_id: string;
+          name: string;
+          email: string;
+          profile_image: string;
+          payment_method: any;
+          subscription_id: string;
+          subscription_name: string;
+          subscription_price: number;
+          subscription_renewal_date: string;
+          stripe_subscription_id: string;
+          stripe_price_id: string;
+          stripe_customer_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          name: string;
+          email: string;
+          profile_image?: string;
+          payment_method?: any;
+          subscription_id?: string;
+          subscription_name?: string;
+          subscription_price?: number;
+          subscription_renewal_date?: string;
+          stripe_subscription_id?: string;
+          stripe_price_id?: string;
+          stripe_customer_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          name?: string;
+          email?: string;
+          profile_image?: string;
+          payment_method?: any;
+          subscription_id?: string;
+          subscription_name?: string;
+          subscription_price?: number;
+          subscription_renewal_date?: string;
+          stripe_subscription_id?: string;
+          stripe_price_id?: string;
+          stripe_customer_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
     };
   };
 }
 
+// Table names constants
+export const TABLES = {
+  VENUES: 'venues',
+  EVENTS: 'events',
+  EVENT_REGISTRATIONS: 'event_registrations',
+  PROFILES: 'profiles',
+} as const;
+
 // Validation function to check if Supabase is properly configured
-export const validateSupabaseConfig = () => {
-  const isConfigured = supabaseUrl !== 'https://your-supabase-url.supabase.co' && 
-                      supabaseAnonKey !== 'your-supabase-anon-key';
+export const isSupabaseConfigured = () => {
+  // Check if we have actual values instead of placeholder values
+  const hasValidUrl = supabaseUrl && 
+                     supabaseUrl.length > 0 && 
+                     supabaseUrl.includes('supabase.co') &&
+                     !supabaseUrl.includes('your-supabase-url');
+                     
+  const hasValidKey = supabaseAnonKey && 
+                     supabaseAnonKey.length > 0 &&
+                     !supabaseAnonKey.includes('your-supabase-anon-key');
+  
+  const isConfigured = hasValidUrl && hasValidKey;
   
   if (!isConfigured) {
     console.warn('Supabase is not properly configured. Please update the URL and anon key.');
@@ -86,10 +244,13 @@ export const validateSupabaseConfig = () => {
   return true;
 };
 
+// Validation function using the old name for backward compatibility
+export const validateSupabaseConfig = isSupabaseConfigured;
+
 // Initialize Supabase connection
 export const initializeSupabase = async () => {
   try {
-    if (!validateSupabaseConfig()) {
+    if (!isSupabaseConfigured()) {
       throw new Error('Supabase configuration is invalid');
     }
     

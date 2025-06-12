@@ -61,14 +61,14 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
         setIsStripeInitialized(true);
         
         // Log analytics event
-        Analytics.sendAnalyticsEvent('stripe_initialized', {
+        Analytics.logEvent('stripe_initialized', {
           success: true
         });
       } catch (error) {
         console.error('Failed to initialize Stripe:', error);
         
         // Log analytics event
-        Analytics.sendAnalyticsEvent('stripe_initialization_failed', {
+        Analytics.logEvent('stripe_initialization_failed', {
           error: error instanceof Error ? error.message : 'Unknown error'
         });
       }
@@ -83,7 +83,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
     
     try {
       // Log analytics event
-      Analytics.sendAnalyticsEvent('create_payment_method_started', {
+      Analytics.logEvent('create_payment_method_started', {
         card_brand: cardDetails.brand || 'unknown'
       });
       
@@ -105,7 +105,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
       };
       
       // Log success
-      Analytics.sendAnalyticsEvent('create_payment_method_success', {
+      Analytics.logEvent('create_payment_method_success', {
         payment_method_id: mockPaymentMethod.id,
         card_brand: mockPaymentMethod.card.brand,
         mode: 'mock'
@@ -116,7 +116,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
       console.error('Error in createPaymentMethod:', error);
       
       // Log error
-      Analytics.sendAnalyticsEvent('create_payment_method_error', {
+      Analytics.logEvent('create_payment_method_error', {
         error: error instanceof Error ? error.message : 'Unknown error'
       });
       
@@ -132,7 +132,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
     
     try {
       // Log analytics event
-      Analytics.sendAnalyticsEvent('create_payment_intent_started', {
+      Analytics.logEvent('create_payment_intent_started', {
         amount,
         currency,
         payment_method_id: paymentMethodId
@@ -152,7 +152,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
       };
       
       // Log success
-      Analytics.sendAnalyticsEvent('create_payment_intent_success', {
+      Analytics.logEvent('create_payment_intent_success', {
         payment_intent_id: mockPaymentIntent.id,
         amount,
         currency,
@@ -164,7 +164,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
       console.error('Error in createPaymentIntent:', error);
       
       // Log error
-      Analytics.sendAnalyticsEvent('create_payment_intent_error', {
+      Analytics.logEvent('create_payment_intent_error', {
         error: error instanceof Error ? error.message : 'Unknown error',
         amount,
         currency
@@ -182,7 +182,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
     
     try {
       // Log analytics event
-      Analytics.sendAnalyticsEvent('process_payment_started', {
+      Analytics.logEvent('process_payment_started', {
         amount,
         currency
       });
@@ -201,7 +201,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
       };
       
       // Log success
-      Analytics.sendAnalyticsEvent('process_payment_success', {
+      Analytics.logEvent('process_payment_success', {
         payment_intent_id: mockPaymentIntent.id,
         amount,
         currency,
@@ -213,7 +213,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
       console.error('Error in processPayment:', error);
       
       // Log error
-      Analytics.sendAnalyticsEvent('process_payment_error', {
+      Analytics.logEvent('process_payment_error', {
         error: error instanceof Error ? error.message : 'Unknown error',
         amount,
         currency
@@ -231,7 +231,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
     
     try {
       // Log analytics event
-      Analytics.sendAnalyticsEvent('create_subscription_started', {
+      Analytics.logEvent('create_subscription_started', {
         price_id: priceId
       });
       
@@ -257,7 +257,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
       };
       
       // Log success
-      Analytics.sendAnalyticsEvent('create_subscription_success', {
+      Analytics.logEvent('create_subscription_success', {
         subscription_id: mockSubscription.id,
         price_id: priceId,
         mode: 'simulated'
@@ -268,7 +268,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
       console.error('Error in createSubscription:', error);
       
       // Log error
-      Analytics.sendAnalyticsEvent('create_subscription_error', {
+      Analytics.logEvent('create_subscription_error', {
         error: error instanceof Error ? error.message : 'Unknown error',
         price_id: priceId
       });
@@ -285,7 +285,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
     
     try {
       // Log analytics event
-      Analytics.sendAnalyticsEvent('update_subscription_started', {
+      Analytics.logEvent('update_subscription_started', {
         subscription_id: subscriptionId,
         new_price_id: newPriceId
       });
@@ -312,7 +312,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
       };
       
       // Log success
-      Analytics.sendAnalyticsEvent('update_subscription_success', {
+      Analytics.logEvent('update_subscription_success', {
         subscription_id: subscriptionId,
         new_price_id: newPriceId,
         mode: 'simulated'
@@ -323,7 +323,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
       console.error('Error in updateSubscription:', error);
       
       // Log error
-      Analytics.sendAnalyticsEvent('update_subscription_error', {
+      Analytics.logEvent('update_subscription_error', {
         error: error instanceof Error ? error.message : 'Unknown error',
         subscription_id: subscriptionId,
         new_price_id: newPriceId
@@ -341,7 +341,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
     
     try {
       // Log analytics event
-      Analytics.sendAnalyticsEvent('cancel_subscription_started', {
+      Analytics.logEvent('cancel_subscription_started', {
         subscription_id: subscriptionId
       });
       
@@ -358,7 +358,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
       };
       
       // Log success
-      Analytics.sendAnalyticsEvent('cancel_subscription_success', {
+      Analytics.logEvent('cancel_subscription_success', {
         subscription_id: subscriptionId,
         mode: 'simulated'
       });
@@ -368,7 +368,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
       console.error('Error in cancelSubscription:', error);
       
       // Log error
-      Analytics.sendAnalyticsEvent('cancel_subscription_error', {
+      Analytics.logEvent('cancel_subscription_error', {
         error: error instanceof Error ? error.message : 'Unknown error',
         subscription_id: subscriptionId
       });
@@ -385,7 +385,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
     
     try {
       // Log analytics event
-      Analytics.sendAnalyticsEvent('retrieve_payment_method_started', {
+      Analytics.logEvent('retrieve_payment_method_started', {
         payment_method_id: paymentMethodId
       });
       
@@ -407,7 +407,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
       };
       
       // Log success
-      Analytics.sendAnalyticsEvent('retrieve_payment_method_success', {
+      Analytics.logEvent('retrieve_payment_method_success', {
         payment_method_id: paymentMethodId,
         mode: 'simulated'
       });
@@ -417,7 +417,7 @@ export const StripeProvider: React.FC<StripeProviderProps> = ({ children }) => {
       console.error('Error in retrievePaymentMethod:', error);
       
       // Log error
-      Analytics.sendAnalyticsEvent('retrieve_payment_method_error', {
+      Analytics.logEvent('retrieve_payment_method_error', {
         error: error instanceof Error ? error.message : 'Unknown error',
         payment_method_id: paymentMethodId
       });
