@@ -51,9 +51,16 @@ export interface Booking {
 
 // Check if Supabase is properly configured
 export const isSupabaseConfigured = (): boolean => {
-  return !!(supabaseUrl && supabaseAnonKey && 
-    supabaseUrl !== "https://your-supabase-url.supabase.co" && 
-    supabaseAnonKey !== "your-supabase-anon-key");
+  try {
+    // Check if URL and key are present and not empty
+    const hasValidUrl = supabaseUrl && supabaseUrl.length > 0 && supabaseUrl.startsWith('https://');
+    const hasValidKey = supabaseAnonKey && supabaseAnonKey.length > 0;
+    
+    return hasValidUrl && hasValidKey;
+  } catch (error) {
+    console.error('Error checking Supabase configuration:', error);
+    return false;
+  }
 };
 
 // Table names for easy reference
