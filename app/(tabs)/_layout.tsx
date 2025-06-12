@@ -80,9 +80,9 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="events"
+        name="reservations"
         options={{
-          title: 'Events',
+          title: 'Reservations',
           tabBarIcon: ({ color, size, focused }) => (
             <Calendar 
               color={color} 

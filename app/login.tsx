@@ -328,7 +328,6 @@ export default function LoginScreen() {
             variant="outline"
             style={styles.testAccountButton}
             analyticsEventName="use_test_account"
-            textStyle={{ color: "#AC8901" }}
           />
 
           <View style={styles.switchContainer}>
@@ -350,7 +349,7 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary.background,
+    backgroundColor: "#013025",
   },
   scrollContent: {
     flexGrow: 1,
@@ -401,7 +400,7 @@ const styles = StyleSheet.create({
   },
   input: {
     ...typography.body,
-    backgroundColor: colors.primary.card,
+    backgroundColor: "#144237",
     borderRadius: 8,
     paddingVertical: 12,
     paddingLeft: 48,
