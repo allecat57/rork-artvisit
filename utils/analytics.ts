@@ -32,6 +32,14 @@ export const logEvent = (eventName: string, params?: Record<string, any>) => {
   return Promise.resolve();
 };
 
+// Log screen view (wrapper for logEvent with screen_view event)
+export const logScreenView = (screenName: string, params?: Record<string, any>) => {
+  return logEvent(Events.SCREEN_VIEW, { 
+    screen_name: screenName, 
+    ...params 
+  });
+};
+
 // Send analytics event (wrapper for logEvent)
 export const sendAnalyticsEvent = async (eventName: string, params?: Record<string, any>) => {
   try {
