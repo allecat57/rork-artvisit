@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { useColorScheme, Platform } from 'react-native';
-import { Home, Search, Calendar, User, ShoppingBag } from 'lucide-react-native';
+import { Home, Search, Calendar, User, ShoppingBag, CalendarDays } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
 
 export default function TabLayout() {
@@ -85,6 +85,19 @@ export default function TabLayout() {
           title: 'Reservations',
           tabBarIcon: ({ color, size, focused }) => (
             <Calendar 
+              color={color} 
+              size={focused ? 24 : 22} 
+              strokeWidth={focused ? 2.5 : 2}
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="events"
+        options={{
+          title: 'Events',
+          tabBarIcon: ({ color, size, focused }) => (
+            <CalendarDays 
               color={color} 
               size={focused ? 24 : 22} 
               strokeWidth={focused ? 2.5 : 2}
