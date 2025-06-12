@@ -11,7 +11,6 @@ import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import { Reservation } from "@/types/reservation";
 import { Venue } from "@/types/venue";
-import * as Analytics from "@/utils/analytics";
 import Button from "@/components/Button";
 
 export default function ReservationsScreen() {
@@ -39,12 +38,6 @@ export default function ReservationsScreen() {
     if (!b.date) return -1;
     return new Date(b.date).getTime() - new Date(a.date).getTime();
   });
-  
-  // Log screen view
-  useEffect(() => {
-    // Log screen view with analytics
-    Analytics.logScreenView("Reservations");
-  }, []);
   
   // Fetch user reservations on mount and when user changes
   useEffect(() => {
@@ -74,14 +67,6 @@ export default function ReservationsScreen() {
       // Handle case where neither eventId nor venueId is available
       Alert.alert("Error", "Cannot find details for this reservation.");
     }
-    
-    // Log analytics event
-    Analytics.logEvent("reservation_card_press", {
-      reservation_id: reservation.id,
-      venue_id: reservation.venueId,
-      event_id: reservation.eventId,
-      type: reservation.eventId ? "event" : "venue"
-    });
   };
   
   const handleCancelReservation = (reservation: Reservation) => {
@@ -97,14 +82,6 @@ export default function ReservationsScreen() {
           style: "destructive",
           onPress: () => {
             cancelReservation(reservation.id);
-            
-            // Log analytics event
-            Analytics.logEvent("reservation_cancelled", {
-              reservation_id: reservation.id,
-              venue_id: reservation.venueId,
-              event_id: reservation.eventId,
-              type: reservation.eventId ? "event" : "venue"
-            });
           }
         }
       ]
@@ -137,12 +114,6 @@ export default function ReservationsScreen() {
     
     setModifyingReservation(reservation);
     setModifyModalVisible(true);
-    
-    // Log analytics event
-    Analytics.logEvent("modify_reservation_start", {
-      reservation_id: reservation.id,
-      venue_id: reservation.venueId
-    });
   };
   
   const handleReservationUpdate = (venue: Venue, date: Date, timeSlot: string) => {
@@ -161,14 +132,6 @@ export default function ReservationsScreen() {
     // Close the modal
     setModifyModalVisible(false);
     setModifyingReservation(null);
-    
-    // Log analytics event
-    Analytics.logEvent("reservation_modified", {
-      reservation_id: modifyingReservation.id,
-      venue_id: modifyingReservation.venueId,
-      new_date: date.toISOString(),
-      new_time: timeSlot
-    });
   };
   
   const renderEmptyState = () => (
@@ -207,8 +170,8 @@ export default function ReservationsScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={handleRefresh}
-            colors={[colors.accent]}
-            tintColor={colors.accent}
+            colors={["#AC8901"]}
+            tintColor="#AC8901"
           />
         }
       />
@@ -234,12 +197,13 @@ export default function ReservationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: "#013025",
   },
   title: {
     marginHorizontal: 20,
     marginTop: 12,
     marginBottom: 20,
+    color: "#AC8901",
   },
   listContent: {
     paddingHorizontal: 20,
