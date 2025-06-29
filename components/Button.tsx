@@ -115,7 +115,7 @@ const Button: React.FC<ButtonProps> = ({
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === 'primary' ? '#FFFFFF' : '#AC8901'}
+          color={variant === 'primary' ? '#013025' : '#AC8901'}
           size={size === 'small' ? 'small' : 'small'}
         />
       ) : (
@@ -142,10 +142,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryButton: {
-    backgroundColor: colors.accent,
+    backgroundColor: '#AC8901',
   },
   secondaryButton: {
-    backgroundColor: colors.secondary,
+    backgroundColor: '#1a4037',
+    borderWidth: 1,
+    borderColor: '#AC8901',
   },
   outlineButton: {
     backgroundColor: 'transparent',
@@ -162,10 +164,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   primaryText: {
-    color: '#FFFFFF',
+    color: '#013025',
   },
   secondaryText: {
-    color: '#FFFFFF',
+    color: '#AC8901',
   },
   outlineText: {
     color: '#AC8901',

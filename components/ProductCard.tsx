@@ -46,7 +46,7 @@ export default function ProductCard({ product, onPress, compact = false }: Produ
               style={styles.compactCartButton}
               onPress={handleAddToCart}
             >
-              <ShoppingCart size={16} color={colors.primary.background} />
+              <ShoppingCart size={16} color="#013025" />
             </TouchableOpacity>
           </View>
         </View>
@@ -64,7 +64,7 @@ export default function ProductCard({ product, onPress, compact = false }: Produ
       
       {product.featured && (
         <View style={styles.featuredBadge}>
-          <Star size={12} color={colors.primary.background} />
+          <Star size={12} color="#013025" />
           <Text style={styles.featuredText}>Featured</Text>
         </View>
       )}
@@ -80,7 +80,7 @@ export default function ProductCard({ product, onPress, compact = false }: Produ
             style={styles.cartButton}
             onPress={handleAddToCart}
           >
-            <ShoppingCart size={18} color={colors.primary.background} />
+            <ShoppingCart size={18} color="#013025" />
             <Text style={styles.cartButtonText}>Add</Text>
           </TouchableOpacity>
         </View>
@@ -91,12 +91,12 @@ export default function ProductCard({ product, onPress, compact = false }: Produ
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: "#1a4037",
     borderRadius: 12,
     overflow: "hidden",
     width: 220,
     borderWidth: 1,
-    borderColor: colors.primary.border,
+    borderColor: "#AC8901",
   },
   image: {
     width: "100%",
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 12,
     left: 12,
-    backgroundColor: colors.primary.accent,
+    backgroundColor: "#AC8901",
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 8,
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   },
   featuredText: {
     ...typography.caption,
-    color: colors.primary.background,
+    color: "#013025",
     fontWeight: "600",
     marginLeft: 4,
   },
@@ -125,17 +125,18 @@ const styles = StyleSheet.create({
   },
   category: {
     ...typography.caption,
-    color: colors.primary.muted,
+    color: "#AC8901",
     marginBottom: 4,
   },
   title: {
     ...typography.bodySmall,
     fontWeight: "600",
+    color: "#AC8901",
     marginBottom: 4,
   },
   description: {
     ...typography.caption,
-    color: colors.primary.muted,
+    color: "#AC8901",
     marginBottom: 12,
   },
   footer: {
@@ -146,10 +147,10 @@ const styles = StyleSheet.create({
   price: {
     ...typography.body,
     fontWeight: "700",
-    color: colors.primary.text,
+    color: "#AC8901",
   },
   cartButton: {
-    backgroundColor: colors.primary.accent,
+    backgroundColor: "#AC8901",
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 12,
@@ -158,18 +159,18 @@ const styles = StyleSheet.create({
   },
   cartButtonText: {
     ...typography.caption,
-    color: colors.primary.background,
+    color: "#013025",
     fontWeight: "600",
     marginLeft: 4,
   },
   
   // Compact styles
   compactContainer: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: "#1a4037",
     borderRadius: 8,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: colors.primary.border,
+    borderColor: "#AC8901",
     height: 220,
   },
   compactImage: {
@@ -184,12 +185,13 @@ const styles = StyleSheet.create({
   },
   compactCategory: {
     ...typography.caption,
-    color: colors.primary.muted,
+    color: "#AC8901",
     fontSize: 10,
   },
   compactTitle: {
     ...typography.caption,
     fontWeight: "600",
+    color: "#AC8901",
     marginVertical: 4,
   },
   compactFooter: {
@@ -200,10 +202,10 @@ const styles = StyleSheet.create({
   compactPrice: {
     ...typography.bodySmall,
     fontWeight: "700",
-    color: colors.primary.text,
+    color: "#AC8901",
   },
   compactCartButton: {
-    backgroundColor: colors.primary.accent,
+    backgroundColor: "#AC8901",
     padding: 6,
     borderRadius: 16,
   },

@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, TextInput, View, TouchableOpacity, ViewStyle } from "react-native";
 import { Search, X } from "lucide-react-native";
-import colors from "@/constants/colors";
+import typography from "@/constants/typography";
 
 interface SearchBarProps {
   value: string;
@@ -46,9 +46,10 @@ export default function SearchBar({
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.primary.card,
+    backgroundColor: "#1a4037",
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 48,
@@ -63,7 +64,7 @@ const styles = StyleSheet.create({
     color: "#AC8901",
     fontSize: 16,
     height: "100%",
-    fontFamily: "Arapey",
+    ...typography.body,
   },
   clearButton: {
     padding: 4,
