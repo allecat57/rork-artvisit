@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   categoryButton: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 8,
     paddingVertical: 6,
     borderRadius: 16,
     backgroundColor: "#1a4037",
