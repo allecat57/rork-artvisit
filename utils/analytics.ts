@@ -23,6 +23,14 @@ export const trackScreenView = (screenName: string, screenClass?: string) => {
   // For now, we'll just log to console
 };
 
+export const setCurrentScreen = (screenName: string, screenClass?: string) => {
+  // Set current screen for debugging
+  console.log(`Analytics Set Current Screen: ${screenName}`, { screenClass });
+  
+  // In a real app, you would integrate with Firebase Analytics, Mixpanel, etc.
+  // For now, we'll just log to console
+};
+
 export const setUserProperty = (property: string, value: string) => {
   // Set user property for debugging
   console.log(`Analytics User Property: ${property} = ${value}`);
@@ -71,6 +79,10 @@ export const Events = {
   EVENT_VIEW: 'event_view',
   RESERVATION_MADE: 'reservation_made',
   RESERVATION_CANCELLED: 'reservation_cancelled',
+  UPDATE_PROFILE: 'update_profile',
+  UPDATE_PAYMENT_METHOD: 'update_payment_method',
+  LOGOUT: 'logout',
+  OPEN_HELP_CENTER: 'open_help_center',
 } as const;
 
 // Default export for convenience
@@ -78,6 +90,7 @@ export default {
   logEvent,
   logScreenView,
   trackScreenView,
+  setCurrentScreen,
   setUserProperty,
   setUserProperties,
   setUserId,

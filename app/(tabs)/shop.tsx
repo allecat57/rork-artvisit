@@ -85,7 +85,7 @@ export default function ShopScreen() {
         style={styles.cartButton}
         onPress={() => router.push("/shop/cart")}
       >
-        <ShoppingCart size={20} color={colors.text.dark} />
+        <ShoppingCart size={20} color={colors.text} />
         {cartItemCount > 0 && (
           <View style={styles.cartBadge}>
             <Text style={styles.cartBadgeText}>{cartItemCount}</Text>
@@ -174,7 +174,7 @@ export default function ShopScreen() {
       
       {filteredProducts.length === 0 ? (
         <EmptyState
-          icon={<Search size={40} color={colors.muted.dark} />}
+          icon={<Search size={40} color={colors.muted} />}
           title="No products found"
           message={searchQuery ? `No products matching "${searchQuery}"` : "There are no products available at this time."}
         />
@@ -206,7 +206,7 @@ export default function ShopScreen() {
         title: "Shop",
         headerTitleStyle: typography.heading3,
         headerShadowVisible: false,
-        headerStyle: { backgroundColor: colors.background.dark }
+        headerStyle: { backgroundColor: colors.background }
       }} />
       
       {renderHeader()}
@@ -223,7 +223,7 @@ export default function ShopScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#013025',
+    backgroundColor: colors.primary,
   },
   header: {
     flexDirection: "row",
@@ -236,11 +236,11 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.card.dark,
+    backgroundColor: colors.card,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.border.dark,
+    borderColor: colors.border,
   },
   cartBadge: {
     position: "absolute",
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   },
   cartBadgeText: {
     ...typography.caption,
-    color: colors.background.dark,
+    color: colors.background,
     fontWeight: "bold",
     fontSize: 10,
   },
@@ -268,19 +268,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: colors.card.dark,
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: colors.border.dark,
+    borderColor: colors.border,
   },
   categoryButtonActive: {
     backgroundColor: colors.accent,
   },
   categoryButtonText: {
     ...typography.caption,
-    color: colors.text.dark,
+    color: colors.text,
   },
   categoryButtonTextActive: {
-    color: colors.background.dark,
+    color: colors.background,
     fontWeight: "600",
   },
   content: {
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.heading4,
-    color: colors.text.dark,
+    color: colors.text,
   },
   seeAllText: {
     ...typography.bodySmall,

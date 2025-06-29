@@ -22,6 +22,7 @@ const typography = {
     letterSpacing: -0.5,
     lineHeight: 44,
     fontFamily,
+    color: "#AC8901",
   } as TextStyle,
   
   // Heading styles
@@ -31,6 +32,7 @@ const typography = {
     letterSpacing: -0.25,
     lineHeight: 40,
     fontFamily,
+    color: "#AC8901",
   } as TextStyle,
   
   heading2: {
@@ -39,6 +41,7 @@ const typography = {
     letterSpacing: -0.15,
     lineHeight: 32,
     fontFamily,
+    color: "#AC8901",
   } as TextStyle,
   
   heading3: {
@@ -47,6 +50,7 @@ const typography = {
     letterSpacing: -0.1,
     lineHeight: 28,
     fontFamily,
+    color: "#AC8901",
   } as TextStyle,
   
   heading4: {
@@ -55,6 +59,7 @@ const typography = {
     letterSpacing: 0,
     lineHeight: 26,
     fontFamily,
+    color: "#AC8901",
   } as TextStyle,
   
   // Body styles
@@ -64,6 +69,7 @@ const typography = {
     letterSpacing: 0,
     lineHeight: 24,
     fontFamily,
+    color: "#AC8901",
   } as TextStyle,
   
   body: {
@@ -72,6 +78,7 @@ const typography = {
     letterSpacing: 0,
     lineHeight: 24,
     fontFamily,
+    color: "#AC8901",
   } as TextStyle,
   
   bodyMedium: {
@@ -80,6 +87,7 @@ const typography = {
     letterSpacing: 0.1,
     lineHeight: 20,
     fontFamily,
+    color: "#AC8901",
   } as TextStyle,
   
   bodySmall: {
@@ -88,6 +96,7 @@ const typography = {
     letterSpacing: 0.1,
     lineHeight: 20,
     fontFamily,
+    color: "#AC8901",
   } as TextStyle,
   
   // Utility styles
@@ -97,6 +106,7 @@ const typography = {
     letterSpacing: 0.4,
     lineHeight: 16,
     fontFamily,
+    color: "#AC8901",
   } as TextStyle,
   
   button: {
@@ -104,6 +114,7 @@ const typography = {
     fontWeight: "600",
     letterSpacing: 0.1,
     fontFamily,
+    color: "#AC8901",
   } as TextStyle,
   
   buttonSmall: {
@@ -111,6 +122,7 @@ const typography = {
     fontWeight: "600",
     letterSpacing: 0.1,
     fontFamily,
+    color: "#AC8901",
   } as TextStyle,
   
   overline: {
@@ -119,6 +131,7 @@ const typography = {
     letterSpacing: 1.2,
     textTransform: "uppercase",
     fontFamily,
+    color: "#AC8901",
   } as TextStyle,
   
   // Special styles
@@ -128,6 +141,7 @@ const typography = {
     letterSpacing: 0,
     lineHeight: 24,
     fontFamily: serifFontFamily,
+    color: "#AC8901",
   } as TextStyle,
   
   monospace: {
@@ -140,6 +154,7 @@ const typography = {
       android: "monospace",
       default: "monospace"
     }),
+    color: "#AC8901",
   } as TextStyle,
 };
 

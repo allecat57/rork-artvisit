@@ -88,7 +88,7 @@ export default function ProfileScreen() {
   const { getCurrentUserFavorites } = useFavoritesStore();
   const { getCurrentUserVisits } = useVisitHistoryStore();
   const { getCurrentUserPurchases } = usePurchaseHistoryStore();
-  const { user, logout, isAuthenticated, isHydrated } = useAuthStore();
+  const { user, logout, isAuthenticated, isHydrated, loginAsTestUser } = useAuthStore();
   
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   const [subscriptionModalVisible, setSubscriptionModalVisible] = useState(false);
@@ -103,12 +103,40 @@ export default function ProfileScreen() {
   const visits = getCurrentUserVisits();
   const purchases = getCurrentUserPurchases();
   
-  // Check authentication status
+  // Check authentication status - but don't redirect immediately, give user option to login
   useEffect(() => {
     if (isHydrated && !isAuthenticated) {
-      router.replace("/login");
+      // Instead of redirecting immediately, we'll show a login prompt
+      console.log("User not authenticated, but staying on profile page");
     }
-  }, [isAuthenticated, isHydrated, router]);
+  }, [isAuthenticated, isHydrated]);
+  
+  // If not authenticated, show login prompt instead of redirecting
+  if (isHydrated && !isAuthenticated) {
+    return (
+      <SafeAreaView style={styles.container} edges={["bottom"]}>
+        <View style={styles.loginPromptContainer}>
+          <User size={60} color={colors.accent} />
+          <Text style={[typography.heading2, styles.loginPromptTitle]}>Welcome to Your Profile</Text>
+          <Text style={[typography.body, styles.loginPromptMessage]}>
+            Please log in to access your profile, favorites, and purchase history.
+          </Text>
+          <TouchableOpacity 
+            style={styles.loginButton}
+            onPress={() => router.push("/login")}
+          >
+            <Text style={styles.loginButtonText}>Log In</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.testUserButton}
+            onPress={loginAsTestUser}
+          >
+            <Text style={styles.testUserButtonText}>Continue as Test User</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
   
   const handleNotImplemented = () => {
     // Log not implemented event
@@ -221,9 +249,8 @@ export default function ProfileScreen() {
               // Perform logout
               await logout();
               
-              // Force navigation to login screen
-              console.log("Logout successful, navigating to login screen");
-              router.replace("/login");
+              // Stay on profile page instead of redirecting
+              console.log("Logout successful, staying on profile page");
             } catch (error) {
               console.error("Error during logout:", error);
               Alert.alert(
@@ -276,7 +303,7 @@ export default function ProfileScreen() {
               <User size={40} color={colors.accent} />
             )}
             <View style={styles.cameraIconContainer}>
-              <Camera size={16} color={colors.background.dark} />
+              <Camera size={16} color={colors.primary} />
             </View>
           </TouchableOpacity>
           <Text style={[typography.heading2, styles.name]}>{user?.name || "Guest User"}</Text>
@@ -357,7 +384,7 @@ export default function ProfileScreen() {
                   </Text>
                 </View>
               ) : (
-                <ChevronRight size={20} color={colors.muted.dark} />
+                <ChevronRight size={20} color={colors.muted} />
               )
             }
           />
@@ -437,14 +464,58 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#013025',
+    backgroundColor: colors.primary,
+  },
+  loginPromptContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  loginPromptTitle: {
+    color: colors.text,
+    marginTop: 24,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  loginPromptMessage: {
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 32,
+    opacity: 0.8,
+  },
+  loginButton: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    minWidth: 200,
+  },
+  loginButtonText: {
+    ...typography.button,
+    color: colors.primary,
+    textAlign: 'center',
+  },
+  testUserButton: {
+    borderWidth: 1,
+    borderColor: colors.accent,
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 8,
+    minWidth: 200,
+  },
+  testUserButtonText: {
+    ...typography.button,
+    color: colors.accent,
+    textAlign: 'center',
   },
   header: {
     alignItems: "center",
     paddingVertical: 24,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border.dark,
+    borderBottomColor: colors.border,
   },
   avatarContainer: {
     width: 80,
@@ -472,14 +543,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: '#013025',
+    borderColor: colors.primary,
   },
   name: {
     marginBottom: 4,
-    color: '#AC8901',
+    color: colors.text,
   },
   email: {
-    color: '#AC8901',
+    color: colors.text,
     marginBottom: 16,
   },
   subscriptionBadge: {
@@ -512,11 +583,11 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border.dark,
+    borderBottomColor: colors.border,
   },
   sectionTitle: {
     marginBottom: 16,
-    color: '#AC8901',
+    color: colors.text,
   },
   optionContainer: {
     flexDirection: "row",
@@ -534,7 +605,7 @@ const styles = StyleSheet.create({
   },
   optionTitle: {
     flex: 1,
-    color: '#AC8901',
+    color: colors.text,
   },
   badgeContainer: {
     backgroundColor: colors.accent,
@@ -546,11 +617,11 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     ...typography.caption,
-    color: '#013025',
+    color: colors.primary,
     fontWeight: "bold",
   },
   paymentInfoContainer: {
-    backgroundColor: colors.card.dark,
+    backgroundColor: colors.card,
     borderRadius: 8,
     padding: 12,
     marginLeft: 56,
@@ -559,7 +630,7 @@ const styles = StyleSheet.create({
   },
   paymentInfoText: {
     ...typography.bodySmall,
-    color: '#AC8901',
+    color: colors.text,
   },
   subscriptionInfo: {
     borderRadius: 8,
@@ -590,7 +661,7 @@ const styles = StyleSheet.create({
   },
   versionText: {
     ...typography.caption,
-    color: '#AC8901',
+    color: colors.text,
     textAlign: "center",
     marginTop: 16,
     marginBottom: 24,

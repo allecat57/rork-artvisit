@@ -186,7 +186,7 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#013025',
+    backgroundColor: colors.primary,
   },
   header: {
     flexDirection: 'row',
@@ -198,12 +198,12 @@ const styles = StyleSheet.create({
   },
   title: {
     ...typography.heading1,
-    color: colors.text.dark,
+    color: colors.text,
   },
   locationButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.card.dark,
+    backgroundColor: colors.card,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.heading3,
-    color: colors.text.dark,
+    color: colors.text,
     marginHorizontal: 20,
     marginTop: 20,
     marginBottom: 15,

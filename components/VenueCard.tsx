@@ -103,12 +103,12 @@ export default function VenueCard({
             >
               <Heart 
                 size={20} 
-                color={favorite ? colors.status.error : colors.primary.muted} 
+                color={favorite ? colors.status.error : colors.muted} 
                 fill={favorite ? colors.status.error : "none"}
               />
             </TouchableOpacity>
             <View style={styles.ratingContainer}>
-              <Star size={14} color={colors.primary.accent} fill={colors.primary.accent} />
+              <Star size={14} color={colors.accent} fill={colors.accent} />
               <Text style={styles.rating}>{rating.toFixed(1)}</Text>
             </View>
           </View>
@@ -124,7 +124,7 @@ export default function VenueCard({
               {isWithinRadius ? (
                 <Navigation 
                   size={14} 
-                  color={isNearby ? colors.status.success : colors.primary.accent} 
+                  color={isNearby ? colors.status.success : colors.accent} 
                 />
               ) : (
                 <AlertCircle size={14} color={colors.status.warning} />
@@ -147,12 +147,12 @@ export default function VenueCard({
             </View>
           ) : (
             <View style={styles.infoItem}>
-              <MapPin size={14} color={colors.primary.muted} />
+              <MapPin size={14} color={colors.muted} />
               <Text style={[typography.caption, styles.infoText]}>{distance}</Text>
             </View>
           )}
           <View style={styles.infoItem}>
-            <Clock size={14} color={colors.primary.muted} />
+            <Clock size={14} color={colors.muted} />
             <Text style={[typography.caption, styles.infoText]}>{openingHours}</Text>
           </View>
         </View>
@@ -163,7 +163,7 @@ export default function VenueCard({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     borderRadius: 12,
     overflow: "hidden",
     marginBottom: 16,
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
   },
   type: {
     fontFamily,
-    color: colors.primary.muted,
+    color: colors.muted,
     marginTop: 2,
   },
   favoriteButton: {
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   rating: {
     fontFamily,
     ...typography.bodySmall,
-    color: colors.primary.accent,
+    color: colors.accent,
     marginLeft: 4,
     fontWeight: "600",
   },
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
   },
   withinRadiusText: {
     fontFamily,
-    color: colors.primary.accent,
+    color: colors.accent,
     fontWeight: "500",
   },
   farText: {

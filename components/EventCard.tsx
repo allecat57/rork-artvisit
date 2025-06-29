@@ -43,7 +43,7 @@ export default function EventCard({ event, compact = false, onPress, hasAccess =
       case AccessLevel.EXPLORER:
         return <Star size={16} color="#FFD700" />;
       case AccessLevel.ESSENTIAL:
-        return <Ticket size={16} color={colors.primary.accent} />;
+        return <Ticket size={16} color={colors.accent} />;
       default:
         return null;
     }
@@ -56,9 +56,9 @@ export default function EventCard({ event, compact = false, onPress, hasAccess =
       case AccessLevel.EXPLORER:
         return "#FFD700";
       case AccessLevel.ESSENTIAL:
-        return colors.primary.accent;
+        return colors.accent;
       default:
-        return colors.primary.muted;
+        return colors.muted;
     }
   };
   
@@ -97,7 +97,7 @@ export default function EventCard({ event, compact = false, onPress, hasAccess =
           </Text>
           <View style={styles.compactFooter}>
             <View style={styles.compactDateContainer}>
-              <Calendar size={12} color={colors.primary.muted} />
+              <Calendar size={12} color={colors.muted} />
               <Text style={styles.compactDateText}>{formatDate(event.date)}</Text>
             </View>
             {isUserRegistered && (
@@ -142,25 +142,25 @@ export default function EventCard({ event, compact = false, onPress, hasAccess =
         </Text>
         
         <View style={styles.infoRow}>
-          <Calendar size={16} color={colors.primary.muted} style={styles.infoIcon} />
+          <Calendar size={16} color={colors.muted} style={styles.infoIcon} />
           <Text style={styles.infoText}>{formatDate(event.date)}</Text>
         </View>
         
         <View style={styles.infoRow}>
-          <Clock size={16} color={colors.primary.muted} style={styles.infoIcon} />
+          <Clock size={16} color={colors.muted} style={styles.infoIcon} />
           <Text style={styles.infoText}>
             {formatTime(event.date)} - {formatTime(event.endDate)}
           </Text>
         </View>
         
         <View style={styles.infoRow}>
-          <MapPin size={16} color={colors.primary.muted} style={styles.infoIcon} />
+          <MapPin size={16} color={colors.muted} style={styles.infoIcon} />
           <Text style={styles.infoText} numberOfLines={1}>{event.location}</Text>
         </View>
         
         <View style={styles.footer}>
           <View style={styles.capacityContainer}>
-            <Users size={16} color={colors.primary.muted} style={styles.infoIcon} />
+            <Users size={16} color={colors.muted} style={styles.infoIcon} />
             <Text style={styles.capacityText}>
               {event.remainingSpots} spots left
             </Text>
@@ -175,7 +175,7 @@ export default function EventCard({ event, compact = false, onPress, hasAccess =
         
         {event.tags && event.tags.length > 0 && (
           <View style={styles.tagsContainer}>
-            <Tag size={14} color={colors.primary.muted} style={styles.tagIcon} />
+            <Tag size={14} color={colors.muted} style={styles.tagIcon} />
             <Text style={styles.tagsText} numberOfLines={1}>
               {event.tags.join(", ")}
             </Text>
@@ -188,12 +188,12 @@ export default function EventCard({ event, compact = false, onPress, hasAccess =
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     borderRadius: 12,
     overflow: "hidden",
     marginBottom: 16,
     borderWidth: 1,
-    borderColor: colors.primary.border,
+    borderColor: colors.border,
   },
   image: {
     width: "100%",
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   eventType: {
-    color: colors.primary.muted,
+    color: colors.muted,
     marginBottom: 4,
   },
   title: {
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     ...typography.bodySmall,
-    color: colors.primary.text,
+    color: colors.text,
     flex: 1,
   },
   footer: {
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: colors.primary.border,
+    borderTopColor: colors.border,
   },
   capacityContainer: {
     flexDirection: "row",
@@ -268,17 +268,17 @@ const styles = StyleSheet.create({
   },
   capacityText: {
     ...typography.bodySmall,
-    color: colors.primary.muted,
+    color: colors.muted,
   },
   priceContainer: {
-    backgroundColor: colors.primary.secondary,
+    backgroundColor: colors.secondary,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
   },
   priceText: {
     ...typography.bodySmall,
-    color: colors.primary.text,
+    color: colors.text,
     fontWeight: "600",
   },
   tagsContainer: {
@@ -291,20 +291,20 @@ const styles = StyleSheet.create({
   },
   tagsText: {
     ...typography.caption,
-    color: colors.primary.muted,
+    color: colors.muted,
     flex: 1,
   },
   
   // Compact styles
   compactContainer: {
     flexDirection: "row",
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     borderRadius: 8,
     overflow: "hidden",
     marginBottom: 12,
     height: 80,
     borderWidth: 1,
-    borderColor: colors.primary.border,
+    borderColor: colors.border,
   },
   compactImage: {
     width: 80,
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   compactType: {
-    color: colors.primary.muted,
+    color: colors.muted,
     fontSize: 10,
   },
   compactTitle: {
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
   },
   compactDateText: {
     ...typography.caption,
-    color: colors.primary.muted,
+    color: colors.muted,
     marginLeft: 4,
   },
   compactRegisteredBadge: {

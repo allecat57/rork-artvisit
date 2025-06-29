@@ -124,7 +124,7 @@ export default function EventsScreen() {
         style={styles.filterButton}
         onPress={() => setShowFilters(!showFilters)}
       >
-        <Filter size={20} color={colors.text.dark} />
+        <Filter size={20} color={colors.text} />
       </TouchableOpacity>
     </View>
   );
@@ -215,7 +215,7 @@ export default function EventsScreen() {
       <View style={styles.upcomingContainer}>
         <View style={styles.sectionHeader}>
           <View style={styles.sectionTitleContainer}>
-            <Calendar size={18} color={colors.text.dark} style={styles.sectionIcon} />
+            <Calendar size={18} color={colors.text} style={styles.sectionIcon} />
             <Text style={styles.sectionTitle}>Upcoming Events</Text>
           </View>
           <TouchableOpacity>
@@ -250,7 +250,7 @@ export default function EventsScreen() {
       
       {filteredEvents.length === 0 ? (
         <EmptyState
-          icon={<Search size={40} color={colors.muted.dark} />}
+          icon={<Search size={40} color={colors.muted} />}
           title="No events found"
           message={searchQuery ? `No events matching "${searchQuery}"` : "There are no events available at this time."}
         />
@@ -273,7 +273,7 @@ export default function EventsScreen() {
         title: "Events",
         headerTitleStyle: typography.heading3,
         headerShadowVisible: false,
-        headerStyle: { backgroundColor: colors.background.dark }
+        headerStyle: { backgroundColor: colors.background }
       }} />
       
       {renderHeader()}
@@ -312,7 +312,7 @@ export default function EventsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#013025',
+    backgroundColor: colors.primary,
   },
   header: {
     flexDirection: "row",
@@ -325,11 +325,11 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.card.dark,
+    backgroundColor: colors.card,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: colors.border.dark,
+    borderColor: colors.border,
   },
   filtersContainer: {
     paddingHorizontal: 16,
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   },
   filtersTitle: {
     ...typography.bodySmall,
-    color: colors.muted.dark,
+    color: colors.muted,
     marginBottom: 8,
   },
   filterOptions: {
@@ -349,19 +349,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: colors.card.dark,
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: colors.border.dark,
+    borderColor: colors.border,
   },
   filterOptionActive: {
     backgroundColor: colors.accent,
   },
   filterOptionText: {
     ...typography.caption,
-    color: colors.text.dark,
+    color: colors.text,
   },
   filterOptionTextActive: {
-    color: colors.background.dark,
+    color: colors.primary,
     fontWeight: "600",
   },
   content: {
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...typography.body,
-    color: colors.muted.dark,
+    color: colors.muted,
     marginTop: 12,
   },
   featuredContainer: {
@@ -395,7 +395,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.heading4,
-    color: colors.text.dark,
+    color: colors.text,
   },
   seeAllText: {
     ...typography.bodySmall,
