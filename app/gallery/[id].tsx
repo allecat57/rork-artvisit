@@ -63,7 +63,7 @@ export default function GalleryDetailScreen() {
         // Add to visit history - use venue.id instead of venueId
         addVisit({
           id: `visit-${Date.now()}`,
-          venueId: venueData.id, // Changed from venueId to venueData.id to match the expected property name in the store
+          venueId: venueData.id,
           visitDate: new Date().toISOString(),
           duration: 0 // Will be updated when user leaves
         });
