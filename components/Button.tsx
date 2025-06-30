@@ -24,6 +24,7 @@ interface ButtonProps {
   textStyle?: StyleProp<TextStyle>;
   analyticsEventName?: string;
   analyticsProperties?: Record<string, any>;
+  analyticsParams?: Record<string, any>; // Added for backward compatibility
   icon?: React.ReactNode;
 }
 
@@ -38,11 +39,16 @@ const Button: React.FC<ButtonProps> = ({
   textStyle,
   analyticsEventName,
   analyticsProperties = {},
+  analyticsParams = {}, // Added for backward compatibility
   icon,
 }) => {
   const handlePress = () => {
     if (analyticsEventName) {
-      Analytics.logEvent(analyticsEventName, analyticsProperties);
+      // Use analyticsProperties first, then fall back to analyticsParams for backward compatibility
+      const eventProperties = Object.keys(analyticsProperties).length > 0 
+        ? analyticsProperties 
+        : analyticsParams;
+      Analytics.logEvent(analyticsEventName, eventProperties);
     }
     onPress();
   };

@@ -97,7 +97,7 @@ export default function ReservationCard({
             style={[styles.actionButton, styles.cancelButton, !handleEdit && styles.fullWidthButton]} 
             onPress={onCancel}
           >
-            <X size={16} color={colors.error} />
+            <X size={16} color={colors.status.error} />
             <Text style={styles.cancelText}>Cancel</Text>
           </TouchableOpacity>
         </View>
@@ -175,7 +175,7 @@ export default function ReservationCard({
           style={[styles.actionButton, styles.cancelButton, !handleEdit && styles.fullWidthButton]} 
           onPress={onCancel}
         >
-          <X size={16} color={colors.error} />
+          <X size={16} color={colors.status.error} />
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
       </View>
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   },
   cancelText: {
     ...typography.bodySmall,
-    color: colors.error,
+    color: colors.status.error,
     fontWeight: "600",
     marginLeft: 6,
   },

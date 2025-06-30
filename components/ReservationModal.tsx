@@ -292,7 +292,7 @@ export default function ReservationModal({
                 <Check size={18} color={colors.primary} />
               }
               analyticsEventName={isModifying ? Analytics.Events.MODIFY_RESERVATION : Analytics.Events.CREATE_RESERVATION}
-              analyticsParams={{
+              analyticsProperties={{
                 venue_id: currentVenue.id,
                 venue_name: currentVenue.name,
                 venue_type: currentVenue.type,

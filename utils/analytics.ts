@@ -79,6 +79,8 @@ export const Events = {
   EVENT_VIEW: 'event_view',
   RESERVATION_MADE: 'reservation_made',
   RESERVATION_CANCELLED: 'reservation_cancelled',
+  CREATE_RESERVATION: 'create_reservation',
+  MODIFY_RESERVATION: 'modify_reservation',
   UPDATE_PROFILE: 'update_profile',
   UPDATE_PAYMENT_METHOD: 'update_payment_method',
   LOGOUT: 'logout',

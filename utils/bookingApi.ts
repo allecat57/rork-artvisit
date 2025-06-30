@@ -65,6 +65,44 @@ export const createBooking = async (
 };
 
 /**
+ * Book a venue (wrapper around createBooking for compatibility)
+ */
+export const bookVenue = async ({
+  userId,
+  venueId,
+  date,
+  timeSlot,
+  partySize = 2,
+  notes
+}: {
+  userId: string;
+  venueId: string;
+  date: Date;
+  timeSlot: string;
+  partySize?: number;
+  notes?: string;
+}) => {
+  try {
+    const dateString = date.toISOString().split('T')[0]; // Convert to YYYY-MM-DD format
+    
+    const result = await createBooking(venueId, dateString, timeSlot, partySize, notes);
+    
+    return {
+      success: true,
+      bookingId: result.id,
+      confirmationCode: result.confirmationCode,
+      message: 'Booking created successfully'
+    };
+  } catch (error) {
+    console.error('Error booking venue:', error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+  }
+};
+
+/**
  * Cancel a booking in the system
  */
 export const cancelBooking = async (bookingId: string) => {
