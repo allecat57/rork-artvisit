@@ -171,7 +171,6 @@ export default function DateTimePicker({
             textDayHeaderFontWeight: '600',
             arrowColor: colors.accent,
             disabledArrowColor: colors.muted,
-            monthTextColor: colors.text,
             textMonthFontSize: 16,
           }}
         />
