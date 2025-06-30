@@ -19,6 +19,7 @@ import { Venue } from "@/types/venue";
 import * as Analytics from "@/utils/analytics";
 import { bookVenue } from "@/utils/bookingApi";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useVenueStore } from "@/store/useVenueStore";
 
 const { height } = Dimensions.get("window");
 
@@ -49,6 +50,7 @@ export default function ReservationModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { user } = useAuthStore();
+  const { addReservation } = useVenueStore();
   
   // Use the provided venue or allow selection from venues list
   const currentVenue = venue || selectedVenue;
@@ -86,7 +88,7 @@ export default function ReservationModal({
   };
   
   const handleReserve = async () => {
-    if (!currentVenue || !selectedDate || !selectedTimeSlot || !onReserve) {
+    if (!currentVenue || !selectedDate || !selectedTimeSlot) {
       return;
     }
     
@@ -103,7 +105,21 @@ export default function ReservationModal({
       
       if (bookingResult.success) {
         // If API call succeeds, proceed with local reservation
-        onReserve(currentVenue, selectedDate, selectedTimeSlot);
+        const reservation = {
+          id: bookingResult.bookingId || `res-${Date.now()}`,
+          userId: user?.id || "app_user",
+          venueId: currentVenue.id,
+          date: selectedDate.toISOString().split('T')[0],
+          time: selectedTimeSlot,
+          status: "confirmed" as const,
+          confirmationCode: bookingResult.confirmationCode || `CONF-${Math.random().toString(36).substring(2, 7).toUpperCase()}`
+        };
+        
+        addReservation(reservation);
+        
+        if (onReserve) {
+          onReserve(currentVenue, selectedDate, selectedTimeSlot);
+        }
         
         // Show success message with booking ID if available
         const successMessage = bookingResult.bookingId 
@@ -126,7 +142,23 @@ export default function ReservationModal({
           "⚠️ Partial Success",
           "Your reservation was saved locally, but we couldn't sync with the server. Your reservation will sync when connectivity is restored.",
           [
-            { text: "OK", onPress: () => onReserve(currentVenue, selectedDate, selectedTimeSlot) }
+            { text: "OK", onPress: () => {
+              const reservation = {
+                id: `res-${Date.now()}`,
+                userId: user?.id || "app_user",
+                venueId: currentVenue.id,
+                date: selectedDate.toISOString().split('T')[0],
+                time: selectedTimeSlot,
+                status: "confirmed" as const,
+                confirmationCode: `CONF-${Math.random().toString(36).substring(2, 7).toUpperCase()}`
+              };
+              
+              addReservation(reservation);
+              
+              if (onReserve) {
+                onReserve(currentVenue, selectedDate, selectedTimeSlot);
+              }
+            }}
           ]
         );
         
@@ -291,7 +323,7 @@ export default function ReservationModal({
                 <Calendar size={18} color={colors.primary} /> : 
                 <Check size={18} color={colors.primary} />
               }
-              analyticsEventName={isModifying ? Analytics.Events.MODIFY_RESERVATION : Analytics.Events.CREATE_RESERVATION}
+              analyticsEventName={isModifying ? "modify_reservation" : "create_reservation"}
               analyticsProperties={{
                 venue_id: currentVenue.id,
                 venue_name: currentVenue.name,

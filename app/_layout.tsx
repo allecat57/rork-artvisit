@@ -82,6 +82,13 @@ function RootLayoutContent() {
           }} 
         />
         <Stack.Screen 
+          name="venue/[id]" 
+          options={{ 
+            title: 'Venue Details',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
           name="modal" 
           options={{ 
             presentation: 'modal',

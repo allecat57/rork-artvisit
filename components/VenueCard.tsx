@@ -9,6 +9,7 @@ import { useFavoritesStore } from "@/store/useFavoritesStore";
 import * as Haptics from "expo-haptics";
 import * as Analytics from "@/utils/analytics";
 import { Venue } from "@/types/venue";
+import { useRouter } from "expo-router";
 
 // Define serif font family with proper fallbacks for all platforms
 const fontFamily = Platform.select({
@@ -19,13 +20,14 @@ const fontFamily = Platform.select({
 
 interface VenueCardProps {
   venue: Venue;
-  onPress: () => void;
+  onPress?: () => void;
 }
 
 export default function VenueCard({
   venue,
   onPress,
 }: VenueCardProps) {
+  const router = useRouter();
   const { id, name, type, imageUrl, rating, distance, openingHours } = venue;
   const { currentLocation, locationError } = useLocationStore();
   const { isFavorite, addFavorite, removeFavorite } = useFavoritesStore();
@@ -75,7 +77,11 @@ export default function VenueCard({
       distance: distance
     });
     
-    onPress();
+    if (onPress) {
+      onPress();
+    } else {
+      router.push(`/venue/${id}`);
+    }
   };
 
   return (

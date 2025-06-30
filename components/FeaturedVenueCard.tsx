@@ -8,6 +8,7 @@ import typography from "@/constants/typography";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
 import * as Haptics from "expo-haptics";
 import { Venue } from "@/types/venue";
+import { useRouter } from "expo-router";
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width * 0.85;
@@ -21,7 +22,7 @@ const fontFamily = Platform.select({
 
 interface FeaturedVenueCardProps {
   venue: Venue;
-  onPress: () => void;
+  onPress?: () => void;
   useGoldText?: boolean;
 }
 
@@ -30,6 +31,7 @@ export default function FeaturedVenueCard({
   onPress,
   useGoldText = false,
 }: FeaturedVenueCardProps) {
+  const router = useRouter();
   // Early return if venue is undefined or null
   if (!venue || !venue.id) {
     console.warn('FeaturedVenueCard: venue is undefined or missing id');
@@ -62,6 +64,8 @@ export default function FeaturedVenueCard({
   const handlePress = () => {
     if (onPress) {
       onPress();
+    } else {
+      router.push(`/venue/${id}`);
     }
   };
 
