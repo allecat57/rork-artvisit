@@ -60,7 +60,7 @@ export default function GalleryDetailScreen() {
           venue_type: venueData.type
         });
         
-        // Add to visit history
+        // Add to visit history - use venue.id instead of venueId
         addVisit({
           id: `visit-${Date.now()}`,
           venueId: venueData.id,
