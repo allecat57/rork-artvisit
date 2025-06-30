@@ -122,9 +122,4 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
   },
-  actionButtonText: {
-    ...typography.button,
-    color: colors.primary,
-    fontWeight: "600",
-  },
-});
+  actionButtonText:
