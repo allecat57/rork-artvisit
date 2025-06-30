@@ -1,17 +1,30 @@
-export type ReservationStatus = "pending" | "confirmed" | "cancelled" | "completed";
+export enum ReservationStatus {
+  PENDING = "pending",
+  CONFIRMED = "confirmed",
+  CANCELLED = "cancelled",
+  COMPLETED = "completed"
+}
 
 export interface Reservation {
   id: string;
   userId: string;
   venueId: string;
-  eventId?: string; // Added for event reservations
-  date: string; // ISO string for the date of the reservation
-  time: string; // ISO string for the time of the reservation
+  date: string;
+  time: string;
   partySize: number;
   status: ReservationStatus;
   confirmationCode: string;
+  createdAt?: string;
+  updatedAt?: string;
   specialRequests?: string;
-  type?: "venue" | "event"; // Added to distinguish between venue and event reservations
-  totalAmount?: number; // Added for payment tracking
-  paymentIntentId?: string; // Added for Stripe payment tracking
+  totalCost?: number;
+  paymentStatus?: 'pending' | 'paid' | 'failed';
+  paymentIntentId?: string;
+}
+
+export interface ReservationFormData {
+  date: string;
+  time: string;
+  partySize: number;
+  specialRequests?: string;
 }

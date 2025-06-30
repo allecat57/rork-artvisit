@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
-import { useColorScheme, Platform, StatusBar } from 'react-native';
+import { Platform, StatusBar } from 'react-native';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { StripeProvider } from '@/context/StripeContext';
 
@@ -89,6 +89,83 @@ function RootLayoutContent() {
           }} 
         />
         <Stack.Screen 
+          name="login" 
+          options={{ 
+            title: 'Login',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
+          name="favorites" 
+          options={{ 
+            title: 'Favorites',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
+          name="visit-history" 
+          options={{ 
+            title: 'Visit History',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
+          name="purchase-history" 
+          options={{ 
+            title: 'Purchase History',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
+          name="category/[id]" 
+          options={{ 
+            title: 'Category',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
+          name="shop/product/[id]" 
+          options={{ 
+            title: 'Product Details',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
+          name="shop/cart" 
+          options={{ 
+            title: 'Shopping Cart',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
+          name="event/[id]" 
+          options={{ 
+            title: 'Event Details',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
+          name="gallery/[id]" 
+          options={{ 
+            title: 'Gallery',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
+          name="gallery/[id]/artworks" 
+          options={{ 
+            title: 'Artworks',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
+          name="gallery/[id]/artwork/[artworkId]" 
+          options={{ 
+            title: 'Artwork Details',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
           name="modal" 
           options={{ 
             presentation: 'modal',
@@ -102,6 +179,27 @@ function RootLayoutContent() {
               fontWeight: '600',
               color: '#FFFFFF',
             },
+          }} 
+        />
+        <Stack.Screen 
+          name="example-usage" 
+          options={{ 
+            title: 'Example Usage',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
+          name="+not-found" 
+          options={{ 
+            title: 'Not Found',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
+          name="error-boundary" 
+          options={{ 
+            title: 'Error',
+            headerShown: true
           }} 
         />
       </Stack>

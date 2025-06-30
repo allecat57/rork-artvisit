@@ -1,21 +1,40 @@
 export interface Venue {
   id: string;
   name: string;
-  type: string;
   description: string;
-  imageUrl: string;
-  location: string;
-  distance: string;
+  image: string;
+  category: string;
+  type: string;
   rating: number;
-  openingHours: string;
-  admission: string;
-  featured?: boolean;
-  category?: string;
-  tags?: string[];
-  phone?: string;
-  website?: string;
-  coordinates?: {
+  reviewCount: number;
+  priceRange: string;
+  location: {
+    address: string;
+    city: string;
+    state: string;
+    zipCode: string;
     latitude: number;
     longitude: number;
   };
+  hours: {
+    [key: string]: string;
+  };
+  amenities: string[];
+  featured: boolean;
+  phone?: string;
+  website?: string;
+  tags?: string[];
+  admissionFee?: {
+    adult: number;
+    child: number;
+    senior: number;
+    student: number;
+  };
+  specialExhibitions?: {
+    name: string;
+    description: string;
+    startDate: string;
+    endDate: string;
+    additionalFee?: number;
+  }[];
 }
