@@ -19,12 +19,8 @@ export default function ShopScreen() {
   
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   
   useEffect(() => {
-    // Set featured products
-    setFeaturedProducts(products.filter(product => product.featured));
-    
     // Log analytics event
     Analytics.logEvent("view_shop_screen", {});
   }, []);
@@ -133,38 +129,6 @@ export default function ShopScreen() {
     </ScrollView>
   );
   
-  // Render featured products section
-  const renderFeaturedProducts = () => {
-    if (featuredProducts.length === 0) {
-      return null;
-    }
-    
-    return (
-      <View style={styles.featuredContainer}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Featured Products</Text>
-          <TouchableOpacity>
-            <Text style={styles.seeAllText}>See All</Text>
-          </TouchableOpacity>
-        </View>
-        
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.featuredList}
-        >
-          {featuredProducts.map((product) => (
-            <ProductCard 
-              key={product.id}
-              product={product} 
-              onPress={() => handleProductPress(product.id)}
-            />
-          ))}
-        </ScrollView>
-      </View>
-    );
-  };
-  
   // Render all products grid
   const renderProductGrid = () => (
     <View style={styles.productsContainer}>
@@ -213,7 +177,6 @@ export default function ShopScreen() {
       {renderCategories()}
       
       <ScrollView style={styles.content}>
-        {renderFeaturedProducts()}
         {renderProductGrid()}
       </ScrollView>
     </SafeAreaView>
@@ -265,13 +228,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   categoryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
     backgroundColor: "#1a4037",
     borderWidth: 1,
     borderColor: "#AC8901",
-    minWidth: 80,
     alignItems: "center",
   },
   categoryButtonActive: {
@@ -280,7 +242,7 @@ const styles = StyleSheet.create({
   categoryButtonText: {
     ...typography.caption,
     color: "#AC8901",
-    fontSize: 12,
+    fontSize: 11,
   },
   categoryButtonTextActive: {
     color: "#013025",
@@ -289,26 +251,9 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
-  featuredContainer: {
-    padding: 16,
-    paddingBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
   sectionTitle: {
     ...typography.heading4,
     color: "#AC8901",
-  },
-  seeAllText: {
-    ...typography.bodySmall,
-    color: "#AC8901",
-  },
-  featuredList: {
-    gap: 16,
   },
   productsContainer: {
     padding: 16,
