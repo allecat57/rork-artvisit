@@ -80,7 +80,7 @@ export const useEventsStore = create<EventsState>()(
         if (!userId) return [];
         
         // If Supabase is configured, fetch registrations from Supabase
-        if (isSupabaseConfigured()) {
+        if (isSupabaseConfigured) {
           // This would normally be an async operation, but for simplicity
           // we'll use the local cache and update it in the background
           supabase
@@ -89,7 +89,7 @@ export const useEventsStore = create<EventsState>()(
             .eq('user_id', userId)
             .then(({ data, error }) => {
               if (error) {
-                console.error("Error fetching registrations from Supabase:", error);
+                console.error("Error fetching registrations from Supabase:", error.message || error);
                 return;
               }
               
@@ -112,6 +112,9 @@ export const useEventsStore = create<EventsState>()(
                   ]
                 }));
               }
+            })
+            .catch(err => {
+              console.error("Error in getUserRegistrations:", err.message || err);
             });
         }
         
@@ -123,7 +126,7 @@ export const useEventsStore = create<EventsState>()(
         if (!userId) return false;
         
         // If Supabase is configured, check registration in Supabase
-        if (isSupabaseConfigured()) {
+        if (isSupabaseConfigured) {
           // This would normally be an async operation, but for simplicity
           // we'll use the local cache and update it in the background
           supabase
@@ -133,7 +136,7 @@ export const useEventsStore = create<EventsState>()(
             .eq('event_id', eventId)
             .then(({ data, error }) => {
               if (error) {
-                console.error("Error checking registration in Supabase:", error);
+                console.error("Error checking registration in Supabase:", error.message || error);
                 return;
               }
               
@@ -164,6 +167,9 @@ export const useEventsStore = create<EventsState>()(
                   return state;
                 });
               }
+            })
+            .catch(err => {
+              console.error("Error in isUserRegisteredForEvent:", err.message || err);
             });
         }
         
@@ -177,13 +183,13 @@ export const useEventsStore = create<EventsState>()(
         
         try {
           // If Supabase is configured, fetch events from Supabase
-          if (isSupabaseConfigured()) {
+          if (isSupabaseConfigured) {
             const { data, error } = await supabase
               .from(TABLES.EVENTS)
               .select('*');
               
             if (error) {
-              throw error;
+              throw new Error(`Supabase error: ${error.message}`);
             }
             
             if (data && data.length > 0) {
@@ -231,12 +237,13 @@ export const useEventsStore = create<EventsState>()(
             source: "mock"
           });
         } catch (error) {
-          console.error("Error fetching events:", error);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          console.error("Error fetching events:", errorMessage);
           set({ isLoading: false });
           
           // Log analytics event
           Analytics.logEvent("fetch_events_error", {
-            error: error instanceof Error ? error.message : "Unknown error"
+            error: errorMessage
           });
         }
       },
@@ -286,7 +293,7 @@ export const useEventsStore = create<EventsState>()(
           };
           
           // If Supabase is configured, create registration in Supabase
-          if (isSupabaseConfigured()) {
+          if (isSupabaseConfigured) {
             supabase
               .from(TABLES.EVENT_REGISTRATIONS)
               .insert([
@@ -301,7 +308,7 @@ export const useEventsStore = create<EventsState>()(
               ])
               .then(({ error }) => {
                 if (error) {
-                  console.error("Error creating registration in Supabase:", error);
+                  console.error("Error creating registration in Supabase:", error.message || error);
                   return;
                 }
                 
@@ -312,9 +319,12 @@ export const useEventsStore = create<EventsState>()(
                   .eq('id', eventId)
                   .then(({ error: updateError }) => {
                     if (updateError) {
-                      console.error("Error updating event spots in Supabase:", updateError);
+                      console.error("Error updating event spots in Supabase:", updateError.message || updateError);
                     }
                   });
+              })
+              .catch(err => {
+                console.error("Error in registerForEvent Supabase operation:", err.message || err);
               });
           }
           
@@ -345,12 +355,13 @@ export const useEventsStore = create<EventsState>()(
           console.log("✅ Registration successful:", registration);
           return registration;
         } catch (error) {
-          console.error("❌ Error in registerForEvent:", error);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          console.error("❌ Error in registerForEvent:", errorMessage);
           
           // Log analytics event
           Analytics.logEvent("register_for_event_error", {
             event_id: eventId,
-            error: error instanceof Error ? error.message : "Unknown error"
+            error: errorMessage
           });
           
           return null;
@@ -376,7 +387,7 @@ export const useEventsStore = create<EventsState>()(
           }
           
           // If Supabase is configured, delete registration from Supabase
-          if (isSupabaseConfigured()) {
+          if (isSupabaseConfigured) {
             supabase
               .from(TABLES.EVENT_REGISTRATIONS)
               .delete()
@@ -384,7 +395,7 @@ export const useEventsStore = create<EventsState>()(
               .eq('user_id', userId)
               .then(({ error }) => {
                 if (error) {
-                  console.error("Error deleting registration from Supabase:", error);
+                  console.error("Error deleting registration from Supabase:", error.message || error);
                   return;
                 }
                 
@@ -398,10 +409,13 @@ export const useEventsStore = create<EventsState>()(
                     .eq('id', eventId)
                     .then(({ error: updateError }) => {
                       if (updateError) {
-                        console.error("Error updating event spots in Supabase:", updateError);
+                        console.error("Error updating event spots in Supabase:", updateError.message || updateError);
                       }
                     });
                 }
+              })
+              .catch(err => {
+                console.error("Error in cancelRegistration Supabase operation:", err.message || err);
               });
           }
           
@@ -434,12 +448,13 @@ export const useEventsStore = create<EventsState>()(
           console.log("✅ Registration cancelled successfully");
           return true;
         } catch (error) {
-          console.error("❌ Error in cancelRegistration:", error);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          console.error("❌ Error in cancelRegistration:", errorMessage);
           
           // Log analytics event
           Analytics.logEvent("cancel_registration_error", {
             event_id: eventId,
-            error: error instanceof Error ? error.message : "Unknown error"
+            error: errorMessage
           });
           
           return false;

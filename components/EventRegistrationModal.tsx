@@ -18,7 +18,6 @@ import { useEventsStore } from "@/store/useEventsStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useProfileStore } from "@/store/useProfileStore";
 import * as Analytics from "@/utils/analytics";
-import { bookEvent } from "@/utils/bookingApi";
 import { supabase, isSupabaseConfigured, TABLES } from "@/config/supabase";
 
 interface EventRegistrationModalProps {
@@ -26,6 +25,25 @@ interface EventRegistrationModalProps {
   onClose: () => void;
   event: Event;
 }
+
+// Mock booking function for events
+const bookEvent = async (params: {
+  userId: string;
+  eventId: string;
+  numberOfTickets: number;
+  paymentMethodId?: string;
+  price: number;
+}) => {
+  // Simulate payment processing
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  // In a real app, this would call your payment processor
+  return {
+    success: true,
+    paymentIntentId: `pi_${Math.random().toString(36).substring(2, 15)}`,
+    message: "Payment successful"
+  };
+};
 
 export default function EventRegistrationModal({
   visible,
@@ -92,7 +110,7 @@ export default function EventRegistrationModal({
             .eq('event_id', event.id);
           
           if (checkError) {
-            console.error("Error checking registration in Supabase:", checkError);
+            console.error("Error checking registration in Supabase:", checkError.message || checkError);
             throw checkError;
           }
           
@@ -143,7 +161,7 @@ export default function EventRegistrationModal({
             .select();
           
           if (error) {
-            console.error("Error creating registration in Supabase:", error);
+            console.error("Error creating registration in Supabase:", error.message || error);
             throw error;
           }
           
@@ -154,7 +172,7 @@ export default function EventRegistrationModal({
             .eq('id', event.id);
           
           if (updateError) {
-            console.error("Error updating event spots in Supabase:", updateError);
+            console.error("Error updating event spots in Supabase:", updateError.message || updateError);
           }
           
           // Log analytics event
@@ -173,7 +191,8 @@ export default function EventRegistrationModal({
           
           onClose();
         } catch (error) {
-          console.error("Error registering for event in Supabase:", error);
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          console.error("Error registering for event in Supabase:", errorMessage);
           Alert.alert("Registration Error", "There was a problem with your registration. Please try again.");
         } finally {
           setIsLoading(false);
@@ -208,7 +227,8 @@ export default function EventRegistrationModal({
         );
       }
     } catch (error) {
-      console.error("Error in handleRegister:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Error in handleRegister:", errorMessage);
       Alert.alert(
         "Registration Error",
         "An unexpected error occurred. Please try again later."
@@ -230,18 +250,18 @@ export default function EventRegistrationModal({
           <View style={styles.modalHeader}>
             <Text style={styles.modalTitle}>Register for Event</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <X size={24} color={colors.primary.text} />
+              <X size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
           
           <View style={styles.eventInfo}>
             <Text style={styles.eventTitle}>{event.title}</Text>
             <View style={styles.eventDetail}>
-              <Calendar size={16} color={colors.primary.accent} style={styles.eventIcon} />
+              <Calendar size={16} color={colors.accent} style={styles.eventIcon} />
               <Text style={styles.eventDetailText}>{new Date(event.date).toLocaleDateString()}</Text>
             </View>
             <View style={styles.eventDetail}>
-              <Ticket size={16} color={colors.primary.accent} style={styles.eventIcon} />
+              <Ticket size={16} color={colors.accent} style={styles.eventIcon} />
               <Text style={styles.eventDetailText}>
                 ${event.price.toFixed(2)} per ticket
               </Text>
@@ -256,7 +276,7 @@ export default function EventRegistrationModal({
                 style={[styles.ticketButton, numberOfTickets <= 1 && styles.disabledButton]}
                 disabled={numberOfTickets <= 1}
               >
-                <Minus size={20} color={numberOfTickets <= 1 ? colors.primary.muted : colors.primary.text} />
+                <Minus size={20} color={numberOfTickets <= 1 ? colors.muted : colors.text} />
               </TouchableOpacity>
               <Text style={styles.ticketCount}>{numberOfTickets}</Text>
               <TouchableOpacity
@@ -264,7 +284,7 @@ export default function EventRegistrationModal({
                 style={[styles.ticketButton, numberOfTickets >= event.remainingSpots && styles.disabledButton]}
                 disabled={numberOfTickets >= event.remainingSpots}
               >
-                <Plus size={20} color={numberOfTickets >= event.remainingSpots ? colors.primary.muted : colors.primary.text} />
+                <Plus size={20} color={numberOfTickets >= event.remainingSpots ? colors.muted : colors.text} />
               </TouchableOpacity>
             </View>
           </View>
@@ -273,7 +293,7 @@ export default function EventRegistrationModal({
             <Text style={styles.sectionTitle}>Payment Method</Text>
             {paymentMethod ? (
               <View style={styles.paymentMethod}>
-                <CreditCard size={20} color={colors.primary.accent} style={styles.paymentIcon} />
+                <CreditCard size={20} color={colors.accent} style={styles.paymentIcon} />
                 <Text style={styles.paymentText}>
                   {paymentMethod.cardType} •••• {paymentMethod.last4}
                 </Text>
@@ -327,7 +347,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalContainer: {
-    backgroundColor: colors.primary.background,
+    backgroundColor: colors.background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
@@ -341,20 +361,20 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     ...typography.heading3,
-    color: colors.primary.text,
+    color: colors.text,
   },
   closeButton: {
     padding: 5,
   },
   eventInfo: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
   },
   eventTitle: {
     ...typography.heading4,
-    color: colors.primary.text,
+    color: colors.text,
     marginBottom: 12,
   },
   eventDetail: {
@@ -367,14 +387,14 @@ const styles = StyleSheet.create({
   },
   eventDetailText: {
     ...typography.body,
-    color: colors.primary.text,
+    color: colors.text,
   },
   ticketSelector: {
     marginBottom: 20,
   },
   sectionTitle: {
     ...typography.heading4,
-    color: colors.primary.text,
+    color: colors.text,
     marginBottom: 12,
   },
   ticketControls: {
@@ -386,7 +406,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     justifyContent: "center",
     alignItems: "center",
   },
@@ -395,7 +415,7 @@ const styles = StyleSheet.create({
   },
   ticketCount: {
     ...typography.heading3,
-    color: colors.primary.text,
+    color: colors.text,
     marginHorizontal: 20,
   },
   paymentSection: {
@@ -404,7 +424,7 @@ const styles = StyleSheet.create({
   paymentMethod: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     borderRadius: 8,
     padding: 12,
   },
@@ -413,12 +433,12 @@ const styles = StyleSheet.create({
   },
   paymentText: {
     ...typography.body,
-    color: colors.primary.text,
+    color: colors.text,
   },
   noPaymentText: {
     ...typography.body,
     color: colors.status.error,
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     borderRadius: 8,
     padding: 12,
   },
@@ -432,27 +452,27 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     ...typography.body,
-    color: colors.primary.muted,
+    color: colors.muted,
   },
   summaryValue: {
     ...typography.body,
-    color: colors.primary.text,
+    color: colors.text,
   },
   totalRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     borderTopWidth: 1,
-    borderTopColor: colors.primary.border,
+    borderTopColor: colors.border,
     paddingTop: 12,
     marginTop: 8,
   },
   totalLabel: {
     ...typography.heading4,
-    color: colors.primary.text,
+    color: colors.text,
   },
   totalValue: {
     ...typography.heading4,
-    color: colors.primary.text,
+    color: colors.text,
   },
   registerButton: {
     marginBottom: Platform.OS === "ios" ? 20 : 0,

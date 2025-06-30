@@ -338,7 +338,7 @@ export default function EventsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: "row",
@@ -399,7 +399,7 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   filterOptionTextActive: {
-    color: colors.primary,
+    color: colors.background,
     fontWeight: "600",
   },
   content: {
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
   },
   subscriptionButtonText: {
     ...typography.body,
-    color: colors.primary,
+    color: colors.background,
     fontWeight: "600",
   },
 });

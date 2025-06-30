@@ -1,10 +1,10 @@
 import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
-import { Lock, Crown, Star, Ticket } from "lucide-react-native";
+import { StyleSheet, Text, View, TouchableOpacity, Modal } from "react-native";
+import { X, Crown, Star, Ticket } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import { AccessLevel } from "@/types/event";
-import * as Analytics from "@/utils/analytics";
+import Button from "./Button";
 
 interface SubscriptionRequiredCardProps {
   requiredLevel: AccessLevel;
@@ -12,158 +12,152 @@ interface SubscriptionRequiredCardProps {
   onClose: () => void;
 }
 
-export default function SubscriptionRequiredCard({ 
-  requiredLevel, 
+export default function SubscriptionRequiredCard({
+  requiredLevel,
   onUpgrade,
-  onClose
+  onClose,
 }: SubscriptionRequiredCardProps) {
-  const getAccessLevelIcon = () => {
-    switch (requiredLevel) {
+  const getAccessLevelInfo = (level: AccessLevel) => {
+    switch (level) {
       case AccessLevel.COLLECTOR:
-        return <Crown size={24} color="#9C27B0" />;
+        return {
+          icon: <Crown size={24} color={colors.accent} />,
+          title: "Collector Subscription Required",
+          description: "This exclusive event is only available to Collector members.",
+          color: colors.accent
+        };
       case AccessLevel.EXPLORER:
-        return <Star size={24} color="#FFD700" />;
+        return {
+          icon: <Star size={24} color={colors.accent} />,
+          title: "Explorer Subscription Required", 
+          description: "This event requires an Explorer subscription or higher.",
+          color: colors.muted
+        };
       case AccessLevel.ESSENTIAL:
-        return <Ticket size={24} color={colors.primary.accent} />;
+        return {
+          icon: <Ticket size={24} color={colors.accent} />,
+          title: "Essential Subscription Required",
+          description: "This event requires an Essential subscription or higher.",
+          color: colors.accent
+        };
       default:
-        return <Lock size={24} color={colors.primary.muted} />;
+        return {
+          icon: <Ticket size={24} color={colors.accent} />,
+          title: "Subscription Required",
+          description: "This event requires a subscription to access.",
+          color: colors.accent
+        };
     }
   };
-  
-  const getAccessLevelColor = () => {
-    switch (requiredLevel) {
-      case AccessLevel.COLLECTOR:
-        return "#9C27B0";
-      case AccessLevel.EXPLORER:
-        return "#FFD700";
-      case AccessLevel.ESSENTIAL:
-        return colors.primary.accent;
-      default:
-        return colors.primary.muted;
-    }
-  };
-  
-  const getAccessLevelName = () => {
-    switch (requiredLevel) {
-      case AccessLevel.COLLECTOR:
-        return "Master Collector";
-      case AccessLevel.EXPLORER:
-        return "Art Explorer";
-      case AccessLevel.ESSENTIAL:
-        return "Essential Pass";
-      default:
-        return "Subscription";
-    }
-  };
-  
-  const getAccessLevelDescription = () => {
-    switch (requiredLevel) {
-      case AccessLevel.COLLECTOR:
-        return "Upgrade to Master Collector to access VIP events, private gallery openings, and exclusive collector dinners.";
-      case AccessLevel.EXPLORER:
-        return "Upgrade to Art Explorer to access exclusive event invitations, priority booking, and behind-the-scenes content.";
-      case AccessLevel.ESSENTIAL:
-        return "Upgrade to Essential Pass to access event invitations and early access notifications.";
-      default:
-        return "Upgrade your subscription to access this content.";
-    }
-  };
-  
-  const handleUpgrade = () => {
-    // Log analytics event
-    Analytics.logEvent("subscription_upgrade_prompt", {
-      required_level: requiredLevel,
-      source: "events_page"
-    });
-    
-    onUpgrade();
-  };
-  
+
+  const levelInfo = getAccessLevelInfo(requiredLevel);
+
   return (
-    <View style={styles.container}>
-      <TouchableOpacity 
-        style={styles.closeButton}
-        onPress={onClose}
-      >
-        <Text style={styles.closeButtonText}>×</Text>
-      </TouchableOpacity>
-      
-      <View style={[styles.iconContainer, { backgroundColor: `${getAccessLevelColor()}20` }]}>
-        {getAccessLevelIcon()}
+    <Modal
+      visible={true}
+      transparent={true}
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <View style={styles.overlay}>
+        <View style={styles.container}>
+          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
+            <X size={24} color={colors.text} />
+          </TouchableOpacity>
+          
+          <View style={styles.content}>
+            <View style={styles.iconContainer}>
+              {levelInfo.icon}
+            </View>
+            
+            <Text style={styles.title}>{levelInfo.title}</Text>
+            <Text style={styles.description}>{levelInfo.description}</Text>
+            
+            <View style={styles.buttonContainer}>
+              <Button
+                title="Upgrade Subscription"
+                onPress={onUpgrade}
+                variant="primary"
+                style={styles.upgradeButton}
+              />
+              
+              <Button
+                title="Maybe Later"
+                onPress={onClose}
+                variant="outline"
+                style={styles.cancelButton}
+              />
+            </View>
+          </View>
+        </View>
       </View>
-      
-      <Text style={[typography.heading3, styles.title]}>
-        {getAccessLevelName()} Required
-      </Text>
-      
-      <Text style={styles.description}>
-        {getAccessLevelDescription()}
-      </Text>
-      
-      <TouchableOpacity 
-        style={[styles.upgradeButton, { backgroundColor: getAccessLevelColor() }]}
-        onPress={handleUpgrade}
-      >
-        <Text style={styles.upgradeButtonText}>Upgrade Subscription</Text>
-      </TouchableOpacity>
-    </View>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: colors.primary.card,
-    borderRadius: 12,
-    padding: 24,
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
     alignItems: "center",
-    marginVertical: 16,
-    borderWidth: 1,
-    borderColor: colors.primary.border,
+    padding: 20,
+  },
+  container: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 24,
+    width: "100%",
+    maxWidth: 400,
     position: "relative",
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   closeButton: {
     position: "absolute",
-    top: 10,
-    right: 10,
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: colors.primary.border,
+    top: 16,
+    right: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.border,
     justifyContent: "center",
     alignItems: "center",
   },
-  closeButtonText: {
-    fontSize: 20,
-    color: colors.primary.text,
-    fontWeight: "bold",
+  content: {
+    alignItems: "center",
+    paddingTop: 20,
   },
   iconContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.background,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
   },
   title: {
-    marginBottom: 12,
+    ...typography.heading3,
+    color: colors.text,
     textAlign: "center",
-    color: colors.primary.text,
+    marginBottom: 8,
   },
   description: {
     ...typography.body,
-    color: colors.primary.muted,
+    color: colors.muted,
     textAlign: "center",
     marginBottom: 24,
+    lineHeight: 20,
+  },
+  buttonContainer: {
+    width: "100%",
+    gap: 12,
   },
   upgradeButton: {
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 24,
+    marginBottom: 0,
   },
-  upgradeButtonText: {
-    ...typography.body,
-    color: "#FFFFFF",
-    fontWeight: "600",
+  cancelButton: {
+    marginBottom: 0,
   },
 });

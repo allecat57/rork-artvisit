@@ -78,7 +78,7 @@ export default function EventDetailsScreen() {
           .single();
         
         if (error) {
-          console.error("Error fetching event from Supabase:", error);
+          console.error("Error fetching event from Supabase:", error.message || error);
           return;
         }
         
@@ -96,7 +96,7 @@ export default function EventDetailsScreen() {
             capacity: data.capacity,
             remainingSpots: data.remaining_spots,
             accessLevel: data.access_level,
-            isFeatured: data.is_featured,
+            featured: data.is_featured,
             tags: data.tags,
             type: data.type
           };
@@ -105,7 +105,8 @@ export default function EventDetailsScreen() {
           setRemainingSpots(fetchedEvent.remainingSpots);
         }
       } catch (error) {
-        console.error("Error in fetchEventFromSupabase:", error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error("Error in fetchEventFromSupabase:", errorMessage);
       }
     };
     
@@ -136,7 +137,7 @@ export default function EventDetailsScreen() {
             .eq('event_id', eventId);
           
           if (error) {
-            console.error("Error checking registration in Supabase:", error);
+            console.error("Error checking registration in Supabase:", error.message || error);
           }
           
           setIsRegistered(data && data.length > 0);
@@ -145,7 +146,8 @@ export default function EventDetailsScreen() {
           setIsRegistered(isUserRegistered);
         }
       } catch (error) {
-        console.error("Error checking registration:", error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.error("Error checking registration:", errorMessage);
       } finally {
         setIsLoading(false);
       }
@@ -197,7 +199,7 @@ export default function EventDetailsScreen() {
                     .eq('event_id', eventId);
                   
                   if (error) {
-                    console.error("Error cancelling registration in Supabase:", error);
+                    console.error("Error cancelling registration in Supabase:", error.message || error);
                     Alert.alert("Error", "Failed to cancel registration. Please try again.");
                     return;
                   }
@@ -210,7 +212,7 @@ export default function EventDetailsScreen() {
                       .eq('id', eventId);
                     
                     if (updateError) {
-                      console.error("Error updating event spots in Supabase:", updateError);
+                      console.error("Error updating event spots in Supabase:", updateError.message || updateError);
                     } else {
                       setRemainingSpots(prev => prev + 1);
                     }
@@ -235,7 +237,8 @@ export default function EventDetailsScreen() {
                   event_title: event?.title
                 });
               } catch (error) {
-                console.error("Error cancelling registration:", error);
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                console.error("Error cancelling registration:", errorMessage);
                 Alert.alert("Error", "Something went wrong. Please try again later.");
               }
             }
@@ -288,7 +291,7 @@ export default function EventDetailsScreen() {
           ]);
         
         if (error) {
-          console.error("Error joining waitlist in Supabase:", error);
+          console.error("Error joining waitlist in Supabase:", error.message || error);
           Alert.alert("Error", "Unable to join waitlist. Try again later.");
           return;
         }
@@ -306,7 +309,8 @@ export default function EventDetailsScreen() {
         event_title: event?.title
       });
     } catch (error) {
-      console.error("Error joining waitlist:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Error joining waitlist:", errorMessage);
       Alert.alert("Error", "Unable to join waitlist. Try again later.");
     }
   };
@@ -350,7 +354,8 @@ export default function EventDetailsScreen() {
         event_title: event.title
       });
     } catch (error) {
-      console.error("Calendar error:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Calendar error:", errorMessage);
       Alert.alert("Calendar Error", "Failed to add event to calendar.");
     }
   };
@@ -374,7 +379,8 @@ export default function EventDetailsScreen() {
         });
       }
     } catch (error) {
-      console.error("Error sharing event:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Error sharing event:", errorMessage);
       Alert.alert("Share Error", "Failed to share this event.");
     }
   };
@@ -394,7 +400,7 @@ export default function EventDetailsScreen() {
             .eq('item_type', 'event');
           
           if (error) {
-            console.error("Error removing favorite from Supabase:", error);
+            console.error("Error removing favorite from Supabase:", error.message || error);
           }
         }
         
@@ -427,7 +433,7 @@ export default function EventDetailsScreen() {
             ]);
           
           if (error) {
-            console.error("Error adding favorite to Supabase:", error);
+            console.error("Error adding favorite to Supabase:", error.message || error);
           }
         }
         
@@ -446,7 +452,8 @@ export default function EventDetailsScreen() {
         });
       }
     } catch (error) {
-      console.error("Error toggling favorite:", error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.error("Error toggling favorite:", errorMessage);
       Alert.alert("Error", "Failed to update favorite status.");
     }
   };
@@ -454,7 +461,7 @@ export default function EventDetailsScreen() {
   if (isLoading || !event) {
     return (
       <SafeAreaView style={styles.loadingContainer} edges={["top"]}>
-        <ActivityIndicator size="large" color={colors.primary.accent} />
+        <ActivityIndicator size="large" color={colors.accent} />
       </SafeAreaView>
     );
   }
@@ -470,11 +477,11 @@ export default function EventDetailsScreen() {
                 {isFavorited ? (
                   <Heart size={24} color={colors.status.error} fill={colors.status.error} />
                 ) : (
-                  <Heart size={24} color={colors.primary.text} />
+                  <Heart size={24} color={colors.text} />
                 )}
               </TouchableOpacity>
               <TouchableOpacity onPress={handleShare} style={styles.headerButton}>
-                <Share2 size={24} color={colors.primary.text} />
+                <Share2 size={24} color={colors.text} />
               </TouchableOpacity>
             </View>
           ),
@@ -491,7 +498,7 @@ export default function EventDetailsScreen() {
           />
           {imageLoading && (
             <View style={styles.imageLoadingContainer}>
-              <ActivityIndicator size="large" color={colors.primary.accent} />
+              <ActivityIndicator size="large" color={colors.accent} />
             </View>
           )}
         </View>
@@ -503,24 +510,24 @@ export default function EventDetailsScreen() {
           
           <View style={styles.infoContainer}>
             <View style={styles.infoRow}>
-              <Calendar size={20} color={colors.primary.accent} style={styles.infoIcon} />
+              <Calendar size={20} color={colors.accent} style={styles.infoIcon} />
               <Text style={styles.infoText}>{formatDate(event.date)}</Text>
             </View>
             
             <View style={styles.infoRow}>
-              <Clock size={20} color={colors.primary.accent} style={styles.infoIcon} />
+              <Clock size={20} color={colors.accent} style={styles.infoIcon} />
               <Text style={styles.infoText}>
                 {formatTime(event.date)} - {formatTime(event.endDate)}
               </Text>
             </View>
             
             <View style={styles.infoRow}>
-              <MapPin size={20} color={colors.primary.accent} style={styles.infoIcon} />
+              <MapPin size={20} color={colors.accent} style={styles.infoIcon} />
               <Text style={styles.infoText}>{event.location}</Text>
             </View>
             
             <View style={styles.infoRow}>
-              <Users size={20} color={colors.primary.accent} style={styles.infoIcon} />
+              <Users size={20} color={colors.accent} style={styles.infoIcon} />
               <Text style={styles.infoText}>
                 {remainingSpots} {remainingSpots === 1 ? "spot" : "spots"} remaining out of {event.capacity}
               </Text>
@@ -533,8 +540,8 @@ export default function EventDetailsScreen() {
               styles.badge,
               { backgroundColor: event.accessLevel === "collector" ? "#9C27B0" : 
                                event.accessLevel === "explorer" ? "#FFD700" : 
-                               event.accessLevel === "essential" ? colors.primary.accent : 
-                               colors.primary.muted }
+                               event.accessLevel === "essential" ? colors.accent : 
+                               colors.muted }
             ]}>
               {event.accessLevel === "collector" ? (
                 <Crown size={16} color="#FFFFFF" />
@@ -575,7 +582,7 @@ export default function EventDetailsScreen() {
           {/* Tags */}
           {event.tags && event.tags.length > 0 && (
             <View style={styles.tagsContainer}>
-              <Tag size={16} color={colors.primary.muted} style={styles.tagIcon} />
+              <Tag size={16} color={colors.muted} style={styles.tagIcon} />
               <Text style={styles.tagsText}>
                 {event.tags.join(", ")}
               </Text>
@@ -594,7 +601,7 @@ export default function EventDetailsScreen() {
               title={isRegistered ? "Cancel Registration" : remainingSpots > 0 ? "Register Now" : "Join Waitlist"}
               onPress={handleRegister}
               variant={isRegistered ? "outline" : "primary"}
-              icon={isRegistered ? <UserMinus size={20} color={colors.primary.text} /> : null}
+              icon={isRegistered ? <UserMinus size={20} color={colors.text} /> : null}
               style={styles.registerButton}
             />
             
@@ -602,7 +609,7 @@ export default function EventDetailsScreen() {
               title="Add to Calendar"
               onPress={addToCalendar}
               variant="secondary"
-              icon={<Calendar size={20} color={colors.primary.text} />}
+              icon={<Calendar size={20} color={colors.text} />}
               style={styles.calendarButton}
             />
           </View>
@@ -621,13 +628,13 @@ export default function EventDetailsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary.background,
+    backgroundColor: colors.background,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: colors.primary.background,
+    backgroundColor: colors.background,
   },
   headerButtons: {
     flexDirection: "row",
@@ -663,7 +670,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   infoContainer: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -678,7 +685,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     ...typography.body,
-    color: colors.primary.text,
+    color: colors.text,
   },
   badgesContainer: {
     flexDirection: "row",
@@ -688,7 +695,7 @@ const styles = StyleSheet.create({
   badge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: colors.primary.secondary,
+    backgroundColor: colors.secondary,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -711,7 +718,7 @@ const styles = StyleSheet.create({
   },
   tagsText: {
     ...typography.bodySmall,
-    color: colors.primary.muted,
+    color: colors.muted,
     flex: 1,
   },
   descriptionContainer: {
@@ -719,7 +726,7 @@ const styles = StyleSheet.create({
   },
   description: {
     ...typography.body,
-    color: colors.primary.text,
+    color: colors.text,
     marginTop: 8,
     lineHeight: 22,
   },
