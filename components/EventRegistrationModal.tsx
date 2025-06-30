@@ -68,11 +68,11 @@ export default function EventRegistrationModal({
     try {
       setIsLoading(true);
       
-      // If this is a paid event, check for payment method
-      if (event.price > 0 && !paymentMethod) {
+      // Check for payment method since all events now have a price
+      if (!paymentMethod) {
         Alert.alert(
           "Payment Method Required",
-          "Please add a payment method in your profile before registering for this paid event.",
+          "Please add a payment method in your profile before registering for this event.",
           [
             { text: "OK" }
           ]
@@ -103,9 +103,9 @@ export default function EventRegistrationModal({
             return;
           }
           
-          // Process payment if needed
+          // Process payment since all events now have a price
           let paymentIntentId;
-          if (event.price > 0 && paymentMethod) {
+          if (paymentMethod) {
             // In a real app, this would call your payment processing API
             // For this demo, we'll use the bookEvent utility which handles payments
             const bookingResult = await bookEvent({
@@ -243,7 +243,7 @@ export default function EventRegistrationModal({
             <View style={styles.eventDetail}>
               <Ticket size={16} color={colors.primary.accent} style={styles.eventIcon} />
               <Text style={styles.eventDetailText}>
-                {event.price === 0 ? "Free" : `$${event.price.toFixed(2)} per ticket`}
+                ${event.price.toFixed(2)} per ticket
               </Text>
             </View>
           </View>
@@ -269,23 +269,21 @@ export default function EventRegistrationModal({
             </View>
           </View>
           
-          {event.price > 0 && (
-            <View style={styles.paymentSection}>
-              <Text style={styles.sectionTitle}>Payment Method</Text>
-              {paymentMethod ? (
-                <View style={styles.paymentMethod}>
-                  <CreditCard size={20} color={colors.primary.accent} style={styles.paymentIcon} />
-                  <Text style={styles.paymentText}>
-                    {paymentMethod.cardType} •••• {paymentMethod.last4}
-                  </Text>
-                </View>
-              ) : (
-                <Text style={styles.noPaymentText}>
-                  No payment method on file. Please add one in your profile.
+          <View style={styles.paymentSection}>
+            <Text style={styles.sectionTitle}>Payment Method</Text>
+            {paymentMethod ? (
+              <View style={styles.paymentMethod}>
+                <CreditCard size={20} color={colors.primary.accent} style={styles.paymentIcon} />
+                <Text style={styles.paymentText}>
+                  {paymentMethod.cardType} •••• {paymentMethod.last4}
                 </Text>
-              )}
-            </View>
-          )}
+              </View>
+            ) : (
+              <Text style={styles.noPaymentText}>
+                No payment method on file. Please add one in your profile.
+              </Text>
+            )}
+          </View>
           
           <View style={styles.summarySection}>
             <Text style={styles.sectionTitle}>Order Summary</Text>
@@ -293,18 +291,14 @@ export default function EventRegistrationModal({
               <Text style={styles.summaryLabel}>Tickets</Text>
               <Text style={styles.summaryValue}>{numberOfTickets} x ${event.price.toFixed(2)}</Text>
             </View>
-            {event.price > 0 && (
-              <>
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Subtotal</Text>
-                  <Text style={styles.summaryValue}>${(event.price * numberOfTickets).toFixed(2)}</Text>
-                </View>
-                <View style={styles.summaryRow}>
-                  <Text style={styles.summaryLabel}>Service Fee</Text>
-                  <Text style={styles.summaryValue}>$0.00</Text>
-                </View>
-              </>
-            )}
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Subtotal</Text>
+              <Text style={styles.summaryValue}>${(event.price * numberOfTickets).toFixed(2)}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Service Fee</Text>
+              <Text style={styles.summaryValue}>$0.00</Text>
+            </View>
             <View style={styles.totalRow}>
               <Text style={styles.totalLabel}>Total</Text>
               <Text style={styles.totalValue}>
@@ -316,7 +310,7 @@ export default function EventRegistrationModal({
           <Button
             title={isLoading ? "Processing..." : "Complete Registration"}
             onPress={handleRegister}
-            disabled={isLoading || (event.price > 0 && !paymentMethod)}
+            disabled={isLoading || !paymentMethod}
             style={styles.registerButton}
             icon={isLoading ? <ActivityIndicator size="small" color="#FFFFFF" /> : null}
           />

@@ -23,9 +23,10 @@ export default function EventsScreen() {
   const [showFilters, setShowFilters] = useState(false);
   const [filterType, setFilterType] = useState<string | null>(null);
   const [showSubscriptionCard, setShowSubscriptionCard] = useState(false);
+  const [requiredLevel, setRequiredLevel] = useState<AccessLevel>(AccessLevel.ESSENTIAL);
   
-  // Get user's subscription level
-  const userSubscriptionLevel = user?.subscription?.id as AccessLevel || AccessLevel.FREE;
+  // Get user's subscription level - default to null if no subscription
+  const userSubscriptionLevel = user?.subscription?.id as AccessLevel || null;
   
   useEffect(() => {
     // Fetch events when component mounts
@@ -34,7 +35,7 @@ export default function EventsScreen() {
     // Log analytics event
     Analytics.logEvent("view_events_screen", {
       user_id: user?.id || "guest",
-      subscription_level: userSubscriptionLevel
+      subscription_level: userSubscriptionLevel || "none"
     });
   }, []);
   
@@ -76,7 +77,7 @@ export default function EventsScreen() {
   // Handle event card press
   const handleEventPress = (event: Event) => {
     // Check if user has access to this event
-    const hasAccess = userSubscriptionLevel >= event.accessLevel;
+    const hasAccess = userSubscriptionLevel && userSubscriptionLevel >= event.accessLevel;
     
     if (hasAccess) {
       // Navigate to event details
@@ -91,6 +92,7 @@ export default function EventsScreen() {
       });
     } else {
       // Show subscription required card
+      setRequiredLevel(event.accessLevel);
       setShowSubscriptionCard(true);
       
       // Log analytics event
@@ -98,7 +100,7 @@ export default function EventsScreen() {
         event_id: event.id,
         event_title: event.title,
         required_level: event.accessLevel,
-        user_level: userSubscriptionLevel,
+        user_level: userSubscriptionLevel || "none",
         user_id: user?.id || "guest"
       });
     }
@@ -200,7 +202,7 @@ export default function EventsScreen() {
             <EventCard 
               event={item} 
               onPress={() => handleEventPress(item)}
-              hasAccess={userSubscriptionLevel >= item.accessLevel}
+              hasAccess={userSubscriptionLevel ? userSubscriptionLevel >= item.accessLevel : false}
             />
           )}
           contentContainerStyle={styles.featuredList}
@@ -239,7 +241,7 @@ export default function EventsScreen() {
               key={item.id}
               event={item} 
               onPress={() => handleEventPress(item)}
-              hasAccess={userSubscriptionLevel >= item.accessLevel}
+              hasAccess={userSubscriptionLevel ? userSubscriptionLevel >= item.accessLevel : false}
               compact={true}
             />
           )}
@@ -249,12 +251,36 @@ export default function EventsScreen() {
     );
   };
   
+  // Render subscription required message for users without subscription
+  const renderSubscriptionRequired = () => {
+    if (userSubscriptionLevel) {
+      return null;
+    }
+    
+    return (
+      <View style={styles.subscriptionRequiredContainer}>
+        <Text style={styles.subscriptionRequiredTitle}>Subscription Required</Text>
+        <Text style={styles.subscriptionRequiredText}>
+          All events require a subscription to access. Upgrade your account to view and register for exclusive events.
+        </Text>
+        <TouchableOpacity 
+          style={styles.subscriptionButton}
+          onPress={() => router.push("/profile")}
+        >
+          <Text style={styles.subscriptionButtonText}>View Subscriptions</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+  
   // Render all events section
   const renderAllEvents = () => (
     <View style={styles.allEventsContainer}>
       <Text style={styles.sectionTitle}>All Events</Text>
       
-      {filteredEvents.length === 0 ? (
+      {!userSubscriptionLevel ? (
+        renderSubscriptionRequired()
+      ) : filteredEvents.length === 0 ? (
         <EmptyState
           icon={<Search size={40} color={colors.muted} />}
           title="No events found"
@@ -289,8 +315,8 @@ export default function EventsScreen() {
           data={[1]}
           renderItem={() => (
             <View style={styles.content}>
-              {renderFeaturedEvents()}
-              {renderUpcomingEvents()}
+              {userSubscriptionLevel && renderFeaturedEvents()}
+              {userSubscriptionLevel && renderUpcomingEvents()}
               {renderAllEvents()}
             </View>
           )}
@@ -300,7 +326,7 @@ export default function EventsScreen() {
       
       {showSubscriptionCard && (
         <SubscriptionRequiredCard
-          requiredLevel={AccessLevel.EXPLORER}
+          requiredLevel={requiredLevel}
           onUpgrade={handleUpgradeSubscription}
           onClose={() => setShowSubscriptionCard(false)}
         />
@@ -426,5 +452,36 @@ const styles = StyleSheet.create({
   },
   allEventsContainer: {
     marginBottom: 16,
+  },
+  subscriptionRequiredContainer: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 20,
+    alignItems: "center",
+    marginVertical: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  subscriptionRequiredTitle: {
+    ...typography.heading4,
+    color: colors.text,
+    marginBottom: 8,
+  },
+  subscriptionRequiredText: {
+    ...typography.body,
+    color: colors.muted,
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  subscriptionButton: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 24,
+  },
+  subscriptionButtonText: {
+    ...typography.body,
+    color: colors.primary,
+    fontWeight: "600",
   },
 });

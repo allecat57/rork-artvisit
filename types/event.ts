@@ -1,5 +1,4 @@
 export enum AccessLevel {
-  FREE = "free",
   ESSENTIAL = "essential",
   EXPLORER = "explorer",
   COLLECTOR = "collector"

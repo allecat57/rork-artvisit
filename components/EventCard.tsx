@@ -45,7 +45,7 @@ export default function EventCard({ event, compact = false, onPress, hasAccess =
       case AccessLevel.ESSENTIAL:
         return <Ticket size={16} color={colors.accent} />;
       default:
-        return null;
+        return <Ticket size={16} color={colors.accent} />;
     }
   };
   
@@ -58,7 +58,7 @@ export default function EventCard({ event, compact = false, onPress, hasAccess =
       case AccessLevel.ESSENTIAL:
         return colors.accent;
       default:
-        return colors.muted;
+        return colors.accent;
     }
   };
   
@@ -168,7 +168,7 @@ export default function EventCard({ event, compact = false, onPress, hasAccess =
           
           <View style={styles.priceContainer}>
             <Text style={styles.priceText}>
-              {event.price === 0 ? "Free" : `$${event.price}`}
+              ${event.price}
             </Text>
           </View>
         </View>

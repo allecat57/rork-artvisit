@@ -29,9 +29,9 @@ interface EventsState {
 }
 
 // Helper to get current user's subscription level
-const getCurrentSubscriptionLevel = (): AccessLevel => {
+const getCurrentSubscriptionLevel = (): AccessLevel | null => {
   const subscription = useProfileStore.getState().getCurrentSubscription();
-  return (subscription?.id as AccessLevel) || AccessLevel.FREE;
+  return (subscription?.id as AccessLevel) || null;
 };
 
 // Helper to get current user ID
@@ -53,16 +53,25 @@ export const useEventsStore = create<EventsState>()(
       
       getAccessibleEvents: () => {
         const subscriptionLevel = getCurrentSubscriptionLevel();
+        if (!subscriptionLevel) {
+          return []; // No subscription = no access to any events
+        }
         return getEventsByAccessLevel(subscriptionLevel);
       },
       
       getFeaturedEvents: () => {
         const subscriptionLevel = getCurrentSubscriptionLevel();
+        if (!subscriptionLevel) {
+          return []; // No subscription = no access to any events
+        }
         return getFeaturedEventsByAccessLevel(subscriptionLevel);
       },
       
       getUpcomingEvents: () => {
         const subscriptionLevel = getCurrentSubscriptionLevel();
+        if (!subscriptionLevel) {
+          return []; // No subscription = no access to any events
+        }
         return getUpcomingEventsByAccessLevel(subscriptionLevel);
       },
       
