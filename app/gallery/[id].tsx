@@ -11,8 +11,24 @@ import { useVenueStore } from '../../store/useVenueStore';
 import { useAuthStore } from '../../store/useAuthStore';
 import { Venue } from '../../types/venue';
 
+interface Gallery {
+  id: string;
+  name: string;
+  description: string;
+  location: string;
+  image: string;
+  hours: string;
+  admission: string;
+  artworks: Array<{
+    id: string;
+    title: string;
+    artist: string;
+    image: string;
+  }>;
+}
+
 // Mock data - in a real app, fetch this from your API
-const galleries = [
+const galleries: Gallery[] = [
   {
     id: '1',
     name: 'Modern Art Gallery',
@@ -49,8 +65,8 @@ export default function GalleryScreen() {
   const textColor = isDark ? colors.light : colors.dark;
   const bgColor = isDark ? colors.dark : colors.light;
   
-  const [gallery, setGallery] = useState(null);
-  const [analytics, setAnalytics] = useState(null);
+  const [gallery, setGallery] = useState<Gallery | null>(null);
+  const [analytics, setAnalytics] = useState<GalleryAnalytics | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [reservationModalVisible, setReservationModalVisible] = useState(false);
   
@@ -60,9 +76,9 @@ export default function GalleryScreen() {
   useEffect(() => {
     // Find gallery from mock data
     const foundGallery = galleries.find(g => g.id === id);
-    setGallery(foundGallery);
-    
     if (foundGallery) {
+      setGallery(foundGallery);
+      
       // Initialize analytics
       const galleryAnalytics = new GalleryAnalytics({
         id: foundGallery.id,
@@ -114,7 +130,7 @@ export default function GalleryScreen() {
     // Implement share functionality
   };
   
-  const handleArtworkPress = (artwork) => {
+  const handleArtworkPress = (artwork: Gallery['artworks'][0]) => {
     if (analytics) {
       analytics.trackArtworkView(artwork.id, artwork.title);
     }
