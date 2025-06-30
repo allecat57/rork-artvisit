@@ -24,7 +24,7 @@ import { Venue } from "@/types/venue";
 export default function ExploreScreen() {
   const router = useRouter();
   const { venues, isLoading, fetchVenues } = useVenueStore();
-  const { currentLocation, getCurrentLocation } = useLocationStore();
+  const { currentLocation } = useLocationStore();
   
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -32,7 +32,6 @@ export default function ExploreScreen() {
   
   useEffect(() => {
     fetchVenues();
-    getCurrentLocation();
   }, []);
   
   // Filter venues based on search query and selected category
@@ -44,10 +43,7 @@ export default function ExploreScreen() {
       filtered = filtered.filter((venue: Venue) => 
         venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         venue.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        venue.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (venue.tags && venue.tags.some((tag: string) => 
-          tag.toLowerCase().includes(searchQuery.toLowerCase())
-        ))
+        venue.location.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
     
@@ -76,7 +72,7 @@ export default function ExploreScreen() {
             <View style={styles.locationContainer}>
               <MapPin size={14} color={colors.muted} />
               <Text style={styles.locationText}>
-                {currentLocation.city || currentLocation.address || "Current Location"}
+                Current Location
               </Text>
             </View>
           )}

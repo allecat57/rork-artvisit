@@ -5,8 +5,8 @@ export interface Reservation {
   userId: string;
   venueId: string;
   eventId?: string; // Added for event reservations
-  date: string; // ISO string for the date of the reservation
-  time: string; // ISO string for the time of the reservation
+  date: string; // ISO string for the date of the reservation (YYYY-MM-DD format)
+  time: string; // Time slot for the reservation
   partySize: number;
   status: ReservationStatus;
   confirmationCode: string;

@@ -16,9 +16,11 @@ import typography from "@/constants/typography";
 import Button from "./Button";
 import DateTimePicker from "./DateTimePicker";
 import { Venue } from "@/types/venue";
+import { Reservation } from "@/types/reservation";
 import * as Analytics from "@/utils/analytics";
-import { bookVenue } from "@/utils/bookingApi";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useVenueStore } from "@/store/useVenueStore";
+import { generateConfirmationCode } from "@/utils/generateConfirmationCode";
 
 const { height } = Dimensions.get("window");
 
@@ -49,6 +51,7 @@ export default function ReservationModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { user } = useAuthStore();
+  const { addReservation } = useVenueStore();
   
   // Use the provided venue or allow selection from venues list
   const currentVenue = venue || selectedVenue;
@@ -86,62 +89,55 @@ export default function ReservationModal({
   };
   
   const handleReserve = async () => {
-    if (!currentVenue || !selectedDate || !selectedTimeSlot || !onReserve) {
+    if (!currentVenue || !selectedDate || !selectedTimeSlot || !user) {
       return;
     }
     
     setIsSubmitting(true);
     
     try {
-      // Call booking API (now with Firestore support)
-      const bookingResult = await bookVenue({
-        userId: user?.id || "app_user",
+      // Create reservation object
+      const reservation: Reservation = {
+        id: `reservation-${Date.now()}`,
+        userId: user.id,
         venueId: currentVenue.id,
-        date: selectedDate,
-        timeSlot: selectedTimeSlot
+        date: selectedDate.toISOString().split('T')[0], // YYYY-MM-DD format
+        time: selectedTimeSlot,
+        partySize: 2, // Default party size
+        status: "confirmed",
+        confirmationCode: generateConfirmationCode(),
+        type: "venue"
+      };
+      
+      // Add reservation to store
+      addReservation(reservation);
+      
+      // Call onReserve callback if provided
+      if (onReserve) {
+        onReserve(currentVenue, selectedDate, selectedTimeSlot);
+      }
+      
+      // Show success message
+      Alert.alert(
+        "🎉 Reservation Confirmed!",
+        `Your reservation at ${currentVenue.name} has been confirmed for ${selectedDate.toLocaleDateString()} at ${selectedTimeSlot}. Confirmation code: ${reservation.confirmationCode}`,
+        [{ text: "OK", onPress: () => resetAndClose() }]
+      );
+      
+      // Log successful booking
+      Analytics.logEvent("reservation_confirmed", {
+        venue_id: currentVenue.id,
+        venue_name: currentVenue.name,
+        date: selectedDate.toISOString(),
+        time_slot: selectedTimeSlot,
+        confirmation_code: reservation.confirmationCode
       });
       
-      if (bookingResult.success) {
-        // If API call succeeds, proceed with local reservation
-        onReserve(currentVenue, selectedDate, selectedTimeSlot);
-        
-        // Show success message with booking ID if available
-        const successMessage = bookingResult.bookingId 
-          ? `Your reservation has been confirmed! Booking ID: ${bookingResult.bookingId.substring(0, 8)}`
-          : "Your reservation has been confirmed!";
-          
-        Alert.alert("🎉 Booking successful!", successMessage);
-        
-        // Log successful booking
-        Analytics.logEvent("reservation_confirmed", {
-          venue_id: currentVenue.id,
-          venue_name: currentVenue.name,
-          date: selectedDate.toISOString(),
-          time_slot: selectedTimeSlot,
-          booking_id: bookingResult.bookingId || "local_only"
-        });
-      } else {
-        // Handle API failure but still allow local reservation
-        Alert.alert(
-          "⚠️ Partial Success",
-          "Your reservation was saved locally, but we couldn't sync with the server. Your reservation will sync when connectivity is restored.",
-          [
-            { text: "OK", onPress: () => onReserve(currentVenue, selectedDate, selectedTimeSlot) }
-          ]
-        );
-        
-        // Log partial success
-        Analytics.logEvent("reservation_partial_success", {
-          venue_id: currentVenue.id,
-          venue_name: currentVenue.name,
-          error_message: bookingResult.message
-        });
-      }
     } catch (error) {
       console.error("Reservation error:", error);
       Alert.alert(
         "Error",
-        "Something went wrong while booking. Please try again.",
+        "Something went wrong while making your reservation. Please try again.",
         [{ text: "OK" }]
       );
       
@@ -291,14 +287,6 @@ export default function ReservationModal({
                 <Calendar size={18} color={colors.primary} /> : 
                 <Check size={18} color={colors.primary} />
               }
-              analyticsEventName={isModifying ? Analytics.Events.MODIFY_RESERVATION : Analytics.Events.CREATE_RESERVATION}
-              analyticsProperties={{
-                venue_id: currentVenue.id,
-                venue_name: currentVenue.name,
-                venue_type: currentVenue.type,
-                date: selectedDate?.toISOString(),
-                time_slot: selectedTimeSlot
-              }}
             />
           </View>
         </View>
