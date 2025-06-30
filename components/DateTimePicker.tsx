@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView } from "react-native";
-import { Calendar as CalendarIcon } from "lucide-react-native";
+import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from "react-native";
+import { Calendar as CalendarIcon, Clock } from "lucide-react-native";
 import { Calendar } from "react-native-calendars";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
@@ -19,6 +19,7 @@ export default function DateTimePicker({
   const today = new Date();
   const [selectedDate, setSelectedDate] = useState<Date | null>(initialDate || null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(initialTimeSlot || null);
+  const [availableSlots, setAvailableSlots] = useState<string[]>([]);
   
   // Format date for the calendar component
   const formatCalendarDate = (date: Date) => {
@@ -37,23 +38,39 @@ export default function DateTimePicker({
     });
   };
   
-  // Generate time slots
-  const generateTimeSlots = () => {
+  // Generate time slots based on selected date
+  const generateTimeSlots = (date: Date) => {
     const slots = [];
     const openingHour = 9; // 9 AM
     const closingHour = 17; // 5 PM
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const currentHour = now.getHours();
+    const currentMinute = now.getMinutes();
     
     for (let hour = openingHour; hour < closingHour; hour++) {
+      // Skip past time slots if it's today
+      if (isToday && hour <= currentHour) {
+        // If it's the current hour, check if we're past 30 minutes
+        if (hour === currentHour && currentMinute < 30) {
+          // Only add the 30-minute slot if we're before 30 minutes
+          const hourFormatted = hour > 12 ? hour - 12 : hour;
+          const amPm = hour >= 12 ? 'PM' : 'AM';
+          slots.push(`${hourFormatted}:30 ${amPm}`);
+        }
+        continue;
+      }
+      
       const hourFormatted = hour > 12 ? hour - 12 : hour;
       const amPm = hour >= 12 ? 'PM' : 'AM';
+      
+      // Add both :00 and :30 slots
       slots.push(`${hourFormatted}:00 ${amPm}`);
       slots.push(`${hourFormatted}:30 ${amPm}`);
     }
     
     return slots;
   };
-  
-  const timeSlots = generateTimeSlots();
   
   // Set initial marked dates for the calendar
   const [markedDates, setMarkedDates] = useState<any>({});
@@ -64,6 +81,7 @@ export default function DateTimePicker({
       setMarkedDates({
         [formattedDate]: { selected: true, selectedColor: colors.primary.accent }
       });
+      setAvailableSlots(generateTimeSlots(initialDate));
     }
   }, [initialDate]);
   
@@ -72,14 +90,32 @@ export default function DateTimePicker({
     const selectedDate = new Date(day.dateString);
     setSelectedDate(selectedDate);
     
+    // Generate available time slots for the selected date
+    const slots = generateTimeSlots(selectedDate);
+    setAvailableSlots(slots);
+    
+    // Clear time slot selection when date changes
+    setSelectedTimeSlot(null);
+    
     // Update marked dates
     setMarkedDates({
       [day.dateString]: { selected: true, selectedColor: colors.primary.accent }
     });
     
-    // If time slot is already selected, call the callback
-    if (selectedTimeSlot) {
-      onSelectDateTime(selectedDate, selectedTimeSlot);
+    // Show feedback for date selection
+    const dateString = selectedDate.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    // If no slots available, show alert
+    if (slots.length === 0) {
+      Alert.alert(
+        "No Available Times",
+        `Sorry, there are no available time slots for ${dateString}. Please select a different date.`,
+        [{ text: "OK" }]
+      );
     }
   };
   
@@ -137,41 +173,68 @@ export default function DateTimePicker({
         />
       </View>
       
-      <View style={styles.timeSlotContainer}>
-        <Text style={styles.timeSlotTitle}>Select Time</Text>
-        
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.timeSlotScrollContent}
-        >
-          {timeSlots.map((timeSlot) => (
-            <TouchableOpacity
-              key={timeSlot}
-              style={[
-                styles.timeSlotButton,
-                selectedTimeSlot === timeSlot && styles.selectedTimeSlot
-              ]}
-              onPress={() => handleTimeSlotSelect(timeSlot)}
+      {selectedDate && (
+        <View style={styles.timeSlotContainer}>
+          <View style={styles.timeSlotHeader}>
+            <Clock size={20} color={colors.primary.accent} />
+            <Text style={styles.timeSlotTitle}>Select Time</Text>
+          </View>
+          
+          {availableSlots.length > 0 ? (
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.timeSlotScrollContent}
             >
-              <Text 
-                style={[
-                  styles.timeSlotText,
-                  selectedTimeSlot === timeSlot && styles.selectedTimeSlotText
-                ]}
-              >
-                {timeSlot}
+              {availableSlots.map((timeSlot) => (
+                <TouchableOpacity
+                  key={timeSlot}
+                  style={[
+                    styles.timeSlotButton,
+                    selectedTimeSlot === timeSlot && styles.selectedTimeSlot
+                  ]}
+                  onPress={() => handleTimeSlotSelect(timeSlot)}
+                >
+                  <Text 
+                    style={[
+                      styles.timeSlotText,
+                      selectedTimeSlot === timeSlot && styles.selectedTimeSlotText
+                    ]}
+                  >
+                    {timeSlot}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          ) : (
+            <View style={styles.noSlotsContainer}>
+              <Text style={styles.noSlotsText}>
+                No available time slots for {formatDisplayDate(selectedDate)}
               </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+              <Text style={styles.noSlotsSubtext}>
+                Please select a different date
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
       
       {selectedDate && selectedTimeSlot && (
         <View style={styles.selectionSummary}>
           <Text style={styles.summaryTitle}>Your Selection</Text>
           <Text style={styles.summaryText}>
             {formatDisplayDate(selectedDate)} at {selectedTimeSlot}
+          </Text>
+          <View style={styles.summaryCheckmark}>
+            <Text style={styles.checkmarkText}>✓</Text>
+          </View>
+        </View>
+      )}
+      
+      {!selectedDate && (
+        <View style={styles.instructionContainer}>
+          <Text style={styles.instructionText}>
+            👆 Select a date above to see available time slots
           </Text>
         </View>
       )}
@@ -202,9 +265,14 @@ const styles = StyleSheet.create({
   timeSlotContainer: {
     marginBottom: 20,
   },
+  timeSlotHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   timeSlotTitle: {
     ...typography.heading4,
-    marginBottom: 12,
+    marginLeft: 8,
     color: colors.primary.text,
   },
   timeSlotScrollContent: {
@@ -216,22 +284,48 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
     marginRight: 8,
+    borderWidth: 1,
+    borderColor: colors.primary.border,
+    minWidth: 80,
+    alignItems: 'center',
   },
   selectedTimeSlot: {
     backgroundColor: colors.primary.accent,
+    borderColor: colors.primary.accent,
   },
   timeSlotText: {
     ...typography.body,
     color: colors.primary.text,
+    fontSize: 14,
   },
   selectedTimeSlotText: {
     color: colors.primary.background,
     fontWeight: '600',
   },
+  noSlotsContainer: {
+    backgroundColor: colors.primary.card,
+    padding: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  noSlotsText: {
+    ...typography.body,
+    color: colors.primary.text,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  noSlotsSubtext: {
+    ...typography.bodySmall,
+    color: colors.primary.muted,
+    textAlign: 'center',
+  },
   selectionSummary: {
     backgroundColor: 'rgba(172, 137, 1, 0.15)',
     padding: 16,
     borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   summaryTitle: {
     ...typography.bodySmall,
@@ -243,5 +337,30 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.primary.accent,
     fontWeight: '600',
+    flex: 1,
+  },
+  summaryCheckmark: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.status.success,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkmarkText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  instructionContainer: {
+    backgroundColor: colors.primary.card,
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  instructionText: {
+    ...typography.bodySmall,
+    color: colors.primary.muted,
+    textAlign: 'center',
   },
 });

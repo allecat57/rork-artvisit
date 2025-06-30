@@ -11,7 +11,9 @@ export const createBooking = async (
   date: string,
   time: string,
   partySize: number,
-  notes?: string
+  notes?: string,
+  totalAmount?: number,
+  paymentIntentId?: string
 ) => {
   try {
     const userId = await getSessionUserId();
@@ -34,6 +36,8 @@ export const createBooking = async (
         notes,
         confirmation_code: confirmationCode,
         status: 'confirmed',
+        total_amount: totalAmount,
+        payment_intent_id: paymentIntentId,
         created_at: new Date().toISOString()
       })
       .select()
@@ -50,7 +54,8 @@ export const createBooking = async (
       user_id: userId,
       date,
       time,
-      party_size: partySize
+      party_size: partySize,
+      total_amount: totalAmount
     });
     
     return {
@@ -73,7 +78,9 @@ export const bookVenue = async ({
   date,
   timeSlot,
   partySize = 2,
-  notes
+  notes,
+  totalAmount,
+  paymentIntentId
 }: {
   userId: string;
   venueId: string;
@@ -81,11 +88,21 @@ export const bookVenue = async ({
   timeSlot: string;
   partySize?: number;
   notes?: string;
+  totalAmount?: number;
+  paymentIntentId?: string;
 }) => {
   try {
     const dateString = date.toISOString().split('T')[0]; // Convert to YYYY-MM-DD format
     
-    const result = await createBooking(venueId, dateString, timeSlot, partySize, notes);
+    const result = await createBooking(
+      venueId, 
+      dateString, 
+      timeSlot, 
+      partySize, 
+      notes, 
+      totalAmount, 
+      paymentIntentId
+    );
     
     return {
       success: true,
@@ -143,7 +160,8 @@ export const cancelBooking = async (bookingId: string) => {
       user_id: userId,
       date: bookingData.date,
       time: bookingData.time,
-      party_size: bookingData.party_size
+      party_size: bookingData.party_size,
+      total_amount: bookingData.total_amount
     });
     
     return { success: true };
@@ -240,6 +258,82 @@ export const getBookingById = async (bookingId: string) => {
     return data;
   } catch (error) {
     console.error('Error getting booking details:', error);
+    throw error;
+  }
+};
+
+/**
+ * Process payment for a booking
+ */
+export const processBookingPayment = async (
+  venueId: string,
+  date: Date,
+  timeSlot: string,
+  partySize: number,
+  totalAmount: number,
+  paymentMethodId: string
+) => {
+  try {
+    const userId = await getSessionUserId();
+    
+    if (!userId) {
+      throw new Error('User must be logged in to process payment');
+    }
+    
+    // Log payment attempt
+    Analytics.logEvent('booking_payment_started', {
+      venue_id: venueId,
+      user_id: userId,
+      total_amount: totalAmount,
+      party_size: partySize
+    });
+    
+    // In a real app, this would integrate with your payment processor
+    // For now, we'll simulate a successful payment
+    const mockPaymentIntent = {
+      id: `pi_${Math.random().toString(36).substring(2, 15)}`,
+      status: 'succeeded',
+      amount: totalAmount * 100, // Convert to cents
+      currency: 'usd'
+    };
+    
+    // Create the booking with payment information
+    const result = await bookVenue({
+      userId,
+      venueId,
+      date,
+      timeSlot,
+      partySize,
+      totalAmount,
+      paymentIntentId: mockPaymentIntent.id
+    });
+    
+    if (result.success) {
+      // Log successful payment
+      Analytics.logEvent('booking_payment_success', {
+        booking_id: result.bookingId,
+        venue_id: venueId,
+        user_id: userId,
+        total_amount: totalAmount,
+        payment_intent_id: mockPaymentIntent.id
+      });
+    }
+    
+    return {
+      ...result,
+      paymentIntent: mockPaymentIntent
+    };
+  } catch (error) {
+    console.error('Error processing booking payment:', error);
+    
+    // Log payment error
+    Analytics.logEvent('booking_payment_error', {
+      venue_id: venueId,
+      user_id: userId,
+      total_amount: totalAmount,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+    
     throw error;
   }
 };

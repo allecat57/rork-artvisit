@@ -12,4 +12,6 @@ export interface Reservation {
   confirmationCode: string;
   specialRequests?: string;
   type?: "venue" | "event"; // Added to distinguish between venue and event reservations
+  totalAmount?: number; // Added for payment tracking
+  paymentIntentId?: string; // Added for Stripe payment tracking
 }

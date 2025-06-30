@@ -93,7 +93,8 @@ export const useVenueStore = create<VenueState>()(
             venue_id: reservation.venueId,
             user_id: reservation.userId,
             date: reservation.date,
-            party_size: reservation.partySize
+            party_size: reservation.partySize,
+            total_amount: reservation.totalAmount
           });
         } catch (error) {
           console.warn("Analytics error:", error);
@@ -114,7 +115,9 @@ export const useVenueStore = create<VenueState>()(
           Analytics.logEvent('update_reservation', {
             reservation_id: id,
             venue_id: updatedReservation.venueId,
-            user_id: updatedReservation.userId
+            user_id: updatedReservation.userId,
+            party_size: updatedReservation.partySize,
+            total_amount: updatedReservation.totalAmount
           });
         } catch (error) {
           console.warn("Analytics error:", error);
@@ -136,7 +139,9 @@ export const useVenueStore = create<VenueState>()(
             Analytics.logEvent('cancel_reservation', {
               reservation_id: reservationId,
               venue_id: reservation.venueId,
-              user_id: reservation.userId
+              user_id: reservation.userId,
+              party_size: reservation.partySize,
+              total_amount: reservation.totalAmount
             });
           } catch (error) {
             console.warn("Analytics error:", error);

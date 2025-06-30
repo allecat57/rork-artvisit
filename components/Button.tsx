@@ -1,257 +1,227 @@
-import React from 'react';
-import {
-  TouchableOpacity,
-  Text,
-  StyleSheet,
-  ActivityIndicator,
-  ViewStyle,
-  TextStyle,
-  StyleProp,
+import React from "react";
+import { 
+  TouchableOpacity, 
+  Text, 
+  StyleSheet, 
+  ActivityIndicator, 
   View,
-} from 'react-native';
-import colors from '@/constants/colors';
-import typography from '@/constants/typography';
-import * as Analytics from '@/utils/analytics';
+  ViewStyle,
+  TextStyle 
+} from "react-native";
+import colors from "@/constants/colors";
+import typography from "@/constants/typography";
+import * as Analytics from "@/utils/analytics";
 
-interface ButtonProps {
+export interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline' | 'text';
-  size?: 'small' | 'medium' | 'large';
+  variant?: "primary" | "secondary" | "outline" | "ghost";
+  size?: "small" | "medium" | "large";
   disabled?: boolean;
   loading?: boolean;
-  style?: StyleProp<ViewStyle>;
-  textStyle?: StyleProp<TextStyle>;
+  icon?: React.ReactNode;
+  iconPosition?: "left" | "right";
+  style?: ViewStyle;
+  textStyle?: TextStyle;
   analyticsEventName?: string;
   analyticsProperties?: Record<string, any>;
-  analyticsParams?: Record<string, any>; // Added for backward compatibility
-  icon?: React.ReactNode;
 }
 
-const Button: React.FC<ButtonProps> = ({
+export default function Button({
   title,
   onPress,
-  variant = 'primary',
-  size = 'medium',
+  variant = "primary",
+  size = "medium",
   disabled = false,
   loading = false,
+  icon,
+  iconPosition = "left",
   style,
   textStyle,
   analyticsEventName,
-  analyticsProperties = {},
-  analyticsParams = {}, // Added for backward compatibility
-  icon,
-}) => {
+  analyticsProperties
+}: ButtonProps) {
   const handlePress = () => {
+    if (disabled || loading) return;
+    
+    // Log analytics event if provided
     if (analyticsEventName) {
-      // Use analyticsProperties first, then fall back to analyticsParams for backward compatibility
-      const eventProperties = Object.keys(analyticsProperties).length > 0 
-        ? analyticsProperties 
-        : analyticsParams;
-      Analytics.logEvent(analyticsEventName, eventProperties);
+      Analytics.logEvent(analyticsEventName, analyticsProperties);
     }
+    
     onPress();
   };
 
-  const getButtonStyle = () => {
-    switch (variant) {
-      case 'primary':
-        return styles.primaryButton;
-      case 'secondary':
-        return styles.secondaryButton;
-      case 'outline':
-        return styles.outlineButton;
-      case 'text':
-        return styles.textButton;
-      default:
-        return styles.primaryButton;
-    }
+  const getButtonStyle = (): ViewStyle => {
+    const baseStyle = styles.button;
+    const sizeStyle = styles[`${size}Button` as keyof typeof styles] as ViewStyle;
+    const variantStyle = styles[`${variant}Button` as keyof typeof styles] as ViewStyle;
+    const disabledStyle = (disabled || loading) ? styles.disabledButton : {};
+
+    return {
+      ...baseStyle,
+      ...sizeStyle,
+      ...variantStyle,
+      ...disabledStyle,
+      ...style,
+    };
   };
 
-  const getTextStyle = () => {
-    switch (variant) {
-      case 'primary':
-        return styles.primaryText;
-      case 'secondary':
-        return styles.secondaryText;
-      case 'outline':
-        return styles.outlineText;
-      case 'text':
-        return styles.textButtonText;
-      default:
-        return styles.primaryText;
-    }
-  };
+  const getTextStyle = (): TextStyle => {
+    const baseStyle = styles.buttonText;
+    const sizeStyle = styles[`${size}ButtonText` as keyof typeof styles] as TextStyle;
+    const variantStyle = styles[`${variant}ButtonText` as keyof typeof styles] as TextStyle;
+    const disabledStyle = (disabled || loading) ? styles.disabledButtonText : {};
 
-  const getSizeStyle = () => {
-    switch (size) {
-      case 'small':
-        return styles.smallButton;
-      case 'medium':
-        return styles.mediumButton;
-      case 'large':
-        return styles.largeButton;
-      default:
-        return styles.mediumButton;
-    }
-  };
-
-  const getTextSizeStyle = () => {
-    switch (size) {
-      case 'small':
-        return styles.smallText;
-      case 'medium':
-        return styles.mediumText;
-      case 'large':
-        return styles.largeText;
-      default:
-        return styles.mediumText;
-    }
+    return {
+      ...baseStyle,
+      ...sizeStyle,
+      ...variantStyle,
+      ...disabledStyle,
+      ...textStyle,
+    };
   };
 
   const renderContent = () => {
     if (loading) {
       return (
-        <ActivityIndicator
-          color={variant === 'primary' ? '#013025' : '#AC8901'}
-          size={size === 'small' ? 'small' : 'small'}
-        />
-      );
-    }
-
-    if (icon && title) {
-      return (
-        <View style={styles.contentWithIcon}>
-          {icon}
-          <Text
-            style={[
-              styles.text,
-              getTextStyle(),
-              getTextSizeStyle(),
-              disabled && styles.disabledText,
-              textStyle,
-              styles.textWithIcon,
-            ]}
-          >
-            {title}
-          </Text>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator 
+            size="small" 
+            color={variant === "primary" ? colors.primary.background : colors.primary.accent} 
+          />
+          <Text style={[getTextStyle(), styles.loadingText]}>{title}</Text>
         </View>
       );
     }
 
-    return (
-      <Text
-        style={[
-          styles.text,
-          getTextStyle(),
-          getTextSizeStyle(),
-          disabled && styles.disabledText,
-          textStyle,
-        ]}
-      >
-        {title}
-      </Text>
-    );
+    if (icon) {
+      return (
+        <View style={[
+          styles.iconContainer,
+          iconPosition === "right" && styles.iconContainerReverse
+        ]}>
+          {iconPosition === "left" && icon}
+          <Text style={getTextStyle()}>{title}</Text>
+          {iconPosition === "right" && icon}
+        </View>
+      );
+    }
+
+    return <Text style={getTextStyle()}>{title}</Text>;
   };
 
   return (
     <TouchableOpacity
-      style={[
-        styles.button,
-        getButtonStyle(),
-        getSizeStyle(),
-        disabled && styles.disabledButton,
-        style,
-      ]}
+      style={getButtonStyle()}
       onPress={handlePress}
       disabled={disabled || loading}
-      activeOpacity={0.8}
+      activeOpacity={0.7}
     >
       {renderContent()}
     </TouchableOpacity>
   );
-};
+}
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: 44,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    flexDirection: "row",
   },
-  primaryButton: {
-    backgroundColor: '#AC8901',
-  },
-  secondaryButton: {
-    backgroundColor: '#1a4037',
-    borderWidth: 1,
-    borderColor: '#AC8901',
-  },
-  outlineButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#AC8901',
-  },
-  textButton: {
-    backgroundColor: 'transparent',
-  },
-  disabledButton: {
-    opacity: 0.5,
-  },
-  text: {
-    fontWeight: '600',
-    textAlign: 'center',
-  },
-  primaryText: {
-    color: '#013025',
-  },
-  secondaryText: {
-    color: '#AC8901',
-  },
-  outlineText: {
-    color: '#AC8901',
-  },
-  textButtonText: {
-    color: '#AC8901',
-  },
-  disabledText: {
-    opacity: 0.7,
-  },
+  
+  // Size variants
   smallButton: {
+    paddingHorizontal: 12,
     paddingVertical: 8,
-    paddingHorizontal: 16,
     minHeight: 36,
   },
   mediumButton: {
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    paddingHorizontal: 24,
     minHeight: 44,
   },
   largeButton: {
+    paddingHorizontal: 20,
     paddingVertical: 16,
-    paddingHorizontal: 32,
     minHeight: 52,
   },
-  smallText: {
-    ...typography.buttonSmall,
-    fontSize: 14,
+  
+  // Color variants
+  primaryButton: {
+    backgroundColor: colors.primary.accent,
   },
-  mediumText: {
-    ...typography.button,
-    fontSize: 16,
+  secondaryButton: {
+    backgroundColor: colors.primary.card,
+    borderWidth: 1,
+    borderColor: colors.primary.border,
   },
-  largeText: {
-    ...typography.button,
-    fontSize: 18,
+  outlineButton: {
+    backgroundColor: "transparent",
+    borderWidth: 1,
+    borderColor: colors.primary.accent,
   },
-  contentWithIcon: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+  ghostButton: {
+    backgroundColor: "transparent",
   },
-  textWithIcon: {
+  
+  // Disabled state
+  disabledButton: {
+    opacity: 0.5,
+  },
+  
+  // Text styles
+  buttonText: {
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  
+  // Text size variants
+  smallButtonText: {
+    ...typography.bodySmall,
+  },
+  mediumButtonText: {
+    ...typography.body,
+  },
+  largeButtonText: {
+    ...typography.heading4,
+  },
+  
+  // Text color variants
+  primaryButtonText: {
+    color: colors.primary.background,
+  },
+  secondaryButtonText: {
+    color: colors.primary.text,
+  },
+  outlineButtonText: {
+    color: colors.primary.accent,
+  },
+  ghostButtonText: {
+    color: colors.primary.accent,
+  },
+  
+  // Disabled text
+  disabledButtonText: {
+    opacity: 0.7,
+  },
+  
+  // Icon and loading styles
+  iconContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  iconContainerReverse: {
+    flexDirection: "row-reverse",
+  },
+  loadingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  loadingText: {
     marginLeft: 8,
   },
 });
-
-export default Button;
