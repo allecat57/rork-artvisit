@@ -12,6 +12,8 @@ export interface Venue {
   featured?: boolean;
   category?: string;
   tags?: string[];
+  phone?: string;
+  website?: string;
   coordinates?: {
     latitude: number;
     longitude: number;

@@ -88,7 +88,7 @@ export default function FeaturedVenueCard({
         <View style={styles.topContainer}>
           {featured && (
             <View style={styles.featuredBadge}>
-              <Award size={14} color={colors.background.dark} />
+              <Award size={14} color={colors.primary} />
               <Text style={styles.featuredText}>Featured</Text>
             </View>
           )}
@@ -112,7 +112,7 @@ export default function FeaturedVenueCard({
             useGoldText && styles.goldText
           ]} numberOfLines={2}>{name || 'Unnamed Venue'}</Text>
           <View style={styles.locationContainer}>
-            <MapPin size={16} color={useGoldText ? "#AC8901" : colors.muted.dark} />
+            <MapPin size={16} color={useGoldText ? "#AC8901" : colors.muted} />
             <Text style={[
               typography.bodySmall, 
               styles.location,
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
   featuredText: {
     ...typography.caption,
     fontFamily,
-    color: colors.background.dark,
+    color: colors.primary,
     fontWeight: "600",
     marginLeft: 4,
   },
