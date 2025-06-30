@@ -79,7 +79,7 @@ export default function DateTimePicker({
     if (initialDate) {
       const formattedDate = formatCalendarDate(initialDate);
       setMarkedDates({
-        [formattedDate]: { selected: true, selectedColor: colors.primary.accent }
+        [formattedDate]: { selected: true, selectedColor: colors.accent }
       });
       setAvailableSlots(generateTimeSlots(initialDate));
     }
@@ -99,7 +99,7 @@ export default function DateTimePicker({
     
     // Update marked dates
     setMarkedDates({
-      [day.dateString]: { selected: true, selectedColor: colors.primary.accent }
+      [day.dateString]: { selected: true, selectedColor: colors.accent }
     });
     
     // Show feedback for date selection
@@ -143,7 +143,7 @@ export default function DateTimePicker({
     <View style={styles.container}>
       <View style={styles.calendarContainer}>
         <View style={styles.calendarHeader}>
-          <CalendarIcon size={20} color={colors.primary.accent} />
+          <CalendarIcon size={20} color={colors.accent} />
           <Text style={styles.calendarTitle}>Select Date</Text>
         </View>
         
@@ -153,22 +153,26 @@ export default function DateTimePicker({
           onDayPress={handleDateSelect}
           markedDates={markedDates}
           theme={{
-            calendarBackground: colors.primary.card,
-            textSectionTitleColor: colors.primary.text,
-            selectedDayBackgroundColor: colors.primary.accent,
-            selectedDayTextColor: colors.primary.background,
-            todayTextColor: colors.primary.accent,
-            dayTextColor: colors.primary.text,
-            textDisabledColor: colors.primary.muted,
-            dotColor: colors.primary.accent,
-            monthTextColor: colors.primary.text,
-            indicatorColor: colors.primary.accent,
+            calendarBackground: colors.card,
+            textSectionTitleColor: colors.text,
+            selectedDayBackgroundColor: colors.accent,
+            selectedDayTextColor: colors.background,
+            todayTextColor: colors.accent,
+            dayTextColor: colors.text,
+            textDisabledColor: colors.muted,
+            dotColor: colors.accent,
+            monthTextColor: colors.text,
+            indicatorColor: colors.accent,
             textDayFontFamily: 'System',
             textMonthFontFamily: 'System',
             textDayHeaderFontFamily: 'System',
             textDayFontWeight: '400',
             textMonthFontWeight: 'bold',
             textDayHeaderFontWeight: '600',
+            arrowColor: colors.accent,
+            disabledArrowColor: colors.muted,
+            monthTextColor: colors.text,
+            textMonthFontSize: 16,
           }}
         />
       </View>
@@ -176,7 +180,7 @@ export default function DateTimePicker({
       {selectedDate && (
         <View style={styles.timeSlotContainer}>
           <View style={styles.timeSlotHeader}>
-            <Clock size={20} color={colors.primary.accent} />
+            <Clock size={20} color={colors.accent} />
             <Text style={styles.timeSlotTitle}>Select Time</Text>
           </View>
           
@@ -247,7 +251,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   calendarContainer: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 12,
     marginBottom: 20,
@@ -260,7 +264,7 @@ const styles = StyleSheet.create({
   calendarTitle: {
     ...typography.heading4,
     marginLeft: 8,
-    color: colors.primary.text,
+    color: colors.text,
   },
   timeSlotContainer: {
     marginBottom: 20,
@@ -273,50 +277,50 @@ const styles = StyleSheet.create({
   timeSlotTitle: {
     ...typography.heading4,
     marginLeft: 8,
-    color: colors.primary.text,
+    color: colors.text,
   },
   timeSlotScrollContent: {
     paddingBottom: 8,
   },
   timeSlotButton: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 8,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: colors.primary.border,
+    borderColor: colors.border,
     minWidth: 80,
     alignItems: 'center',
   },
   selectedTimeSlot: {
-    backgroundColor: colors.primary.accent,
-    borderColor: colors.primary.accent,
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
   },
   timeSlotText: {
     ...typography.body,
-    color: colors.primary.text,
+    color: colors.text,
     fontSize: 14,
   },
   selectedTimeSlotText: {
-    color: colors.primary.background,
+    color: colors.background,
     fontWeight: '600',
   },
   noSlotsContainer: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     padding: 20,
     borderRadius: 8,
     alignItems: 'center',
   },
   noSlotsText: {
     ...typography.body,
-    color: colors.primary.text,
+    color: colors.text,
     textAlign: 'center',
     marginBottom: 4,
   },
   noSlotsSubtext: {
     ...typography.bodySmall,
-    color: colors.primary.muted,
+    color: colors.muted,
     textAlign: 'center',
   },
   selectionSummary: {
@@ -329,13 +333,13 @@ const styles = StyleSheet.create({
   },
   summaryTitle: {
     ...typography.bodySmall,
-    color: colors.primary.accent,
+    color: colors.accent,
     fontWeight: '600',
     marginBottom: 4,
   },
   summaryText: {
     ...typography.body,
-    color: colors.primary.accent,
+    color: colors.accent,
     fontWeight: '600',
     flex: 1,
   },
@@ -353,14 +357,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   instructionContainer: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
   },
   instructionText: {
     ...typography.bodySmall,
-    color: colors.primary.muted,
+    color: colors.muted,
     textAlign: 'center',
   },
 });

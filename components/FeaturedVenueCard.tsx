@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View, Dimensions, Platform } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { MapPin, Award, Heart } from "lucide-react-native";
+import { MapPin, Award, Heart, DollarSign } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
@@ -38,7 +38,7 @@ export default function FeaturedVenueCard({
     return null;
   }
 
-  const { id, name, imageUrl, location, featured = false } = venue;
+  const { id, name, imageUrl, location, featured = false, admission } = venue;
   const { isFavorite, addFavorite, removeFavorite } = useFavoritesStore();
   const favorite = isFavorite(id);
 
@@ -88,7 +88,7 @@ export default function FeaturedVenueCard({
         <View style={styles.topContainer}>
           {featured && (
             <View style={styles.featuredBadge}>
-              <Award size={14} color={colors.primary} />
+              <Award size={14} color={colors.text} />
               <Text style={styles.featuredText}>Featured</Text>
             </View>
           )}
@@ -111,13 +111,27 @@ export default function FeaturedVenueCard({
             styles.name, 
             useGoldText && styles.goldText
           ]} numberOfLines={2}>{name || 'Unnamed Venue'}</Text>
-          <View style={styles.locationContainer}>
-            <MapPin size={16} color={useGoldText ? "#AC8901" : colors.muted} />
-            <Text style={[
-              typography.bodySmall, 
-              styles.location,
-              useGoldText && styles.goldLocationText
-            ]}>{location || 'Location not specified'}</Text>
+          
+          <View style={styles.infoContainer}>
+            <View style={styles.locationContainer}>
+              <MapPin size={16} color={useGoldText ? "#AC8901" : colors.muted} />
+              <Text style={[
+                typography.bodySmall, 
+                styles.location,
+                useGoldText && styles.goldLocationText
+              ]} numberOfLines={1}>{location || 'Location not specified'}</Text>
+            </View>
+            
+            {admission && (
+              <View style={styles.admissionContainer}>
+                <DollarSign size={14} color={useGoldText ? "#AC8901" : "#FFFFFF"} />
+                <Text style={[
+                  typography.bodySmall,
+                  styles.admissionText,
+                  useGoldText && styles.goldAdmissionText
+                ]}>{admission}</Text>
+              </View>
+            )}
           </View>
         </View>
       </LinearGradient>
@@ -160,16 +174,41 @@ const styles = StyleSheet.create({
   goldText: {
     color: "#AC8901",
   },
+  infoContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   locationContainer: {
     flexDirection: "row",
     alignItems: "center",
+    flex: 1,
+    marginRight: 8,
   },
   location: {
     fontFamily,
     marginLeft: 4,
     color: '#B0B0B0',
+    flex: 1,
   },
   goldLocationText: {
+    color: "#AC8901",
+  },
+  admissionContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  admissionText: {
+    fontFamily,
+    color: "#FFFFFF",
+    marginLeft: 4,
+    fontWeight: "600",
+  },
+  goldAdmissionText: {
     color: "#AC8901",
   },
   featuredBadge: {
@@ -183,7 +222,7 @@ const styles = StyleSheet.create({
   featuredText: {
     ...typography.caption,
     fontFamily,
-    color: colors.primary,
+    color: colors.text,
     fontWeight: "600",
     marginLeft: 4,
   },

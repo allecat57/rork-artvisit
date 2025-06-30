@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View, Platform } from "react-native";
 import { Image } from "expo-image";
-import { MapPin, Clock, Star, Navigation, AlertCircle, Heart } from "lucide-react-native";
+import { MapPin, Clock, Star, Navigation, AlertCircle, Heart, DollarSign } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import { useLocationStore } from "@/store/useLocationStore";
@@ -28,7 +28,7 @@ export default function VenueCard({
   onPress,
 }: VenueCardProps) {
   const router = useRouter();
-  const { id, name, type, imageUrl, rating, distance, openingHours } = venue;
+  const { id, name, type, imageUrl, rating, distance, openingHours, location, admission } = venue;
   const { currentLocation, locationError } = useLocationStore();
   const { isFavorite, addFavorite, removeFavorite } = useFavoritesStore();
   
@@ -98,7 +98,7 @@ export default function VenueCard({
       />
       <View style={styles.content}>
         <View style={styles.header}>
-          <View>
+          <View style={styles.titleContainer}>
             <Text style={[typography.heading3, styles.name]} numberOfLines={1}>{name}</Text>
             <Text style={[typography.caption, styles.type]}>{type}</Text>
           </View>
@@ -121,7 +121,7 @@ export default function VenueCard({
         </View>
         
         <View style={styles.infoContainer}>
-          {currentLocation ? (
+          <View style={styles.infoRow}>
             <View style={[
               styles.infoItem, 
               styles.distanceItem,
@@ -146,20 +146,23 @@ export default function VenueCard({
                 {!isWithinRadius && " (outside radius)"}
               </Text>
             </View>
-          ) : locationError ? (
-            <View style={[styles.infoItem, styles.locationErrorItem]}>
-              <AlertCircle size={14} color={colors.status.error} />
-              <Text style={[typography.caption, styles.locationErrorText]}>Location unavailable</Text>
+            
+            <View style={styles.infoItem}>
+              <Clock size={14} color={colors.muted} />
+              <Text style={[typography.caption, styles.infoText]}>{openingHours}</Text>
             </View>
-          ) : (
+          </View>
+          
+          <View style={styles.infoRow}>
             <View style={styles.infoItem}>
               <MapPin size={14} color={colors.muted} />
-              <Text style={[typography.caption, styles.infoText]}>{distance}</Text>
+              <Text style={[typography.caption, styles.infoText]} numberOfLines={1}>{location}</Text>
             </View>
-          )}
-          <View style={styles.infoItem}>
-            <Clock size={14} color={colors.muted} />
-            <Text style={[typography.caption, styles.infoText]}>{openingHours}</Text>
+            
+            <View style={styles.admissionContainer}>
+              <DollarSign size={14} color={colors.accent} />
+              <Text style={[typography.caption, styles.admissionText]}>{admission}</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -187,6 +190,10 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
     marginBottom: 8,
   },
+  titleContainer: {
+    flex: 1,
+    marginRight: 8,
+  },
   rightHeader: {
     flexDirection: "column",
     alignItems: "flex-end",
@@ -195,8 +202,7 @@ const styles = StyleSheet.create({
   name: {
     fontFamily,
     fontSize: 18,
-    flex: 1,
-    marginRight: 8,
+    color: colors.text,
   },
   type: {
     fontFamily,
@@ -222,18 +228,26 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   infoContainer: {
-    flexDirection: "row",
     marginTop: 4,
+  },
+  infoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
   },
   infoItem: {
     flexDirection: "row",
     alignItems: "center",
-    marginRight: 16,
+    flex: 1,
+    marginRight: 8,
   },
   distanceItem: {
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
+    flex: 0,
+    marginRight: 12,
   },
   nearbyItem: {
     backgroundColor: "rgba(76, 175, 80, 0.15)",
@@ -253,6 +267,7 @@ const styles = StyleSheet.create({
   infoText: {
     fontFamily,
     marginLeft: 4,
+    color: colors.text,
   },
   nearbyText: {
     fontFamily,
@@ -273,5 +288,19 @@ const styles = StyleSheet.create({
     fontFamily,
     color: colors.status.error,
     marginLeft: 4,
+  },
+  admissionContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(172, 137, 1, 0.15)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  admissionText: {
+    fontFamily,
+    color: colors.accent,
+    marginLeft: 4,
+    fontWeight: "600",
   },
 });

@@ -319,7 +319,7 @@ export default function ReservationModal({
             >
               <Users 
                 size={20} 
-                color={partySize === size ? colors.primary.background : colors.primary.text} 
+                color={partySize === size ? colors.background : colors.text} 
               />
               <Text style={[
                 styles.partySizeText,
@@ -392,7 +392,7 @@ export default function ReservationModal({
         {currentPaymentMethod ? (
           <View style={styles.paymentMethodCard}>
             <View style={styles.paymentMethodHeader}>
-              <CreditCard size={24} color={colors.primary.accent} />
+              <CreditCard size={24} color={colors.accent} />
               <Text style={styles.paymentMethodTitle}>Payment Method</Text>
             </View>
             
@@ -414,7 +414,7 @@ export default function ReservationModal({
           </View>
         ) : (
           <View style={styles.noPaymentMethodCard}>
-            <CreditCard size={48} color={colors.primary.muted} />
+            <CreditCard size={48} color={colors.muted} />
             <Text style={styles.noPaymentMethodTitle}>No Payment Method</Text>
             <Text style={styles.noPaymentMethodText}>
               Add a payment method to complete your reservation
@@ -521,7 +521,7 @@ export default function ReservationModal({
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <TouchableOpacity style={styles.closeButton} onPress={resetAndClose}>
-              <X size={24} color={colors.primary.text} />
+              <X size={24} color={colors.text} />
             </TouchableOpacity>
             
             <View style={styles.contentPadding}>
@@ -578,7 +578,7 @@ export default function ReservationModal({
                 onPress={handlePreviousStep}
                 hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
               >
-                <ArrowLeft size={24} color={colors.primary.text} />
+                <ArrowLeft size={24} color={colors.text} />
               </TouchableOpacity>
             )}
             
@@ -589,7 +589,7 @@ export default function ReservationModal({
               onPress={resetAndClose}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <X size={24} color={colors.primary.text} />
+              <X size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
           
@@ -653,7 +653,7 @@ export default function ReservationModal({
                 disabled={!canProceedToNext()}
                 loading={isSubmitting || stripeLoading}
                 icon={currentStep === 'payment' ? 
-                  <CreditCard size={18} color={colors.primary.background} /> : 
+                  <CreditCard size={18} color={colors.background} /> : 
                   undefined
                 }
               />
@@ -684,7 +684,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    backgroundColor: colors.primary.background,
+    backgroundColor: colors.background,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     height: height * 0.9,
@@ -695,12 +695,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: colors.primary.border,
+    borderBottomColor: colors.border,
     position: "relative",
   },
   headerTitle: {
     textAlign: "center",
-    color: colors.primary.text,
+    color: colors.text,
   },
   backButton: {
     position: "absolute",
@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
   },
   stepContainer: {
     flexDirection: "row",
@@ -734,20 +734,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   stepCircleActive: {
-    backgroundColor: colors.primary.accent,
+    backgroundColor: colors.accent,
   },
   stepCircleInactive: {
-    backgroundColor: colors.primary.border,
+    backgroundColor: colors.border,
   },
   stepNumber: {
     fontSize: 14,
     fontWeight: "600",
   },
   stepNumberActive: {
-    color: colors.primary.background,
+    color: colors.background,
   },
   stepNumberInactive: {
-    color: colors.primary.muted,
+    color: colors.muted,
   },
   stepLine: {
     width: 40,
@@ -755,10 +755,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 8,
   },
   stepLineActive: {
-    backgroundColor: colors.primary.accent,
+    backgroundColor: colors.accent,
   },
   stepLineInactive: {
-    backgroundColor: colors.primary.border,
+    backgroundColor: colors.border,
   },
   scrollContainer: {
     flex: 1,
@@ -772,33 +772,33 @@ const styles = StyleSheet.create({
   },
   title: {
     marginBottom: 8,
-    color: colors.primary.text,
+    color: colors.text,
   },
   subtitle: {
     marginBottom: 20,
-    color: colors.primary.muted,
+    color: colors.muted,
   },
   venueName: {
     marginBottom: 8,
-    color: colors.primary.text,
+    color: colors.text,
   },
   venueDescription: {
     marginBottom: 20,
-    color: colors.primary.text,
+    color: colors.text,
     opacity: 0.9,
   },
   divider: {
     height: 1,
-    backgroundColor: colors.primary.border,
+    backgroundColor: colors.border,
     marginBottom: 24,
   },
   sectionTitle: {
     marginBottom: 8,
-    color: colors.primary.text,
+    color: colors.text,
   },
   sectionSubtitle: {
     marginBottom: 20,
-    color: colors.primary.muted,
+    color: colors.muted,
   },
   partySizeContainer: {
     marginBottom: 20,
@@ -811,26 +811,26 @@ const styles = StyleSheet.create({
   },
   partySizeButton: {
     width: "48%",
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: colors.primary.border,
+    borderColor: colors.border,
   },
   partySizeButtonActive: {
-    backgroundColor: colors.primary.accent,
-    borderColor: colors.primary.accent,
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
   },
   partySizeText: {
     marginLeft: 8,
-    color: colors.primary.text,
+    color: colors.text,
     fontWeight: "500",
   },
   partySizeTextActive: {
-    color: colors.primary.background,
+    color: colors.background,
   },
   partySizeNote: {
     backgroundColor: "rgba(172, 137, 1, 0.1)",
@@ -838,14 +838,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   noteText: {
-    color: colors.primary.text,
+    color: colors.text,
     textAlign: "center",
   },
   reviewContainer: {
     marginBottom: 20,
   },
   reviewCard: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
   },
@@ -855,15 +855,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.primary.border,
+    borderBottomColor: colors.border,
   },
   reviewLabel: {
     ...typography.body,
-    color: colors.primary.muted,
+    color: colors.muted,
   },
   reviewValue: {
     ...typography.body,
-    color: colors.primary.text,
+    color: colors.text,
     fontWeight: "500",
     flex: 1,
     textAlign: "right",
@@ -873,22 +873,22 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     marginTop: 8,
     borderTopWidth: 2,
-    borderTopColor: colors.primary.border,
+    borderTopColor: colors.border,
   },
   totalLabel: {
     ...typography.heading4,
-    color: colors.primary.text,
+    color: colors.text,
   },
   totalValue: {
     ...typography.heading4,
-    color: colors.primary.accent,
+    color: colors.accent,
     fontWeight: "600",
   },
   paymentContainer: {
     marginBottom: 20,
   },
   paymentMethodCard: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 20,
@@ -900,7 +900,7 @@ const styles = StyleSheet.create({
   },
   paymentMethodTitle: {
     ...typography.heading4,
-    color: colors.primary.text,
+    color: colors.text,
     marginLeft: 8,
   },
   paymentMethodDetails: {
@@ -908,12 +908,12 @@ const styles = StyleSheet.create({
   },
   paymentMethodText: {
     ...typography.body,
-    color: colors.primary.text,
+    color: colors.text,
     fontWeight: "500",
   },
   paymentMethodExpiry: {
     ...typography.bodySmall,
-    color: colors.primary.muted,
+    color: colors.muted,
     marginTop: 4,
   },
   changePaymentButton: {
@@ -921,11 +921,11 @@ const styles = StyleSheet.create({
   },
   changePaymentText: {
     ...typography.bodySmall,
-    color: colors.primary.accent,
+    color: colors.accent,
     fontWeight: "500",
   },
   noPaymentMethodCard: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 24,
     alignItems: "center",
@@ -933,13 +933,13 @@ const styles = StyleSheet.create({
   },
   noPaymentMethodTitle: {
     ...typography.heading4,
-    color: colors.primary.text,
+    color: colors.text,
     marginTop: 12,
     marginBottom: 8,
   },
   noPaymentMethodText: {
     ...typography.body,
-    color: colors.primary.muted,
+    color: colors.muted,
     textAlign: "center",
     marginBottom: 16,
   },
@@ -947,7 +947,7 @@ const styles = StyleSheet.create({
     minWidth: 160,
   },
   paymentSummary: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
   },
@@ -959,25 +959,25 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     ...typography.body,
-    color: colors.primary.muted,
+    color: colors.muted,
   },
   summaryValue: {
     ...typography.body,
-    color: colors.primary.text,
+    color: colors.text,
   },
   totalSummaryRow: {
     borderTopWidth: 1,
-    borderTopColor: colors.primary.border,
+    borderTopColor: colors.border,
     marginTop: 8,
     paddingTop: 12,
   },
   totalSummaryLabel: {
     ...typography.heading4,
-    color: colors.primary.text,
+    color: colors.text,
   },
   totalSummaryValue: {
     ...typography.heading4,
-    color: colors.primary.accent,
+    color: colors.accent,
     fontWeight: "600",
   },
   confirmationContainer: {
@@ -996,17 +996,17 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   confirmationTitle: {
-    color: colors.primary.text,
+    color: colors.text,
     textAlign: "center",
     marginBottom: 16,
   },
   confirmationText: {
-    color: colors.primary.muted,
+    color: colors.muted,
     textAlign: "center",
     marginBottom: 32,
   },
   confirmationDetails: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 32,
@@ -1014,12 +1014,12 @@ const styles = StyleSheet.create({
   },
   confirmationLabel: {
     ...typography.bodySmall,
-    color: colors.primary.muted,
+    color: colors.muted,
     marginBottom: 4,
   },
   confirmationCode: {
     ...typography.heading3,
-    color: colors.primary.accent,
+    color: colors.accent,
     fontWeight: "600",
   },
   doneButton: {
@@ -1028,7 +1028,7 @@ const styles = StyleSheet.create({
   footer: {
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: colors.primary.border,
+    borderTopColor: colors.border,
   },
   venuesList: {
     maxHeight: 300,
@@ -1037,7 +1037,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     padding: 12,
     borderRadius: 8,
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     marginBottom: 8,
   },
   venueOptionImage: {
@@ -1051,11 +1051,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   venueOptionName: {
-    color: colors.primary.text,
+    color: colors.text,
     marginBottom: 4,
   },
   venueOptionType: {
-    color: colors.primary.muted,
+    color: colors.muted,
     fontSize: 14,
   },
 });
