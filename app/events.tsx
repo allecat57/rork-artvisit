@@ -1,257 +1,310 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, FlatList, RefreshControl } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
-import { Calendar, Filter, Crown, Star, Ticket, Zap } from "lucide-react-native";
-import colors from "@/constants/colors";
-import typography from "@/constants/typography";
+import { Filter, Calendar, Search } from "lucide-react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useEventsStore } from "@/store/useEventsStore";
-import { useProfileStore } from "@/store/useProfileStore";
-import { AccessLevel, EventType } from "@/types/event";
+import { useAuthStore } from "@/store/useAuthStore";
 import EventCard from "@/components/EventCard";
 import SubscriptionRequiredCard from "@/components/SubscriptionRequiredCard";
-import SubscriptionModal from "@/components/SubscriptionModal";
+import SearchBar from "@/components/SearchBar";
 import EmptyState from "@/components/EmptyState";
+import colors from "@/constants/colors";
+import typography from "@/constants/typography";
+import { Event, AccessLevel } from "@/types/event";
 import * as Analytics from "@/utils/analytics";
 
 export default function EventsScreen() {
   const router = useRouter();
-  const { getAccessibleEvents, getFeaturedEvents, getUpcomingEvents } = useEventsStore();
-  const { getCurrentSubscription } = useProfileStore();
+  const { allEvents, isLoading, fetchEvents, getAccessibleEvents, getFeaturedEvents, getUpcomingEvents } = useEventsStore();
+  const { user } = useAuthStore();
   
-  const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState("upcoming");
-  const [subscriptionModalVisible, setSubscriptionModalVisible] = useState(false);
-  const [selectedEventType, setSelectedEventType] = useState<EventType | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const [filterType, setFilterType] = useState<string | null>(null);
+  const [showSubscriptionCard, setShowSubscriptionCard] = useState(false);
   
-  const currentSubscription = getCurrentSubscription();
-  const currentSubscriptionLevel = (currentSubscription?.id as AccessLevel) || AccessLevel.FREE;
+  // Get user's subscription level
+  const userSubscriptionLevel = user?.subscription?.id as AccessLevel || AccessLevel.FREE;
   
-  const accessibleEvents = getAccessibleEvents();
-  const featuredEvents = getFeaturedEvents();
-  const upcomingEvents = getUpcomingEvents();
-  
-  // Filter events by type if a type is selected
-  const filteredEvents = selectedEventType
-    ? (activeTab === "upcoming" ? upcomingEvents : accessibleEvents).filter(
-        event => event.type === selectedEventType
-      )
-    : activeTab === "upcoming" ? upcomingEvents : accessibleEvents;
-  
-  // Get unique event types from accessible events
-  const eventTypes = Array.from(
-    new Set(accessibleEvents.map(event => event.type))
-  ).sort();
-  
-  const onRefresh = async () => {
-    setRefreshing(true);
+  useEffect(() => {
+    // Fetch events when component mounts
+    fetchEvents();
     
-    // In a real app, you would fetch fresh data here
-    // For this demo, we'll just simulate a delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setRefreshing(false);
-  };
-  
-  const handleTabChange = (tab: string) => {
     // Log analytics event
-    Analytics.logEvent("events_tab_change", {
-      previous_tab: activeTab,
-      new_tab: tab
+    Analytics.logEvent("view_events_screen", {
+      user_id: user?.id || "guest",
+      subscription_level: userSubscriptionLevel
     });
-    
-    setActiveTab(tab);
-  };
+  }, []);
   
-  const handleFilterByType = (type: EventType | null) => {
-    // Log analytics event
-    Analytics.logEvent("events_filter_change", {
-      previous_filter: selectedEventType,
-      new_filter: type
-    });
+  // Filter events based on search query and filter type
+  const filteredEvents = React.useMemo(() => {
+    let events = getAccessibleEvents();
     
-    setSelectedEventType(type);
-  };
-  
-  const getSubscriptionBadge = () => {
-    if (!currentSubscription) return null;
-    
-    let color = "#E0E0E0";
-    let icon = <Ticket size={16} color="#FFFFFF" />;
-    
-    if (currentSubscription.id === "free") {
-      color = "#4CAF50";
-      icon = <Zap size={16} color="#FFFFFF" />;
-    } else if (currentSubscription.id === "explorer") {
-      color = "#FFD700";
-      icon = <Star size={16} color="#FFFFFF" />;
-    } else if (currentSubscription.id === "collector") {
-      color = "#9C27B0";
-      icon = <Crown size={16} color="#FFFFFF" />;
+    // Apply search filter
+    if (searchQuery) {
+      events = events.filter((event: Event) => 
+        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (event.tags && event.tags.some(tag => 
+          tag.toLowerCase().includes(searchQuery.toLowerCase())
+        ))
+      );
     }
     
-    return (
-      <View style={[styles.subscriptionBadge, { backgroundColor: color }]}>
-        {icon}
-        <Text style={styles.subscriptionBadgeText}>{currentSubscription.name}</Text>
-      </View>
-    );
+    // Apply type filter
+    if (filterType) {
+      events = events.filter((event: Event) => event.type === filterType);
+    }
+    
+    return events;
+  }, [searchQuery, filterType, allEvents, userSubscriptionLevel]);
+  
+  // Get unique event types for filter
+  const eventTypes = React.useMemo(() => {
+    const types = new Set<string>();
+    allEvents.forEach((event: Event) => {
+      if (event.type) {
+        types.add(event.type);
+      }
+    });
+    return Array.from(types);
+  }, [allEvents]);
+  
+  // Handle event card press
+  const handleEventPress = (event: Event) => {
+    // Check if user has access to this event
+    const hasAccess = userSubscriptionLevel >= event.accessLevel;
+    
+    if (hasAccess) {
+      // Navigate to event details
+      router.push(`/event/${event.id}`);
+      
+      // Log analytics event
+      Analytics.logEvent("select_event", {
+        event_id: event.id,
+        event_title: event.title,
+        event_type: event.type,
+        user_id: user?.id || "guest"
+      });
+    } else {
+      // Show subscription required card
+      setShowSubscriptionCard(true);
+      
+      // Log analytics event
+      Analytics.logEvent("subscription_required", {
+        event_id: event.id,
+        event_title: event.title,
+        required_level: event.accessLevel,
+        user_level: userSubscriptionLevel,
+        user_id: user?.id || "guest"
+      });
+    }
   };
   
+  // Handle subscription upgrade
+  const handleUpgradeSubscription = () => {
+    router.push("/profile");
+    setShowSubscriptionCard(false);
+  };
+  
+  // Render header with search and filters
   const renderHeader = () => (
-    <>
-      <View style={styles.header}>
-        <Text style={[typography.heading2, styles.title]}>Events & Openings</Text>
-        {getSubscriptionBadge()}
-      </View>
-      
-      {currentSubscriptionLevel === AccessLevel.FREE ? (
-        <SubscriptionRequiredCard
-          requiredLevel={AccessLevel.ESSENTIAL}
-          onUpgrade={() => setSubscriptionModalVisible(true)}
-        />
-      ) : (
-        <>
-          {featuredEvents.length > 0 && (
-            <View style={styles.featuredSection}>
-              <Text style={[typography.heading3, styles.sectionTitle]}>Featured Events</Text>
-              <ScrollView 
-                horizontal 
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.featuredScrollContent}
-              >
-                {featuredEvents.map(event => (
-                  <View key={event.id} style={styles.featuredEventContainer}>
-                    <EventCard event={event} />
-                  </View>
-                ))}
-              </ScrollView>
-            </View>
-          )}
-          
-          <View style={styles.tabsContainer}>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === "upcoming" && styles.activeTab]}
-              onPress={() => handleTabChange("upcoming")}
-            >
-              <Calendar size={16} color={activeTab === "upcoming" ? colors.primary.accent : colors.primary.muted} />
-              <Text style={[
-                styles.tabText, 
-                activeTab === "upcoming" && styles.activeTabText
-              ]}>
-                Upcoming
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[styles.tab, activeTab === "all" && styles.activeTab]}
-              onPress={() => handleTabChange("all")}
-            >
-              <Filter size={16} color={activeTab === "all" ? colors.primary.accent : colors.primary.muted} />
-              <Text style={[
-                styles.tabText, 
-                activeTab === "all" && styles.activeTabText
-              ]}>
-                All Events
-              </Text>
-            </TouchableOpacity>
-          </View>
-          
-          {eventTypes.length > 0 && (
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.filterScrollContent}
-            >
-              <TouchableOpacity
-                style={[
-                  styles.filterChip,
-                  selectedEventType === null && styles.activeFilterChip
-                ]}
-                onPress={() => handleFilterByType(null)}
-              >
-                <Text style={[
-                  styles.filterChipText,
-                  selectedEventType === null && styles.activeFilterChipText
-                ]}>
-                  All Types
-                </Text>
-              </TouchableOpacity>
-              
-              {eventTypes.map(type => (
-                <TouchableOpacity
-                  key={type}
-                  style={[
-                    styles.filterChip,
-                    selectedEventType === type && styles.activeFilterChip
-                  ]}
-                  onPress={() => handleFilterByType(type)}
-                >
-                  <Text style={[
-                    styles.filterChipText,
-                    selectedEventType === type && styles.activeFilterChipText
-                  ]}>
-                    {type}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          )}
-        </>
-      )}
-    </>
+    <View style={styles.header}>
+      <Text style={styles.screenTitle}>Events</Text>
+      <TouchableOpacity 
+        style={styles.filterButton}
+        onPress={() => setShowFilters(!showFilters)}
+      >
+        <Filter size={20} color={colors.text} />
+      </TouchableOpacity>
+    </View>
   );
   
-  const renderEmptyState = () => {
-    if (currentSubscriptionLevel === AccessLevel.FREE) {
-      return null; // Already showing subscription required card
+  // Render search bar
+  const renderSearchBar = () => (
+    <View style={styles.searchContainer}>
+      <SearchBar
+        placeholder="Search events..."
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        onClear={() => setSearchQuery("")}
+      />
+    </View>
+  );
+  
+  // Render filter options
+  const renderFilters = () => (
+    showFilters && (
+      <View style={styles.filtersContainer}>
+        <Text style={styles.filtersTitle}>Event Type</Text>
+        <View style={styles.filterOptions}>
+          <TouchableOpacity
+            style={[
+              styles.filterOption,
+              filterType === null && styles.filterOptionActive
+            ]}
+            onPress={() => setFilterType(null)}
+          >
+            <Text style={[
+              styles.filterOptionText,
+              filterType === null && styles.filterOptionTextActive
+            ]}>All</Text>
+          </TouchableOpacity>
+          
+          {eventTypes.map((type) => (
+            <TouchableOpacity
+              key={type}
+              style={[
+                styles.filterOption,
+                filterType === type && styles.filterOptionActive
+              ]}
+              onPress={() => setFilterType(type)}
+            >
+              <Text style={[
+                styles.filterOptionText,
+                filterType === type && styles.filterOptionTextActive
+              ]}>{type}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+    )
+  );
+  
+  // Render featured events section
+  const renderFeaturedEvents = () => {
+    const featuredEvents = getFeaturedEvents();
+    
+    if (featuredEvents.length === 0) {
+      return null;
     }
     
     return (
-      <EmptyState
-        icon={<Calendar size={40} color={colors.primary.muted} />}
-        title="No Events Found"
-        description={
-          selectedEventType
-            ? `There are no ${selectedEventType} events available. Try selecting a different event type.`
-            : "There are no events available at this time. Check back later for updates."
-        }
-        actionLabel={selectedEventType ? "Clear Filter" : undefined}
-        onAction={selectedEventType ? () => handleFilterByType(null) : undefined}
-      />
+      <View style={styles.featuredContainer}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Featured Events</Text>
+          <TouchableOpacity>
+            <Text style={styles.seeAllText}>See All</Text>
+          </TouchableOpacity>
+        </View>
+        
+        <FlatList
+          data={featuredEvents}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <EventCard 
+              event={item} 
+              onPress={() => handleEventPress(item)}
+              hasAccess={userSubscriptionLevel >= item.accessLevel}
+            />
+          )}
+          contentContainerStyle={styles.featuredList}
+        />
+      </View>
     );
   };
+  
+  // Render upcoming events section
+  const renderUpcomingEvents = () => {
+    const upcomingEvents = getUpcomingEvents();
+    
+    if (upcomingEvents.length === 0) {
+      return null;
+    }
+    
+    return (
+      <View style={styles.upcomingContainer}>
+        <View style={styles.sectionHeader}>
+          <View style={styles.sectionTitleContainer}>
+            <Calendar size={18} color={colors.text} style={styles.sectionIcon} />
+            <Text style={styles.sectionTitle}>Upcoming Events</Text>
+          </View>
+          <TouchableOpacity>
+            <Text style={styles.seeAllText}>See All</Text>
+          </TouchableOpacity>
+        </View>
+        
+        <FlatList
+          data={upcomingEvents.slice(0, 3)}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <EventCard 
+              key={item.id}
+              event={item} 
+              onPress={() => handleEventPress(item)}
+              hasAccess={userSubscriptionLevel >= item.accessLevel}
+              compact={true}
+            />
+          )}
+          contentContainerStyle={styles.upcomingList}
+        />
+      </View>
+    );
+  };
+  
+  // Render all events section
+  const renderAllEvents = () => (
+    <View style={styles.allEventsContainer}>
+      <Text style={styles.sectionTitle}>All Events</Text>
+      
+      {filteredEvents.length === 0 ? (
+        <EmptyState
+          icon={<Search size={40} color={colors.muted} />}
+          title="No events found"
+          message={searchQuery ? `No events matching "${searchQuery}"` : "There are no events available at this time."}
+        />
+      ) : (
+        filteredEvents.map((event) => (
+          <EventCard 
+            key={event.id}
+            event={event} 
+            onPress={() => handleEventPress(event)}
+            hasAccess={userSubscriptionLevel >= event.accessLevel}
+          />
+        ))
+      )}
+    </View>
+  );
   
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>
-      {currentSubscriptionLevel === AccessLevel.FREE ? (
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        >
-          {renderHeader()}
-        </ScrollView>
+      {renderHeader()}
+      {renderSearchBar()}
+      {renderFilters()}
+      
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.accent} />
+          <Text style={styles.loadingText}>Loading events...</Text>
+        </View>
       ) : (
         <FlatList
-          data={filteredEvents}
-          keyExtractor={item => item.id}
-          renderItem={({ item }) => <EventCard event={item} />}
-          ListHeaderComponent={renderHeader}
-          ListEmptyComponent={renderEmptyState}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
+          data={[1]}
+          renderItem={() => (
+            <View style={styles.content}>
+              {renderFeaturedEvents()}
+              {renderUpcomingEvents()}
+              {renderAllEvents()}
+            </View>
+          )}
+          keyExtractor={() => "events-list"}
         />
       )}
       
-      <SubscriptionModal
-        visible={subscriptionModalVisible}
-        onClose={() => setSubscriptionModalVisible(false)}
-      />
+      {showSubscriptionCard && (
+        <SubscriptionRequiredCard
+          requiredLevel={AccessLevel.EXPLORER}
+          onUpgrade={handleUpgradeSubscription}
+          onClose={() => setShowSubscriptionCard(false)}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -259,100 +312,119 @@ export default function EventsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary.background,
+    backgroundColor: colors.primary,
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(172, 137, 1, 0.2)",
   },
-  title: {
-    flex: 1,
+  screenTitle: {
+    ...typography.heading1,
+    color: colors.text,
+    fontSize: 28,
+    fontWeight: "600",
   },
-  subscriptionBadge: {
-    flexDirection: "row",
+  searchContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  filterButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: colors.card,
+    justifyContent: "center",
     alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  filtersContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  filtersTitle: {
+    ...typography.bodySmall,
+    color: colors.muted,
+    marginBottom: 8,
+  },
+  filterOptions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  filterOption: {
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  subscriptionBadgeText: {
-    ...typography.bodySmall,
-    color: "#FFFFFF",
+  filterOptionActive: {
+    backgroundColor: colors.accent,
+  },
+  filterOptionText: {
+    ...typography.caption,
+    color: colors.text,
+  },
+  filterOptionTextActive: {
+    color: colors.primary,
     fontWeight: "600",
-    marginLeft: 6,
   },
-  featuredSection: {
-    marginTop: 16,
+  content: {
+    padding: 16,
   },
-  sectionTitle: {
-    paddingHorizontal: 16,
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    ...typography.body,
+    color: colors.muted,
+    marginTop: 12,
+  },
+  featuredContainer: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
-  featuredScrollContent: {
-    paddingHorizontal: 8,
-  },
-  featuredEventContainer: {
-    width: 300,
-    marginHorizontal: 8,
-  },
-  tabsContainer: {
-    flexDirection: "row",
-    paddingHorizontal: 16,
-    marginTop: 24,
-    marginBottom: 16,
-  },
-  tab: {
+  sectionTitleContainer: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    marginRight: 12,
-    backgroundColor: colors.primary.card,
   },
-  activeTab: {
-    backgroundColor: `${colors.primary.accent}20`,
-  },
-  tabText: {
-    ...typography.bodySmall,
-    color: colors.primary.muted,
-    marginLeft: 8,
-  },
-  activeTabText: {
-    color: colors.primary.accent,
-    fontWeight: "600",
-  },
-  filterScrollContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  filterChip: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 16,
+  sectionIcon: {
     marginRight: 8,
-    backgroundColor: colors.primary.card,
-    borderWidth: 1,
-    borderColor: colors.primary.border,
   },
-  activeFilterChip: {
-    backgroundColor: colors.primary.secondary,
-    borderColor: colors.primary.accent,
+  sectionTitle: {
+    ...typography.heading4,
+    color: colors.text,
   },
-  filterChipText: {
-    ...typography.caption,
-    color: colors.primary.muted,
+  seeAllText: {
+    ...typography.bodySmall,
+    color: colors.accent,
   },
-  activeFilterChipText: {
-    color: colors.primary.accent,
-    fontWeight: "600",
+  featuredList: {
+    paddingRight: 16,
+    gap: 16,
   },
-  listContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 24,
+  upcomingContainer: {
+    marginBottom: 24,
+  },
+  upcomingList: {
+    paddingRight: 16,
+    gap: 12,
+  },
+  allEventsContainer: {
+    marginBottom: 16,
   },
 });

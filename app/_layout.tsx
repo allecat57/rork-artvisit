@@ -22,19 +22,63 @@ function RootLayoutContent() {
     <StripeProvider>
       <Stack
         screenOptions={{
-          headerShown: false, // Hide headers for tab screens
+          headerShown: true,
           gestureEnabled: true,
           animation: 'slide_from_right',
           contentStyle: {
             backgroundColor: '#013025',
           },
+          headerStyle: {
+            backgroundColor: '#013025',
+          },
+          headerTintColor: '#AC8901',
+          headerTitleStyle: {
+            fontSize: 18,
+            fontWeight: '600',
+            color: '#AC8901',
+          },
         }}
       >
         <Stack.Screen 
-          name="(tabs)" 
+          name="index" 
           options={{ 
-            headerShown: false,
-            title: '' 
+            title: 'Discover Art',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
+          name="explore" 
+          options={{ 
+            title: 'Explore',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
+          name="shop" 
+          options={{ 
+            title: 'Shop',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
+          name="events" 
+          options={{ 
+            title: 'Events',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
+          name="reservations" 
+          options={{ 
+            title: 'Reservations',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
+          name="profile" 
+          options={{ 
+            title: 'Profile',
+            headerShown: true
           }} 
         />
         <Stack.Screen 

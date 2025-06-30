@@ -7,6 +7,7 @@ import {
   ViewStyle,
   TextStyle,
   StyleProp,
+  View,
 } from 'react-native';
 import colors from '@/constants/colors';
 import typography from '@/constants/typography';
@@ -23,6 +24,7 @@ interface ButtonProps {
   textStyle?: StyleProp<TextStyle>;
   analyticsEventName?: string;
   analyticsProperties?: Record<string, any>;
+  icon?: React.ReactNode;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -36,6 +38,7 @@ const Button: React.FC<ButtonProps> = ({
   textStyle,
   analyticsEventName,
   analyticsProperties = {},
+  icon,
 }) => {
   const handlePress = () => {
     if (analyticsEventName) {
@@ -100,6 +103,51 @@ const Button: React.FC<ButtonProps> = ({
     }
   };
 
+  const renderContent = () => {
+    if (loading) {
+      return (
+        <ActivityIndicator
+          color={variant === 'primary' ? '#013025' : '#AC8901'}
+          size={size === 'small' ? 'small' : 'small'}
+        />
+      );
+    }
+
+    if (icon && title) {
+      return (
+        <View style={styles.contentWithIcon}>
+          {icon}
+          <Text
+            style={[
+              styles.text,
+              getTextStyle(),
+              getTextSizeStyle(),
+              disabled && styles.disabledText,
+              textStyle,
+              styles.textWithIcon,
+            ]}
+          >
+            {title}
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <Text
+        style={[
+          styles.text,
+          getTextStyle(),
+          getTextSizeStyle(),
+          disabled && styles.disabledText,
+          textStyle,
+        ]}
+      >
+        {title}
+      </Text>
+    );
+  };
+
   return (
     <TouchableOpacity
       style={[
@@ -113,24 +161,7 @@ const Button: React.FC<ButtonProps> = ({
       disabled={disabled || loading}
       activeOpacity={0.8}
     >
-      {loading ? (
-        <ActivityIndicator
-          color={variant === 'primary' ? '#013025' : '#AC8901'}
-          size={size === 'small' ? 'small' : 'small'}
-        />
-      ) : (
-        <Text
-          style={[
-            styles.text,
-            getTextStyle(),
-            getTextSizeStyle(),
-            disabled && styles.disabledText,
-            textStyle,
-          ]}
-        >
-          {title}
-        </Text>
-      )}
+      {renderContent()}
     </TouchableOpacity>
   );
 };
@@ -140,6 +171,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
+    minHeight: 44,
   },
   primaryButton: {
     backgroundColor: '#AC8901',
@@ -162,6 +194,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontWeight: '600',
+    textAlign: 'center',
   },
   primaryText: {
     color: '#013025',
@@ -181,24 +214,37 @@ const styles = StyleSheet.create({
   smallButton: {
     paddingVertical: 8,
     paddingHorizontal: 16,
+    minHeight: 36,
   },
   mediumButton: {
     paddingVertical: 12,
     paddingHorizontal: 24,
+    minHeight: 44,
   },
   largeButton: {
     paddingVertical: 16,
     paddingHorizontal: 32,
+    minHeight: 52,
   },
   smallText: {
     ...typography.buttonSmall,
+    fontSize: 14,
   },
   mediumText: {
     ...typography.button,
+    fontSize: 16,
   },
   largeText: {
     ...typography.button,
     fontSize: 18,
+  },
+  contentWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  textWithIcon: {
+    marginLeft: 8,
   },
 });
 
