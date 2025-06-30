@@ -1,31 +1,22 @@
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
-import { Platform, StatusBar } from 'react-native';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from '@/context/ThemeContext';
+import { useColorScheme, Platform, StatusBar } from 'react-native';
+import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { StripeProvider } from '@/context/StripeContext';
-import { trpc, trpcClient } from '@/lib/trpc';
-
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 2,
-      staleTime: 1000 * 60 * 5, // 5 minutes
-    },
-  },
-});
 
 function RootLayoutContent() {
+  const { isDark, colors } = useTheme();
+
   useEffect(() => {
-    // Set status bar style
+    // Set status bar style based on theme
     if (Platform.OS === 'ios') {
       StatusBar.setBarStyle('light-content', true);
+      StatusBar.setBackgroundColor('#013025', true);
     } else {
       StatusBar.setBackgroundColor('#013025', true);
       StatusBar.setBarStyle('light-content', true);
     }
-  }, []);
+  }, [isDark]);
 
   return (
     <StripeProvider>
@@ -98,90 +89,6 @@ function RootLayoutContent() {
           }} 
         />
         <Stack.Screen 
-          name="login" 
-          options={{ 
-            title: 'Login',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
-          name="favorites" 
-          options={{ 
-            title: 'Favorites',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
-          name="visit-history" 
-          options={{ 
-            title: 'Visit History',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
-          name="purchase-history" 
-          options={{ 
-            title: 'Purchase History',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
-          name="category/[id]" 
-          options={{ 
-            title: 'Category',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
-          name="shop/product/[id]" 
-          options={{ 
-            title: 'Product Details',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
-          name="shop/cart" 
-          options={{ 
-            title: 'Shopping Cart',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
-          name="event/[id]" 
-          options={{ 
-            title: 'Event Details',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
-          name="gallery/[id]" 
-          options={{ 
-            title: 'Gallery',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
-          name="gallery/[id]/artworks" 
-          options={{ 
-            title: 'Artworks',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
-          name="gallery/[id]/artwork/[artworkId]" 
-          options={{ 
-            title: 'Artwork Details',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
-          name="websocket-test" 
-          options={{ 
-            title: 'WebSocket Test',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
           name="modal" 
           options={{ 
             presentation: 'modal',
@@ -197,27 +104,6 @@ function RootLayoutContent() {
             },
           }} 
         />
-        <Stack.Screen 
-          name="example-usage" 
-          options={{ 
-            title: 'Example Usage',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
-          name="+not-found" 
-          options={{ 
-            title: 'Not Found',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
-          name="error-boundary" 
-          options={{ 
-            title: 'Error',
-            headerShown: true
-          }} 
-        />
       </Stack>
     </StripeProvider>
   );
@@ -226,11 +112,7 @@ function RootLayoutContent() {
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <trpc.Provider client={trpcClient} queryClient={queryClient}>
-        <QueryClientProvider client={queryClient}>
-          <RootLayoutContent />
-        </QueryClientProvider>
-      </trpc.Provider>
+      <RootLayoutContent />
     </ThemeProvider>
   );
 }

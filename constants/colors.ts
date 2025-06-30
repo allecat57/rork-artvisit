@@ -1,36 +1,31 @@
 export default {
-  // Primary colors
-  primary: "#013025",
-  secondary: "#144237", 
-  accent: "#AC8901",
-  
-  // Background colors
-  background: "#013025",
-  surface: "#1a4037",
-  card: "#1a4037",
-  
-  // Text colors
-  text: "#AC8901",
-  textSecondary: "#FFFFFF",
+  primary: {
+    background: "#FFFFFF",
+    text: "#013025", 
+    accent: "#AC8901",
+    card: "#F8F9FA",
+    border: "#E5E7EB",
+    muted: "#6B7280"
+  },
+  status: {
+    success: "#10B981",
+    error: "#EF4444", 
+    warning: "#F59E0B",
+    info: "#3B82F6"
+  },
+  // Legacy flat structure for backward compatibility
+  secondary: "#144237",
+  background: "#FFFFFF",
+  surface: "#F8F9FA", 
+  text: "#013025",
+  card: "#F8F9FA",
+  border: "#E5E7EB",
   muted: "#6B7280",
-  
-  // Border colors
-  border: "rgba(172, 137, 1, 0.2)",
-  
-  // Status colors
-  success: "#10B981",
-  error: "#EF4444",
-  warning: "#F59E0B",
-  info: "#3B82F6",
-  
-  // Utility colors
-  white: "#FFFFFF",
-  black: "#000000",
-  transparent: "transparent",
-  
-  // Legacy support - keeping flat structure
-  light: "#FFFFFF",
-  dark: "#013025",
+  accent: "#AC8901",
   destructive: "#EF4444",
   constructive: "#10B981",
+  light: "#FFFFFF",
+  dark: "#013025", 
+  white: "#FFFFFF",
+  black: "#013025"
 };

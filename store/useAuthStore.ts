@@ -3,10 +3,11 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SUBSCRIPTION_PLANS } from "@/config/stripe";
 import * as Analytics from "@/utils/analytics";
+import { Platform } from "react-native";
 import { supabase, isSupabaseConfigured } from "@/config/supabase";
 import { AccessLevel } from "@/types/event";
 
-// Subscription interface
+// Subscription interface - moved from useProfileStore to break circular dependency
 export interface Subscription {
   id: string;
   name: string;
@@ -88,11 +89,7 @@ export const useAuthStore = create<AuthState>()(
         set({ user: newUser, isAuthenticated: true });
         
         // Set user ID for analytics
-        try {
-          Analytics.setUserId(newUser.id);
-        } catch (error) {
-          console.warn("Analytics error:", error);
-        }
+        Analytics.setUserId(newUser.id);
       },
       
       login: async (email: string, password: string) => {
@@ -138,16 +135,14 @@ export const useAuthStore = create<AuthState>()(
               set({ user: newUser, isAuthenticated: true, isLoading: false });
               
               // Log analytics event
-              try {
-                Analytics.logEvent(Analytics.Events.USER_LOGIN, {
-                  method: "supabase",
-                  user_id: newUser.id,
-                  email: newUser.email
-                });
-                Analytics.setUserId(newUser.id);
-              } catch (error) {
-                console.warn("Analytics error:", error);
-              }
+              Analytics.logEvent(Analytics.Events.USER_LOGIN, {
+                method: "supabase",
+                user_id: newUser.id,
+                email: newUser.email
+              });
+              
+              // Set user ID for analytics
+              Analytics.setUserId(newUser.id);
               
               return true;
             }
@@ -158,16 +153,14 @@ export const useAuthStore = create<AuthState>()(
             set({ user: TEST_USER, isAuthenticated: true, isLoading: false });
             
             // Log analytics event
-            try {
-              Analytics.logEvent(Analytics.Events.USER_LOGIN, {
-                method: "test_user",
-                user_id: TEST_USER.id,
-                email: TEST_USER.email
-              });
-              Analytics.setUserId(TEST_USER.id);
-            } catch (error) {
-              console.warn("Analytics error:", error);
-            }
+            Analytics.logEvent(Analytics.Events.USER_LOGIN, {
+              method: "test_user",
+              user_id: TEST_USER.id,
+              email: TEST_USER.email
+            });
+            
+            // Set user ID for analytics
+            Analytics.setUserId(TEST_USER.id);
             
             return true;
           }
@@ -192,16 +185,14 @@ export const useAuthStore = create<AuthState>()(
           set({ user: newUser, isAuthenticated: true, isLoading: false });
           
           // Log analytics event
-          try {
-            Analytics.logEvent(Analytics.Events.USER_LOGIN, {
-              method: "demo_mode",
-              user_id: newUser.id,
-              email: newUser.email
-            });
-            Analytics.setUserId(newUser.id);
-          } catch (error) {
-            console.warn("Analytics error:", error);
-          }
+          Analytics.logEvent(Analytics.Events.USER_LOGIN, {
+            method: "demo_mode",
+            user_id: newUser.id,
+            email: newUser.email
+          });
+          
+          // Set user ID for analytics
+          Analytics.setUserId(newUser.id);
           
           return true;
         } catch (error: any) {
@@ -212,14 +203,10 @@ export const useAuthStore = create<AuthState>()(
           });
           
           // Log analytics event for login failure
-          try {
-            Analytics.logEvent("login_error", {
-              error_message: error instanceof Error ? error.message : "Unknown error",
-              email: email
-            });
-          } catch (analyticsError) {
-            console.warn("Analytics error:", analyticsError);
-          }
+          Analytics.logEvent("login_error", {
+            error_message: error instanceof Error ? error.message : "Unknown error",
+            email: email
+          });
           
           return false;
         }
@@ -231,14 +218,12 @@ export const useAuthStore = create<AuthState>()(
           const userId = get().user?.id;
           
           // Clear user ID from analytics
-          try {
-            Analytics.setUserId(null);
-            Analytics.logEvent(Analytics.Events.USER_LOGOUT, {
-              user_id: userId
-            });
-          } catch (error) {
-            console.warn("Analytics error:", error);
-          }
+          Analytics.setUserId(null);
+          
+          // Log analytics event
+          Analytics.logEvent(Analytics.Events.USER_LOGOUT, {
+            user_id: userId
+          });
           
           // If Supabase is configured, sign out
           if (isSupabaseConfigured()) {
@@ -306,16 +291,14 @@ export const useAuthStore = create<AuthState>()(
               set({ user: newUser, isAuthenticated: true, isLoading: false });
               
               // Log analytics event
-              try {
-                Analytics.logEvent(Analytics.Events.USER_SIGNUP, {
-                  method: "supabase",
-                  user_id: newUser.id,
-                  email: newUser.email
-                });
-                Analytics.setUserId(newUser.id);
-              } catch (error) {
-                console.warn("Analytics error:", error);
-              }
+              Analytics.logEvent(Analytics.Events.USER_SIGNUP, {
+                method: "supabase",
+                user_id: newUser.id,
+                email: newUser.email
+              });
+              
+              // Set user ID for analytics
+              Analytics.setUserId(newUser.id);
               
               return true;
             }
@@ -340,16 +323,14 @@ export const useAuthStore = create<AuthState>()(
           set({ user: newUser, isAuthenticated: true, isLoading: false });
           
           // Log analytics event
-          try {
-            Analytics.logEvent(Analytics.Events.USER_SIGNUP, {
-              method: "demo_mode",
-              user_id: newUser.id,
-              email: newUser.email
-            });
-            Analytics.setUserId(newUser.id);
-          } catch (error) {
-            console.warn("Analytics error:", error);
-          }
+          Analytics.logEvent(Analytics.Events.USER_SIGNUP, {
+            method: "demo_mode",
+            user_id: newUser.id,
+            email: newUser.email
+          });
+          
+          // Set user ID for analytics
+          Analytics.setUserId(newUser.id);
           
           return true;
         } catch (error: any) {
@@ -360,14 +341,10 @@ export const useAuthStore = create<AuthState>()(
           });
           
           // Log analytics event for signup failure
-          try {
-            Analytics.logEvent("signup_error", {
-              error_message: error instanceof Error ? error.message : "Unknown error",
-              email: email
-            });
-          } catch (analyticsError) {
-            console.warn("Analytics error:", analyticsError);
-          }
+          Analytics.logEvent("signup_error", {
+            error_message: error instanceof Error ? error.message : "Unknown error",
+            email: email
+          });
           
           return false;
         }
@@ -381,16 +358,14 @@ export const useAuthStore = create<AuthState>()(
         set({ user: TEST_USER, isAuthenticated: true, error: null });
         
         // Log analytics event
-        try {
-          Analytics.logEvent(Analytics.Events.USER_LOGIN, {
-            method: "test_user_direct",
-            user_id: TEST_USER.id,
-            email: TEST_USER.email
-          });
-          Analytics.setUserId(TEST_USER.id);
-        } catch (error) {
-          console.warn("Analytics error:", error);
-        }
+        Analytics.logEvent(Analytics.Events.USER_LOGIN, {
+          method: "test_user_direct",
+          user_id: TEST_USER.id,
+          email: TEST_USER.email
+        });
+        
+        // Set user ID for analytics
+        Analytics.setUserId(TEST_USER.id);
         
         // Ensure the test user has the proper profile setup
         setTimeout(() => {
@@ -410,16 +385,44 @@ export const useAuthStore = create<AuthState>()(
       
       setupTestUserProfile: () => {
         try {
+          // Import dynamically to avoid circular dependency
+          // Use a function to get the store state instead of importing the module directly
+          const getProfileStore = () => {
+            // This is a workaround to avoid circular dependency issues
+            // We're dynamically accessing the profile store only when needed
+            return require("./useProfileStore").useProfileStore.getState();
+          };
+          
+          const profileStore = getProfileStore();
+          
+          // Set up the test user's payment method (American Express)
+          profileStore.setPaymentMethodForUser(TEST_USER.id, {
+            cardType: "American Express",
+            last4: "0005",
+            expirationDate: "07/27",
+            stripePaymentMethodId: "pm_test_amex_123456789"
+          });
+          
+          // Set up the test user's subscription (Master Collector)
+          profileStore.setSubscriptionForUser(TEST_USER.id, {
+            id: "collector",
+            name: "Master Collector",
+            price: 20.00,
+            renewalDate: "2023-12-31",
+            stripeSubscriptionId: "sub_test_collector_123456789",
+            stripePriceId: SUBSCRIPTION_PLANS.collector.stripePriceId,
+            level: AccessLevel.COLLECTOR
+          });
+          
+          // Set up the test user's Stripe customer ID
+          profileStore.setStripeCustomerIdForUser(TEST_USER.id, "cus_test_123456789");
+          
           console.log("Test user profile set up successfully");
           
           // Log analytics event
-          try {
-            Analytics.logEvent("test_user_profile_setup", {
-              user_id: TEST_USER.id
-            });
-          } catch (error) {
-            console.warn("Analytics error:", error);
-          }
+          Analytics.logEvent("test_user_profile_setup", {
+            user_id: TEST_USER.id
+          });
         } catch (error) {
           console.error("Error setting up test user profile:", error);
         }
@@ -440,11 +443,7 @@ export const useAuthStore = create<AuthState>()(
           
           // If user is authenticated, set user ID for analytics
           if (state.user) {
-            try {
-              Analytics.setUserId(state.user.id);
-            } catch (error) {
-              console.warn("Analytics error:", error);
-            }
+            Analytics.setUserId(state.user.id);
           }
         }
       }

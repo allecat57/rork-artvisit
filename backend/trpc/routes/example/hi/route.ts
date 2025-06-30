@@ -1,8 +1,8 @@
-import { publicProcedure } from '../../create-context';
+import { protectedProcedure } from "@/backend/trpc/create-context";
 
-export const hiProcedure = publicProcedure.query(() => {
+export const hiProcedure = protectedProcedure.query(() => {
   return {
-    message: 'Hello from tRPC!',
-    timestamp: new Date().toISOString(),
+    message: "Hello from tRPC!",
+    timestamp: new Date().toISOString()
   };
 });

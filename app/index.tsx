@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { ChevronRight, Search, Calendar, User, ShoppingBag, CalendarDays } from "lucide-react-native";
+import { ChevronRight, Search, Calendar, User, ShoppingBag, CalendarDays, Home } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import FeaturedVenueCard from "@/components/FeaturedVenueCard";
@@ -96,7 +96,7 @@ export default function HomeScreen() {
         style={styles.navButton}
         onPress={() => router.push('/explore')}
       >
-        <Search size={20} color={colors.accent} />
+        <Search size={20} color="#AC8901" />
         <Text style={styles.navButtonText}>Explore</Text>
       </TouchableOpacity>
       
@@ -104,7 +104,7 @@ export default function HomeScreen() {
         style={styles.navButton}
         onPress={() => router.push('/shop')}
       >
-        <ShoppingBag size={20} color={colors.accent} />
+        <ShoppingBag size={20} color="#AC8901" />
         <Text style={styles.navButtonText}>Shop</Text>
       </TouchableOpacity>
       
@@ -112,7 +112,7 @@ export default function HomeScreen() {
         style={styles.navButton}
         onPress={() => router.push('/events')}
       >
-        <CalendarDays size={20} color={colors.accent} />
+        <CalendarDays size={20} color="#AC8901" />
         <Text style={styles.navButtonText}>Events</Text>
       </TouchableOpacity>
       
@@ -120,7 +120,7 @@ export default function HomeScreen() {
         style={styles.navButton}
         onPress={() => router.push('/reservations')}
       >
-        <Calendar size={20} color={colors.accent} />
+        <Calendar size={20} color="#AC8901" />
         <Text style={styles.navButtonText}>Reservations</Text>
       </TouchableOpacity>
       
@@ -128,7 +128,7 @@ export default function HomeScreen() {
         style={styles.navButton}
         onPress={() => router.push('/profile')}
       >
-        <User size={20} color={colors.accent} />
+        <User size={20} color="#AC8901" />
         <Text style={styles.navButtonText}>Profile</Text>
       </TouchableOpacity>
     </View>
@@ -179,21 +179,21 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#013025',
   },
   header: {
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: "rgba(172, 137, 1, 0.2)",
   },
   scrollContent: {
     paddingBottom: 20,
   },
   mainTitle: {
     fontFamily,
-    color: colors.accent,
+    color: "#AC8901",
     fontSize: 28,
     fontWeight: "600",
   },
@@ -204,22 +204,22 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     gap: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: "rgba(172, 137, 1, 0.2)",
   },
   navButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
+    backgroundColor: '#1a4037',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: colors.accent,
+    borderColor: '#AC8901',
     gap: 8,
     minWidth: 100,
   },
   navButtonText: {
-    color: colors.accent,
+    color: '#AC8901',
     fontSize: 14,
     fontWeight: '600',
   },
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily,
     fontSize: 20,
-    color: colors.accent,
+    color: "#AC8901",
   },
   featuredContainer: {
     paddingLeft: 16,
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   viewAllText: {
     fontFamily,
     fontSize: 14,
-    color: colors.accent,
+    color: "#AC8901",
     fontWeight: "600",
     marginRight: 4,
   },
