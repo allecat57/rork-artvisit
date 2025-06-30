@@ -60,10 +60,10 @@ export default function GalleryDetailScreen() {
           venue_type: venueData.type
         });
         
-        // Add to visit history - use venue.id instead of venueId
+        // Add to visit history - using venueData.id as the value for venueId key
         addVisit({
           id: `visit-${Date.now()}`,
-          venueId: venueData.id, // Changed from venueId to venueData.id to match Venue type
+          venueId: venueData.id, // Using venueData.id as the value for venueId key
           visitDate: new Date().toISOString(),
           duration: 0 // Will be updated when user leaves
         });
