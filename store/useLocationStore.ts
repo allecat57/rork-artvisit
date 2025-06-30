@@ -24,12 +24,16 @@ interface LocationState {
   locationError: LocationErrorType;
   lastUpdated: number | null;
   
+  // Computed properties for backward compatibility
+  location: LocationData | null;
+  
   setCurrentLocation: (location: LocationData | null) => void;
   setLocationName: (name: string | null) => void;
   setPermissionStatus: (status: 'undetermined' | 'granted' | 'denied') => void;
   setLocationError: (error: LocationErrorType) => void;
   clearLocationData: () => void;
   getCurrentLocation: () => Promise<void>;
+  requestLocation: () => Promise<void>;
   openLocationPicker: () => void;
 }
 
@@ -41,6 +45,11 @@ export const useLocationStore = create<LocationState>()(
       permissionStatus: 'undetermined',
       locationError: null,
       lastUpdated: null,
+      
+      // Computed property for backward compatibility
+      get location() {
+        return get().currentLocation;
+      },
       
       setCurrentLocation: (location) => set({ 
         currentLocation: location,
@@ -127,6 +136,10 @@ export const useLocationStore = create<LocationState>()(
             city: mockLocation.city
           });
         }
+      },
+      
+      requestLocation: async () => {
+        return get().getCurrentLocation();
       },
       
       openLocationPicker: () => {

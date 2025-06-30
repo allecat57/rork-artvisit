@@ -9,15 +9,20 @@ interface CategoryCardProps {
   category: {
     id: string;
     title: string;
+    name?: string;
     imageUrl: string;
   };
+  isSelected?: boolean;
   onPress: () => void;
 }
 
-export default function CategoryCard({ category, onPress }: CategoryCardProps) {
+export default function CategoryCard({ category, isSelected = false, onPress }: CategoryCardProps) {
   return (
     <TouchableOpacity 
-      style={styles.container} 
+      style={[
+        styles.container,
+        isSelected && styles.selectedContainer
+      ]} 
       onPress={onPress}
       activeOpacity={0.9}
     >
@@ -28,13 +33,22 @@ export default function CategoryCard({ category, onPress }: CategoryCardProps) {
         transition={300}
       />
       <LinearGradient
-        colors={["transparent", "rgba(1, 48, 37, 0.8)", "rgba(1, 48, 37, 0.95)"]}
+        colors={[
+          "transparent", 
+          isSelected ? "rgba(172, 137, 1, 0.8)" : "rgba(1, 48, 37, 0.8)", 
+          isSelected ? "rgba(172, 137, 1, 0.95)" : "rgba(1, 48, 37, 0.95)"
+        ]}
         style={styles.gradient}
       >
         <View style={styles.textContainer}>
-          <Text style={[typography.heading3, styles.title]}>{category.title}</Text>
+          <Text style={[typography.heading3, styles.title]}>
+            {category.name || category.title}
+          </Text>
         </View>
       </LinearGradient>
+      {isSelected && (
+        <View style={styles.selectedIndicator} />
+      )}
     </TouchableOpacity>
   );
 }
@@ -42,9 +56,14 @@ export default function CategoryCard({ category, onPress }: CategoryCardProps) {
 const styles = StyleSheet.create({
   container: {
     height: 160,
+    width: 280,
     borderRadius: 12,
     overflow: "hidden",
-    marginBottom: 16,
+    marginRight: 16,
+  },
+  selectedContainer: {
+    borderWidth: 2,
+    borderColor: "#AC8901",
   },
   image: {
     ...StyleSheet.absoluteFillObject,
@@ -57,8 +76,20 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   title: {
+    color: "#FFFFFF",
     textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
+  },
+  selectedIndicator: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "#AC8901",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
   },
 });

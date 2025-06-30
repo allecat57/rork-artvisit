@@ -8,6 +8,7 @@ interface SearchBarProps {
   onChangeText: (text: string) => void;
   placeholder?: string;
   onClear?: () => void;
+  onSubmit?: (text: string) => void;
   style?: ViewStyle;
 }
 
@@ -16,8 +17,15 @@ export default function SearchBar({
   onChangeText,
   placeholder = "Search...",
   onClear,
+  onSubmit,
   style,
 }: SearchBarProps) {
+  const handleSubmit = () => {
+    if (onSubmit) {
+      onSubmit(value);
+    }
+  };
+
   return (
     <View style={[styles.container, style]}>
       <Search size={20} color="#AC8901" style={styles.icon} />
@@ -25,9 +33,11 @@ export default function SearchBar({
         style={styles.input}
         value={value}
         onChangeText={onChangeText}
+        onSubmitEditing={handleSubmit}
         placeholder={placeholder}
         placeholderTextColor="#AC8901"
         selectionColor="#AC8901"
+        returnKeyType="search"
       />
       {value.length > 0 && (
         <TouchableOpacity
