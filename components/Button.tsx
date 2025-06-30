@@ -88,7 +88,7 @@ export default function Button({
         <View style={styles.loadingContainer}>
           <ActivityIndicator 
             size="small" 
-            color={variant === "primary" ? colors.background : colors.accent} 
+            color={variant === "primary" ? colors.primary : colors.accent} 
           />
           <Text style={[getTextStyle(), styles.loadingText]}>{title}</Text>
         </View>
@@ -158,12 +158,12 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   outlineButton: {
-    backgroundColor: "transparent",
+    backgroundColor: colors.transparent,
     borderWidth: 1,
     borderColor: colors.accent,
   },
   ghostButton: {
-    backgroundColor: "transparent",
+    backgroundColor: colors.transparent,
   },
   
   // Disabled state
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   
   // Text color variants
   primaryButtonText: {
-    color: colors.background,
+    color: colors.primary,
   },
   secondaryButtonText: {
     color: colors.text,

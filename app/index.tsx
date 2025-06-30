@@ -96,7 +96,7 @@ export default function HomeScreen() {
         style={styles.navButton}
         onPress={() => router.push('/explore')}
       >
-        <Search size={20} color="#AC8901" />
+        <Search size={20} color={colors.accent} />
         <Text style={styles.navButtonText}>Explore</Text>
       </TouchableOpacity>
       
@@ -104,7 +104,7 @@ export default function HomeScreen() {
         style={styles.navButton}
         onPress={() => router.push('/shop')}
       >
-        <ShoppingBag size={20} color="#AC8901" />
+        <ShoppingBag size={20} color={colors.accent} />
         <Text style={styles.navButtonText}>Shop</Text>
       </TouchableOpacity>
       
@@ -112,7 +112,7 @@ export default function HomeScreen() {
         style={styles.navButton}
         onPress={() => router.push('/events')}
       >
-        <CalendarDays size={20} color="#AC8901" />
+        <CalendarDays size={20} color={colors.accent} />
         <Text style={styles.navButtonText}>Events</Text>
       </TouchableOpacity>
       
@@ -120,7 +120,7 @@ export default function HomeScreen() {
         style={styles.navButton}
         onPress={() => router.push('/reservations')}
       >
-        <Calendar size={20} color="#AC8901" />
+        <Calendar size={20} color={colors.accent} />
         <Text style={styles.navButtonText}>Reservations</Text>
       </TouchableOpacity>
       
@@ -128,7 +128,7 @@ export default function HomeScreen() {
         style={styles.navButton}
         onPress={() => router.push('/profile')}
       >
-        <User size={20} color="#AC8901" />
+        <User size={20} color={colors.accent} />
         <Text style={styles.navButtonText}>Profile</Text>
       </TouchableOpacity>
     </View>
@@ -179,21 +179,21 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#013025',
+    backgroundColor: colors.background,
   },
   header: {
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 8,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(172, 137, 1, 0.2)",
+    borderBottomColor: colors.border,
   },
   scrollContent: {
     paddingBottom: 20,
   },
   mainTitle: {
     fontFamily,
-    color: "#AC8901",
+    color: colors.accent,
     fontSize: 28,
     fontWeight: "600",
   },
@@ -204,22 +204,22 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     gap: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(172, 137, 1, 0.2)",
+    borderBottomColor: colors.border,
   },
   navButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1a4037',
+    backgroundColor: colors.surface,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#AC8901',
+    borderColor: colors.accent,
     gap: 8,
     minWidth: 100,
   },
   navButtonText: {
-    color: '#AC8901',
+    color: colors.accent,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontFamily,
     fontSize: 20,
-    color: "#AC8901",
+    color: colors.accent,
   },
   featuredContainer: {
     paddingLeft: 16,
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   viewAllText: {
     fontFamily,
     fontSize: 14,
-    color: "#AC8901",
+    color: colors.accent,
     fontWeight: "600",
     marginRight: 4,
   },

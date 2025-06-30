@@ -88,7 +88,7 @@ export default function FeaturedVenueCard({
         <View style={styles.topContainer}>
           {featured && (
             <View style={styles.featuredBadge}>
-              <Award size={14} color={colors.text} />
+              <Award size={14} color={colors.primary} />
               <Text style={styles.featuredText}>Featured</Text>
             </View>
           )}
@@ -99,7 +99,7 @@ export default function FeaturedVenueCard({
           >
             <Heart 
               size={24} 
-              color={favorite ? colors.error : "white"} 
+              color={favorite ? colors.error : colors.white} 
               fill={favorite ? colors.error : "none"}
             />
           </TouchableOpacity>
@@ -114,7 +114,7 @@ export default function FeaturedVenueCard({
           
           <View style={styles.infoContainer}>
             <View style={styles.locationContainer}>
-              <MapPin size={16} color={useGoldText ? "#AC8901" : colors.muted} />
+              <MapPin size={16} color={useGoldText ? colors.accent : colors.textSecondary} />
               <Text style={[
                 typography.bodySmall, 
                 styles.location,
@@ -124,7 +124,7 @@ export default function FeaturedVenueCard({
             
             {admission && (
               <View style={styles.admissionContainer}>
-                <DollarSign size={14} color={useGoldText ? "#AC8901" : "#FFFFFF"} />
+                <DollarSign size={14} color={useGoldText ? colors.accent : colors.white} />
                 <Text style={[
                   typography.bodySmall,
                   styles.admissionText,
@@ -165,14 +165,14 @@ const styles = StyleSheet.create({
   name: {
     fontFamily,
     fontSize: 18,
-    color: '#FFFFFF',
+    color: colors.white,
     textShadowColor: "rgba(0, 0, 0, 0.75)",
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
     marginBottom: 8,
   },
   goldText: {
-    color: "#AC8901",
+    color: colors.accent,
   },
   infoContainer: {
     flexDirection: "row",
@@ -188,11 +188,11 @@ const styles = StyleSheet.create({
   location: {
     fontFamily,
     marginLeft: 4,
-    color: '#B0B0B0',
+    color: colors.textSecondary,
     flex: 1,
   },
   goldLocationText: {
-    color: "#AC8901",
+    color: colors.accent,
   },
   admissionContainer: {
     flexDirection: "row",
@@ -204,15 +204,15 @@ const styles = StyleSheet.create({
   },
   admissionText: {
     fontFamily,
-    color: "#FFFFFF",
+    color: colors.white,
     marginLeft: 4,
     fontWeight: "600",
   },
   goldAdmissionText: {
-    color: "#AC8901",
+    color: colors.accent,
   },
   featuredBadge: {
-    backgroundColor: "#AC8901",
+    backgroundColor: colors.accent,
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
   featuredText: {
     ...typography.caption,
     fontFamily,
-    color: colors.text,
+    color: colors.primary,
     fontWeight: "600",
     marginLeft: 4,
   },

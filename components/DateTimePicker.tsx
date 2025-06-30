@@ -156,10 +156,10 @@ export default function DateTimePicker({
             calendarBackground: colors.card,
             textSectionTitleColor: colors.text,
             selectedDayBackgroundColor: colors.accent,
-            selectedDayTextColor: colors.background,
+            selectedDayTextColor: colors.primary,
             todayTextColor: colors.accent,
             dayTextColor: colors.text,
-            textDisabledColor: colors.muted,
+            textDisabledColor: colors.textMuted,
             dotColor: colors.accent,
             monthTextColor: colors.text,
             indicatorColor: colors.accent,
@@ -170,7 +170,7 @@ export default function DateTimePicker({
             textMonthFontWeight: 'bold',
             textDayHeaderFontWeight: '600',
             arrowColor: colors.accent,
-            disabledArrowColor: colors.muted,
+            disabledArrowColor: colors.textMuted,
             textMonthFontSize: 16,
           }}
         />
@@ -302,7 +302,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   selectedTimeSlotText: {
-    color: colors.background,
+    color: colors.primary,
     fontWeight: '600',
   },
   noSlotsContainer: {
@@ -319,7 +319,7 @@ const styles = StyleSheet.create({
   },
   noSlotsSubtext: {
     ...typography.bodySmall,
-    color: colors.muted,
+    color: colors.textMuted,
     textAlign: 'center',
   },
   selectionSummary: {
@@ -346,12 +346,12 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: colors.constructive,
+    backgroundColor: colors.success,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkmarkText: {
-    color: 'white',
+    color: colors.white,
     fontSize: 14,
     fontWeight: 'bold',
   },
@@ -363,7 +363,7 @@ const styles = StyleSheet.create({
   },
   instructionText: {
     ...typography.bodySmall,
-    color: colors.muted,
+    color: colors.textMuted,
     textAlign: 'center',
   },
 });

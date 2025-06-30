@@ -319,7 +319,7 @@ export default function ReservationModal({
             >
               <Users 
                 size={20} 
-                color={partySize === size ? colors.background : colors.text} 
+                color={partySize === size ? colors.primary : colors.text} 
               />
               <Text style={[
                 styles.partySizeText,
@@ -414,7 +414,7 @@ export default function ReservationModal({
           </View>
         ) : (
           <View style={styles.noPaymentMethodCard}>
-            <CreditCard size={48} color={colors.muted} />
+            <CreditCard size={48} color={colors.textMuted} />
             <Text style={styles.noPaymentMethodTitle}>No Payment Method</Text>
             <Text style={styles.noPaymentMethodText}>
               Add a payment method to complete your reservation
@@ -451,7 +451,7 @@ export default function ReservationModal({
     return (
       <View style={styles.confirmationContainer}>
         <View style={styles.confirmationIcon}>
-          <Check size={48} color={colors.constructive} />
+          <Check size={48} color={colors.success} />
         </View>
         
         <Text style={[typography.heading2, styles.confirmationTitle]}>
@@ -653,7 +653,7 @@ export default function ReservationModal({
                 disabled={!canProceedToNext()}
                 loading={isSubmitting || stripeLoading}
                 icon={currentStep === 'payment' ? 
-                  <CreditCard size={18} color={colors.background} /> : 
+                  <CreditCard size={18} color={colors.primary} /> : 
                   undefined
                 }
                 analyticsEventName={
@@ -756,10 +756,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   stepNumberActive: {
-    color: colors.background,
+    color: colors.primary,
   },
   stepNumberInactive: {
-    color: colors.muted,
+    color: colors.textMuted,
   },
   stepLine: {
     width: 40,
@@ -788,7 +788,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     marginBottom: 20,
-    color: colors.muted,
+    color: colors.textMuted,
   },
   venueName: {
     marginBottom: 8,
@@ -810,7 +810,7 @@ const styles = StyleSheet.create({
   },
   sectionSubtitle: {
     marginBottom: 20,
-    color: colors.muted,
+    color: colors.textMuted,
   },
   partySizeContainer: {
     marginBottom: 20,
@@ -842,7 +842,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   partySizeTextActive: {
-    color: colors.background,
+    color: colors.primary,
   },
   partySizeNote: {
     backgroundColor: "rgba(172, 137, 1, 0.1)",
@@ -871,7 +871,7 @@ const styles = StyleSheet.create({
   },
   reviewLabel: {
     ...typography.body,
-    color: colors.muted,
+    color: colors.textMuted,
   },
   reviewValue: {
     ...typography.body,
@@ -925,7 +925,7 @@ const styles = StyleSheet.create({
   },
   paymentMethodExpiry: {
     ...typography.bodySmall,
-    color: colors.muted,
+    color: colors.textMuted,
     marginTop: 4,
   },
   changePaymentButton: {
@@ -951,7 +951,7 @@ const styles = StyleSheet.create({
   },
   noPaymentMethodText: {
     ...typography.body,
-    color: colors.muted,
+    color: colors.textMuted,
     textAlign: "center",
     marginBottom: 16,
   },
@@ -971,7 +971,7 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     ...typography.body,
-    color: colors.muted,
+    color: colors.textMuted,
   },
   summaryValue: {
     ...typography.body,
@@ -1013,7 +1013,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   confirmationText: {
-    color: colors.muted,
+    color: colors.textMuted,
     textAlign: "center",
     marginBottom: 32,
   },
@@ -1026,7 +1026,7 @@ const styles = StyleSheet.create({
   },
   confirmationLabel: {
     ...typography.bodySmall,
-    color: colors.muted,
+    color: colors.textMuted,
     marginBottom: 4,
   },
   confirmationCode: {
@@ -1067,7 +1067,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   venueOptionType: {
-    color: colors.muted,
+    color: colors.textMuted,
     fontSize: 14,
   },
 });

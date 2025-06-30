@@ -268,17 +268,17 @@ export default function ProfileScreen() {
     if (!subscription) return null;
     
     let color = "#E0E0E0";
-    let icon = <Ticket size={16} color="#FFFFFF" />;
+    let icon = <Ticket size={16} color={colors.white} />;
     
     if (subscription.id === "free") {
       color = "#4CAF50";
-      icon = <Zap size={16} color="#FFFFFF" />;
+      icon = <Zap size={16} color={colors.white} />;
     } else if (subscription.id === "explorer") {
       color = "#FFD700";
-      icon = <Star size={16} color="#FFFFFF" />;
+      icon = <Star size={16} color={colors.white} />;
     } else if (subscription.id === "collector") {
       color = "#9C27B0";
-      icon = <Crown size={16} color="#FFFFFF" />;
+      icon = <Crown size={16} color={colors.white} />;
     }
     
     return (
@@ -384,7 +384,7 @@ export default function ProfileScreen() {
                   </Text>
                 </View>
               ) : (
-                <ChevronRight size={20} color={colors.muted} />
+                <ChevronRight size={20} color={colors.textMuted} />
               )
             }
           />
@@ -425,7 +425,7 @@ export default function ProfileScreen() {
           style={styles.logoutButton}
           onPress={handleLogout}
         >
-          <LogOut size={20} color={colors.status.error} />
+          <LogOut size={20} color={colors.error} />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
         
@@ -464,7 +464,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.background,
   },
   loginPromptContainer: {
     flex: 1,
@@ -563,7 +563,7 @@ const styles = StyleSheet.create({
   },
   subscriptionBadgeText: {
     ...typography.bodySmall,
-    color: "#FFFFFF",
+    color: colors.white,
     fontWeight: "600",
     marginLeft: 6,
   },
@@ -651,11 +651,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: colors.status.error,
+    borderColor: colors.error,
   },
   logoutText: {
     ...typography.body,
-    color: colors.status.error,
+    color: colors.error,
     fontWeight: "600",
     marginLeft: 8,
   },

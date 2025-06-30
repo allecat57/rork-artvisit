@@ -3,17 +3,18 @@ import { useEffect } from 'react';
 import { useColorScheme, Platform, StatusBar } from 'react-native';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { StripeProvider } from '@/context/StripeContext';
+import colors from '@/constants/colors';
 
 function RootLayoutContent() {
-  const { isDark, colors } = useTheme();
+  const { isDark } = useTheme();
 
   useEffect(() => {
     // Set status bar style based on theme
     if (Platform.OS === 'ios') {
       StatusBar.setBarStyle('light-content', true);
-      StatusBar.setBackgroundColor('#013025', true);
+      StatusBar.setBackgroundColor(colors.primary, true);
     } else {
-      StatusBar.setBackgroundColor('#013025', true);
+      StatusBar.setBackgroundColor(colors.primary, true);
       StatusBar.setBarStyle('light-content', true);
     }
   }, [isDark]);
@@ -26,16 +27,16 @@ function RootLayoutContent() {
           gestureEnabled: true,
           animation: 'slide_from_right',
           contentStyle: {
-            backgroundColor: '#013025',
+            backgroundColor: colors.background,
           },
           headerStyle: {
-            backgroundColor: '#013025',
+            backgroundColor: colors.background,
           },
-          headerTintColor: '#AC8901',
+          headerTintColor: colors.accent,
           headerTitleStyle: {
             fontSize: 18,
             fontWeight: '600',
-            color: '#AC8901',
+            color: colors.accent,
           },
         }}
       >
@@ -94,13 +95,13 @@ function RootLayoutContent() {
             presentation: 'modal',
             headerShown: true,
             headerStyle: {
-              backgroundColor: '#013025',
+              backgroundColor: colors.background,
             },
-            headerTintColor: '#FFFFFF',
+            headerTintColor: colors.text,
             headerTitleStyle: {
               fontSize: 18,
               fontWeight: '600',
-              color: '#FFFFFF',
+              color: colors.text,
             },
           }} 
         />

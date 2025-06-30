@@ -66,7 +66,7 @@ export default function ExploreScreen() {
     // Log category selection
     Analytics.logEvent("category_selected", {
       category_id: categoryId,
-      category_name: categories.find(c => c.id === categoryId)?.name
+      category_name: categories.find(c => c.id === categoryId)?.title
     });
   };
 
@@ -112,7 +112,6 @@ export default function ExploreScreen() {
             placeholder="Search museums, galleries, exhibitions..."
             value={searchQuery}
             onChangeText={handleSearch}
-            onSubmit={handleSearch}
           />
         </View>
 
@@ -129,7 +128,7 @@ export default function ExploreScreen() {
                 <CategoryCard
                   key={category.id}
                   category={category}
-                  isSelected={selectedCategory === category.id}
+                  selected={selectedCategory === category.id}
                   onPress={() => handleCategorySelect(category.id)}
                 />
               ))}
@@ -160,7 +159,7 @@ export default function ExploreScreen() {
         <View style={styles.section}>
           <Text style={[typography.heading3, styles.sectionTitle]}>
             {searchQuery ? `Search Results (${filteredVenues.length})` : 
-             selectedCategory ? `${categories.find(c => c.id === selectedCategory)?.name || 'Category'} Venues` :
+             selectedCategory ? `${categories.find(c => c.id === selectedCategory)?.title || 'Category'} Venues` :
              'All Venues'}
           </Text>
           
@@ -175,7 +174,7 @@ export default function ExploreScreen() {
             </View>
           ) : (
             <View style={styles.emptyState}>
-              <Search size={48} color={colors.muted} />
+              <Search size={48} color={colors.textMuted} />
               <Text style={[typography.heading4, styles.emptyTitle]}>
                 No venues found
               </Text>
@@ -266,7 +265,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   emptyMessage: {
-    color: colors.muted,
+    color: colors.textMuted,
     textAlign: "center",
   },
 });
