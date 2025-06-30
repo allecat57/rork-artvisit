@@ -11,6 +11,10 @@ function RootLayoutContent() {
     // Set status bar style based on theme
     if (Platform.OS === 'ios') {
       StatusBar.setBarStyle('light-content', true);
+      StatusBar.setBackgroundColor('#013025', true);
+    } else {
+      StatusBar.setBackgroundColor('#013025', true);
+      StatusBar.setBarStyle('light-content', true);
     }
   }, [isDark]);
 
@@ -18,29 +22,38 @@ function RootLayoutContent() {
     <StripeProvider>
       <Stack
         screenOptions={{
-          headerStyle: {
-            backgroundColor: '#013025',
-            borderBottomWidth: 0,
-            elevation: 0,
-            shadowOpacity: 0.05,
-            shadowRadius: 8,
-            shadowOffset: { width: 0, height: 1 },
-            shadowColor: '#000000',
-          },
-          headerTintColor: '#FFFFFF',
-          headerTitleStyle: {
-            fontSize: 18,
-            fontWeight: '600',
-            color: '#FFFFFF',
-          },
-          headerBackTitleVisible: false,
+          headerShown: false, // Hide headers for tab screens
           gestureEnabled: true,
           animation: 'slide_from_right',
           contentStyle: {
             backgroundColor: '#013025',
           },
         }}
-      />
+      >
+        <Stack.Screen 
+          name="(tabs)" 
+          options={{ 
+            headerShown: false,
+            title: '' 
+          }} 
+        />
+        <Stack.Screen 
+          name="modal" 
+          options={{ 
+            presentation: 'modal',
+            headerShown: true,
+            headerStyle: {
+              backgroundColor: '#013025',
+            },
+            headerTintColor: '#FFFFFF',
+            headerTitleStyle: {
+              fontSize: 18,
+              fontWeight: '600',
+              color: '#FFFFFF',
+            },
+          }} 
+        />
+      </Stack>
     </StripeProvider>
   );
 }

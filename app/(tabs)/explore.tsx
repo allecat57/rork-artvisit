@@ -97,7 +97,7 @@ export default function ExploreScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.title}>Explore</Text>
@@ -109,12 +109,13 @@ export default function ExploreScreen() {
           </TouchableOpacity>
         </View>
 
-        <SearchBar
-          placeholder="Search venues..."
-          value={searchQuery}
-          onChangeText={handleSearch}
-          style={styles.searchBar}
-        />
+        <View style={styles.searchContainer}>
+          <SearchBar
+            placeholder="Search venues..."
+            value={searchQuery}
+            onChangeText={handleSearch}
+          />
+        </View>
 
         <Text style={styles.sectionTitle}>Categories</Text>
         <FlatList
@@ -195,6 +196,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(172, 137, 1, 0.2)",
   },
   title: {
     ...typography.heading1,
@@ -214,9 +217,9 @@ const styles = StyleSheet.create({
     color: colors.accent,
     marginLeft: 4,
   },
-  searchBar: {
-    marginHorizontal: 20,
-    marginBottom: 20,
+  searchContainer: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
   },
   sectionTitle: {
     ...typography.heading3,

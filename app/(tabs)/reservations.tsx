@@ -156,8 +156,10 @@ export default function ReservationsScreen() {
   );
   
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <Text style={[typography.heading1, styles.title]}>Your Reservations</Text>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <View style={styles.header}>
+        <Text style={[typography.heading1, styles.title]}>Your Reservations</Text>
+      </View>
       
       <FlatList
         data={sortedReservations}
@@ -205,14 +207,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.primary,
   },
+  header: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(172, 137, 1, 0.2)",
+  },
   title: {
-    marginHorizontal: 20,
-    marginTop: 12,
-    marginBottom: 20,
     color: "#AC8901",
+    fontSize: 28,
+    fontWeight: "600",
   },
   listContent: {
     paddingHorizontal: 20,
+    paddingTop: 20,
     paddingBottom: 20,
     flexGrow: 1,
   },

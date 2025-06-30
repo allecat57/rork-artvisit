@@ -114,7 +114,10 @@ export default function ProfileScreen() {
   // If not authenticated, show login prompt instead of redirecting
   if (isHydrated && !isAuthenticated) {
     return (
-      <SafeAreaView style={styles.container} edges={["bottom"]}>
+      <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+        <View style={styles.header}>
+          <Text style={styles.screenTitle}>Profile</Text>
+        </View>
         <View style={styles.loginPromptContainer}>
           <User size={60} color={colors.accent} />
           <Text style={[typography.heading2, styles.loginPromptTitle]}>Welcome to Your Profile</Text>
@@ -290,9 +293,13 @@ export default function ProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+      <View style={styles.header}>
+        <Text style={styles.screenTitle}>Profile</Text>
+      </View>
+      
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
+        <View style={styles.profileHeader}>
           <TouchableOpacity 
             style={styles.avatarContainer}
             onPress={handleChangeProfilePhoto}
@@ -466,6 +473,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.primary,
   },
+  header: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(172, 137, 1, 0.2)",
+  },
+  screenTitle: {
+    ...typography.heading1,
+    color: colors.text,
+    fontSize: 28,
+    fontWeight: "600",
+  },
   loginPromptContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -510,7 +529,7 @@ const styles = StyleSheet.create({
     color: colors.accent,
     textAlign: 'center',
   },
-  header: {
+  profileHeader: {
     alignItems: "center",
     paddingVertical: 24,
     paddingHorizontal: 16,

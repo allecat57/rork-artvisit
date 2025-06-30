@@ -113,19 +113,25 @@ export default function EventsScreen() {
   // Render header with search and filters
   const renderHeader = () => (
     <View style={styles.header}>
-      <SearchBar
-        placeholder="Search events..."
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        onClear={() => setSearchQuery("")}
-      />
-      
+      <Text style={styles.screenTitle}>Events</Text>
       <TouchableOpacity 
         style={styles.filterButton}
         onPress={() => setShowFilters(!showFilters)}
       >
         <Filter size={20} color={colors.text} />
       </TouchableOpacity>
+    </View>
+  );
+  
+  // Render search bar
+  const renderSearchBar = () => (
+    <View style={styles.searchContainer}>
+      <SearchBar
+        placeholder="Search events..."
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        onClear={() => setSearchQuery("")}
+      />
     </View>
   );
   
@@ -268,15 +274,9 @@ export default function EventsScreen() {
   );
   
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
-      <Stack.Screen options={{ 
-        title: "Events",
-        headerTitleStyle: typography.heading3,
-        headerShadowVisible: false,
-        headerStyle: { backgroundColor: colors.background }
-      }} />
-      
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       {renderHeader()}
+      {renderSearchBar()}
       {renderFilters()}
       
       {isLoading ? (
@@ -316,10 +316,22 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(172, 137, 1, 0.2)",
+  },
+  screenTitle: {
+    ...typography.heading1,
+    color: colors.text,
+    fontSize: 28,
+    fontWeight: "600",
+  },
+  searchContainer: {
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    gap: 12,
   },
   filterButton: {
     width: 44,

@@ -91,9 +91,11 @@ export default function HomeScreen() {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <Text style={[typography.heading1, styles.mainTitle]}>Discover Art</Text>
+        <View style={styles.header}>
+          <Text style={[typography.heading1, styles.mainTitle]}>Discover Art</Text>
+        </View>
 
         <View style={styles.section}>
           <Text style={[typography.heading2, styles.sectionTitle]}>Featured</Text>
@@ -133,8 +135,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#013025',
   },
-  scrollContent: {
+  header: {
+    paddingHorizontal: 16,
     paddingTop: 12,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(172, 137, 1, 0.2)",
+  },
+  scrollContent: {
     paddingBottom: 20,
   },
   mainTitle: {
@@ -142,8 +150,6 @@ const styles = StyleSheet.create({
     color: "#AC8901",
     fontSize: 28,
     fontWeight: "600",
-    paddingHorizontal: 16,
-    marginBottom: 8,
   },
   section: {
     marginBottom: 20,

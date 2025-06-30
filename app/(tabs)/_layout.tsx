@@ -1,11 +1,13 @@
 import { Tabs } from 'expo-router';
-import { useColorScheme, Platform } from 'react-native';
+import { useColorScheme, Platform, StatusBar } from 'react-native';
 import { Home, Search, Calendar, User, ShoppingBag, CalendarDays } from 'lucide-react-native';
 import { useTheme } from '@/context/ThemeContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const { isDark, colors } = useTheme();
+  const insets = useSafeAreaInsets();
   
   return (
     <Tabs
@@ -36,21 +38,7 @@ export default function TabLayout() {
         tabBarIconStyle: {
           marginBottom: 2,
         },
-        headerStyle: {
-          backgroundColor: '#013025',
-          borderBottomWidth: 0,
-          elevation: 0,
-          shadowOpacity: 0.05,
-          shadowRadius: 8,
-          shadowOffset: { width: 0, height: 1 },
-          shadowColor: '#000000',
-        },
-        headerTintColor: '#FFFFFF',
-        headerTitleStyle: {
-          fontSize: 18,
-          fontWeight: '600',
-          color: '#FFFFFF',
-        },
+        headerShown: false, // Hide individual tab headers
       }}
     >
       <Tabs.Screen

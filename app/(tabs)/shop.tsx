@@ -64,13 +64,7 @@ export default function ShopScreen() {
   // Render header with search and cart
   const renderHeader = () => (
     <View style={styles.header}>
-      <SearchBar
-        placeholder="Search products..."
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        onClear={() => setSearchQuery("")}
-      />
-      
+      <Text style={styles.screenTitle}>Shop</Text>
       <TouchableOpacity 
         style={styles.cartButton}
         onPress={() => router.push("/shop/cart")}
@@ -82,6 +76,18 @@ export default function ShopScreen() {
           </View>
         )}
       </TouchableOpacity>
+    </View>
+  );
+  
+  // Render search bar
+  const renderSearchBar = () => (
+    <View style={styles.searchContainer}>
+      <SearchBar
+        placeholder="Search products..."
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        onClear={() => setSearchQuery("")}
+      />
     </View>
   );
   
@@ -159,15 +165,9 @@ export default function ShopScreen() {
   );
   
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
-      <Stack.Screen options={{ 
-        title: "Shop",
-        headerTitleStyle: { ...typography.heading3, color: "#AC8901" },
-        headerShadowVisible: false,
-        headerStyle: { backgroundColor: "#013025" }
-      }} />
-      
+    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
       {renderHeader()}
+      {renderSearchBar()}
       {renderCategories()}
       
       <ScrollView style={styles.content}>
@@ -184,10 +184,22 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "rgba(172, 137, 1, 0.2)",
+  },
+  screenTitle: {
+    ...typography.heading1,
+    color: "#AC8901",
+    fontSize: 28,
+    fontWeight: "600",
+  },
+  searchContainer: {
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    gap: 12,
   },
   cartButton: {
     width: 44,
