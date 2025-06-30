@@ -9,9 +9,11 @@ import SearchBar from "@/components/SearchBar";
 import EmptyState from "@/components/EmptyState";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
-import { products, productCategories } from "@/mocks/products";
+import { products } from "@/mocks/products";
 import { Product } from "@/types/product";
 import * as Analytics from "@/utils/analytics";
+
+const artCategories = ["Renaissance", "Cubism", "Surrealism", "Abstract Art"];
 
 export default function ShopScreen() {
   const router = useRouter();
@@ -48,14 +50,6 @@ export default function ShopScreen() {
     
     return filtered;
   }, [searchQuery, selectedCategory]);
-  
-  // Calculate products by category
-  const productsByCategory = React.useMemo(() => {
-    return productCategories.reduce((acc: Record<string, number>, category) => {
-      acc[category] = products.filter(item => item.category === category).length;
-      return acc;
-    }, {});
-  }, []);
   
   // Handle product card press
   const handleProductPress = (productId: string) => {
@@ -111,7 +105,7 @@ export default function ShopScreen() {
         ]}>All</Text>
       </TouchableOpacity>
       
-      {productCategories.map((category) => (
+      {artCategories.map((category) => (
         <TouchableOpacity
           key={category}
           style={[
@@ -242,7 +236,7 @@ const styles = StyleSheet.create({
   categoryButtonText: {
     ...typography.caption,
     color: "#AC8901",
-    fontSize: 11,
+    fontSize: 12,
   },
   categoryButtonTextActive: {
     color: "#013025",

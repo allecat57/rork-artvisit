@@ -192,7 +192,7 @@ export default function CartScreen() {
         </View>
         
         <Button
-          title="Checkout"
+          title="Check Out"
           onPress={handleCheckout}
           variant="primary"
           analyticsEventName="proceed_to_checkout"

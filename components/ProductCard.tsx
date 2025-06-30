@@ -46,7 +46,7 @@ export default function ProductCard({ product, onPress, compact = false }: Produ
               style={styles.compactCartButton}
               onPress={handleAddToCart}
             >
-              <ShoppingCart size={16} color="#013025" />
+              <ShoppingCart size={14} color="#013025" />
             </TouchableOpacity>
           </View>
         </View>
@@ -80,7 +80,7 @@ export default function ProductCard({ product, onPress, compact = false }: Produ
             style={styles.cartButton}
             onPress={handleAddToCart}
           >
-            <ShoppingCart size={18} color="#013025" />
+            <ShoppingCart size={16} color="#013025" />
             <Text style={styles.cartButtonText}>Add</Text>
           </TouchableOpacity>
         </View>
@@ -153,15 +153,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#AC8901",
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   cartButtonText: {
     ...typography.caption,
     color: "#013025",
     fontWeight: "600",
     marginLeft: 4,
+    fontSize: 10,
   },
   
   // Compact styles
@@ -171,28 +172,29 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#AC8901",
-    height: 220,
+    height: 100,
   },
   compactImage: {
     width: "100%",
-    height: 120,
+    height: 60,
     resizeMode: "cover",
   },
   compactContent: {
-    padding: 10,
+    padding: 8,
     flex: 1,
     justifyContent: "space-between",
   },
   compactCategory: {
     ...typography.caption,
     color: "#AC8901",
-    fontSize: 10,
+    fontSize: 9,
   },
   compactTitle: {
     ...typography.caption,
     fontWeight: "600",
     color: "#AC8901",
-    marginVertical: 4,
+    marginVertical: 2,
+    fontSize: 10,
   },
   compactFooter: {
     flexDirection: "row",
@@ -203,10 +205,11 @@ const styles = StyleSheet.create({
     ...typography.bodySmall,
     fontWeight: "700",
     color: "#AC8901",
+    fontSize: 11,
   },
   compactCartButton: {
     backgroundColor: "#AC8901",
-    padding: 6,
-    borderRadius: 16,
+    padding: 3,
+    borderRadius: 8,
   },
 });
