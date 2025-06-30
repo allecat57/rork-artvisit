@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
   },
   categoryButton: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 3,
     borderRadius: 16,
     backgroundColor: "#1a4037",
     borderWidth: 1,
