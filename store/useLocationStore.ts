@@ -76,7 +76,8 @@ export const useLocationStore = create<LocationState>()(
               const location: LocationData = {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
-                city: "Current Location" // Web doesn't provide city directly
+                city: "Current Location",
+                address: "Current Location"
               };
               
               set({ 

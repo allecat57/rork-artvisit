@@ -60,11 +60,11 @@ export default function ExploreScreen() {
   }, [venues, searchQuery, selectedCategory]);
   
   const handleVenuePress = (venueId: string) => {
-    router.push(`/venue/${venueId}`);
+    router.push(`/gallery/${venueId}`);
   };
   
   const handleCategoryPress = (categoryId: string) => {
-    setSelectedCategory(categoryId);
+    setSelectedCategory(categoryId === selectedCategory ? null : categoryId);
   };
   
   const renderHeader = () => (
@@ -264,12 +264,12 @@ const styles = StyleSheet.create({
   },
   categoryButton: {
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingVertical: 10,
+    borderRadius: 8,
     backgroundColor: colors.card,
     borderWidth: 1,
     borderColor: colors.border,
-    minHeight: 36,
+    minHeight: 40,
     justifyContent: "center",
     alignItems: "center",
   },

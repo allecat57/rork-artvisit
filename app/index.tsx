@@ -1,176 +1,132 @@
-import React, { useEffect } from "react";
+import React from "react";
 import {
   StyleSheet,
   Text,
   View,
   ScrollView,
   TouchableOpacity,
-  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { ChevronRight, Search, Calendar, User, ShoppingBag, CalendarDays, Home } from "lucide-react-native";
+import { 
+  Search, 
+  Calendar, 
+  ShoppingBag, 
+  User, 
+  Heart,
+  Clock,
+  MapPin
+} from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
-import FeaturedVenueCard from "@/components/FeaturedVenueCard";
-import { useVenueStore } from "@/store/useVenueStore";
-
-// Define font family
-const fontFamily = Platform.select({
-  ios: "Georgia",
-  android: "serif",
-  default: "Georgia, serif",
-});
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { getFeaturedVenues, venues, fetchVenues } = useVenueStore();
-  
-  // Fetch venues on component mount
-  useEffect(() => {
-    fetchVenues();
-  }, [fetchVenues]);
+  const { user } = useAuthStore();
 
-  const featuredVenues = getFeaturedVenues();
+  const navigationItems = [
+    {
+      title: "Explore",
+      subtitle: "Discover venues & galleries",
+      icon: <Search size={24} color={colors.text} />,
+      route: "/explore",
+      color: colors.accent,
+    },
+    {
+      title: "Events",
+      subtitle: "Upcoming exhibitions",
+      icon: <Calendar size={24} color={colors.text} />,
+      route: "/events",
+      color: colors.status.info,
+    },
+    {
+      title: "Shop",
+      subtitle: "Art & merchandise",
+      icon: <ShoppingBag size={24} color={colors.text} />,
+      route: "/shop",
+      color: colors.status.success,
+    },
+    {
+      title: "Profile",
+      subtitle: "Your account & settings",
+      icon: <User size={24} color={colors.text} />,
+      route: user ? "/profile" : "/login",
+      color: colors.status.warning,
+    },
+  ];
 
-  const museums = venues.filter((venue) => {
-    if (!venue) return false;
-    return ["museum", "Museums Near You"].some((k) =>
-      (venue.type && venue.type.toLowerCase().includes(k)) ||
-      venue.category === k
-    );
-  });
-
-  const artGalleries = venues.filter((venue) => {
-    if (!venue) return false;
-    return ["gallery", "art", "Art Galleries Near You"].some((k) =>
-      (venue.type && venue.type.toLowerCase().includes(k)) ||
-      venue.category === k
-    );
-  });
-
-  const handleVenuePress = (venueId: string) => {
-    if (venueId) {
-      router.push(`/venue/${venueId}`);
-    }
-  };
-
-  const navigateToCategory = (categoryId: string, title: string) => {
-    router.push({ pathname: `/category/${categoryId}`, params: { title } });
-  };
-
-  const renderSection = (title: string, data: any[], onPress: () => void) => (
-    <View style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Text style={[typography.heading2, styles.sectionTitle]}>
-          {title}
-        </Text>
-        <TouchableOpacity onPress={onPress} style={styles.viewAllButton}>
-          <Text style={styles.viewAllText}>View All</Text>
-          <ChevronRight size={16} color={colors.accent} />
-        </TouchableOpacity>
-      </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.featuredContainer}
-      >
-        {data.slice(0, 5).map((venue) => {
-          if (!venue || !venue.id) return null;
-          return (
-            <FeaturedVenueCard
-              key={venue.id}
-              venue={venue}
-              onPress={() => handleVenuePress(venue.id)}
-              useGoldText
-            />
-          );
-        })}
-      </ScrollView>
-    </View>
-  );
-
-  const renderNavigationButtons = () => (
-    <View style={styles.navigationContainer}>
-      <TouchableOpacity 
-        style={styles.navButton}
-        onPress={() => router.push('/explore')}
-      >
-        <Search size={20} color="#AC8901" />
-        <Text style={styles.navButtonText}>Explore</Text>
-      </TouchableOpacity>
-      
-      <TouchableOpacity 
-        style={styles.navButton}
-        onPress={() => router.push('/shop')}
-      >
-        <ShoppingBag size={20} color="#AC8901" />
-        <Text style={styles.navButtonText}>Shop</Text>
-      </TouchableOpacity>
-      
-      <TouchableOpacity 
-        style={styles.navButton}
-        onPress={() => router.push('/events')}
-      >
-        <CalendarDays size={20} color="#AC8901" />
-        <Text style={styles.navButtonText}>Events</Text>
-      </TouchableOpacity>
-      
-      <TouchableOpacity 
-        style={styles.navButton}
-        onPress={() => router.push('/reservations')}
-      >
-        <Calendar size={20} color="#AC8901" />
-        <Text style={styles.navButtonText}>Reservations</Text>
-      </TouchableOpacity>
-      
-      <TouchableOpacity 
-        style={styles.navButton}
-        onPress={() => router.push('/profile')}
-      >
-        <User size={20} color="#AC8901" />
-        <Text style={styles.navButtonText}>Profile</Text>
-      </TouchableOpacity>
-    </View>
-  );
+  const quickActions = [
+    {
+      title: "Favorites",
+      icon: <Heart size={20} color={colors.text} />,
+      route: "/favorites",
+    },
+    {
+      title: "Visit History",
+      icon: <Clock size={20} color={colors.text} />,
+      route: "/visit-history",
+    },
+    {
+      title: "Reservations",
+      icon: <MapPin size={20} color={colors.text} />,
+      route: "/reservations",
+    },
+  ];
 
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+    <SafeAreaView style={styles.container}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={[typography.heading1, styles.mainTitle]}>Discover Art</Text>
+          <Text style={styles.welcomeText}>
+            Welcome{user ? `, ${user.name}` : ""}
+          </Text>
+          <Text style={styles.subtitle}>
+            Discover amazing art venues and galleries
+          </Text>
         </View>
 
-        {renderNavigationButtons()}
-
-        <View style={styles.section}>
-          <Text style={[typography.heading2, styles.sectionTitle]}>Featured</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.featuredContainer}
-          >
-            {featuredVenues.map((venue) => {
-              if (!venue || !venue.id) return null;
-              return (
-                <FeaturedVenueCard
-                  key={venue.id}
-                  venue={venue}
-                  onPress={() => handleVenuePress(venue.id)}
-                  useGoldText
-                />
-              );
-            })}
-          </ScrollView>
+        <View style={styles.mainNavigation}>
+          {navigationItems.map((item, index) => (
+            <TouchableOpacity
+              key={index}
+              style={[styles.navCard, { borderLeftColor: item.color }]}
+              onPress={() => router.push(item.route as any)}
+              activeOpacity={0.8}
+            >
+              <View style={styles.navCardContent}>
+                <View style={styles.navCardLeft}>
+                  <View style={[styles.iconContainer, { backgroundColor: `${item.color}20` }]}>
+                    {item.icon}
+                  </View>
+                  <View style={styles.navCardText}>
+                    <Text style={styles.navCardTitle}>{item.title}</Text>
+                    <Text style={styles.navCardSubtitle}>{item.subtitle}</Text>
+                  </View>
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
 
-        {renderSection("Museums Near You", museums, () =>
-          navigateToCategory("c3", "Museums Near You")
-        )}
-        {renderSection("Art Galleries Near You", artGalleries, () =>
-          navigateToCategory("c2", "Art Galleries Near You")
-        )}
-        {renderSection("Popular Near You", venues, () => router.push("/explore"))}
+        <View style={styles.quickActionsSection}>
+          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <View style={styles.quickActionsGrid}>
+            {quickActions.map((action, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.quickActionCard}
+                onPress={() => router.push(action.route as any)}
+                activeOpacity={0.8}
+              >
+                <View style={styles.quickActionIcon}>
+                  {action.icon}
+                </View>
+                <Text style={styles.quickActionTitle}>{action.title}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -179,79 +135,119 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#013025',
+    backgroundColor: colors.primary,
+  },
+  scrollView: {
+    flex: 1,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(172, 137, 1, 0.2)",
+    padding: 20,
+    paddingTop: 10,
   },
-  scrollContent: {
-    paddingBottom: 20,
+  welcomeText: {
+    ...typography.heading1,
+    color: colors.text,
+    fontSize: 32,
+    fontWeight: "700",
+    marginBottom: 8,
   },
-  mainTitle: {
-    fontFamily,
-    color: "#AC8901",
-    fontSize: 28,
-    fontWeight: "600",
+  subtitle: {
+    ...typography.body,
+    color: colors.muted,
+    fontSize: 16,
+    opacity: 0.8,
   },
-  navigationContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    gap: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(172, 137, 1, 0.2)",
+  mainNavigation: {
+    paddingHorizontal: 20,
+    gap: 16,
   },
-  navButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1a4037',
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#AC8901',
-    gap: 8,
-    minWidth: 100,
+  navCard: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 20,
+    borderLeftWidth: 4,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  navButtonText: {
-    color: '#AC8901',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  section: {
-    marginBottom: 20,
-  },
-  sectionHeader: {
+  navCardContent: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    justifyContent: "space-between",
+  },
+  navCardLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
+  },
+  navCardText: {
+    flex: 1,
+  },
+  navCardTitle: {
+    ...typography.heading3,
+    color: colors.text,
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+  navCardSubtitle: {
+    ...typography.body,
+    color: colors.muted,
+    fontSize: 14,
+  },
+  quickActionsSection: {
+    padding: 20,
+    paddingTop: 32,
   },
   sectionTitle: {
-    fontFamily,
-    fontSize: 20,
-    color: "#AC8901",
+    ...typography.heading2,
+    color: colors.text,
+    fontSize: 22,
+    fontWeight: "600",
+    marginBottom: 16,
   },
-  featuredContainer: {
-    paddingLeft: 16,
-    paddingRight: 8,
+  quickActionsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 12,
   },
-  viewAllButton: {
-    flexDirection: "row",
+  quickActionCard: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
     alignItems: "center",
+    justifyContent: "center",
+    minWidth: 100,
+    flex: 1,
+    maxWidth: "30%",
   },
-  viewAllText: {
-    fontFamily,
-    fontSize: 14,
-    color: "#AC8901",
-    fontWeight: "600",
-    marginRight: 4,
+  quickActionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: `${colors.accent}20`,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  quickActionTitle: {
+    ...typography.bodySmall,
+    color: colors.text,
+    fontSize: 12,
+    fontWeight: "500",
+    textAlign: "center",
   },
 });
