@@ -1,12 +1,12 @@
-import { router } from './trpc';
+import { createTRPCRouter } from './create-context';
 import { hiProcedure } from './routes/example/hi/route';
 import { sendConfirmationEmailProcedure } from './routes/email/send-confirmation/route';
 
-export const appRouter = router({
-  example: router({
+export const appRouter = createTRPCRouter({
+  example: createTRPCRouter({
     hi: hiProcedure,
   }),
-  email: router({
+  email: createTRPCRouter({
     sendConfirmation: sendConfirmationEmailProcedure,
   }),
 });

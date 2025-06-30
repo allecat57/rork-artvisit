@@ -1,8 +1,20 @@
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
 import { Platform, StatusBar } from 'react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { StripeProvider } from '@/context/StripeContext';
+import { trpc, trpcClient } from '@/lib/trpc';
+
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 2,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+  },
+});
 
 function RootLayoutContent() {
   useEffect(() => {
@@ -207,7 +219,11 @@ function RootLayoutContent() {
 export default function RootLayout() {
   return (
     <ThemeProvider>
-      <RootLayoutContent />
+      <trpc.Provider client={trpcClient} queryClient={queryClient}>
+        <QueryClientProvider client={queryClient}>
+          <RootLayoutContent />
+        </QueryClientProvider>
+      </trpc.Provider>
     </ThemeProvider>
   );
 }

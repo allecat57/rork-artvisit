@@ -1,35 +1,28 @@
-import { protectedProcedure } from '@/backend/trpc/trpc';
+import { publicProcedure } from '../../create-context';
 import { z } from 'zod';
-import sgMail from '@sendgrid/mail';
 
-// This would be set in your environment variables in a real app
-const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || 'your-sendgrid-api-key';
-sgMail.setApiKey(SENDGRID_API_KEY);
-
-export const sendConfirmationEmailProcedure = protectedProcedure
-  .input(
-    z.object({
-      email: z.string().email(),
-      subject: z.string(),
-      message: z.string(),
-    })
-  )
+export const sendConfirmationEmailProcedure = publicProcedure
+  .input(z.object({
+    email: z.string().email(),
+    confirmationCode: z.string(),
+    reservationDetails: z.object({
+      venueName: z.string(),
+      date: z.string(),
+      time: z.string(),
+      partySize: z.number(),
+    }),
+  }))
   .mutation(async ({ input }) => {
-    const { email, subject, message } = input;
-
-    const msg = {
-      to: email,
-      from: 'your@email.com', // replace with your verified sender from SendGrid
-      subject,
-      text: message,
+    // Mock email sending - in production, use a real email service
+    console.log('Sending confirmation email to:', input.email);
+    console.log('Confirmation code:', input.confirmationCode);
+    console.log('Reservation details:', input.reservationDetails);
+    
+    // Simulate email sending delay
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    return {
+      success: true,
+      message: 'Confirmation email sent successfully',
     };
-
-    try {
-      await sgMail.send(msg);
-      console.log('✅ Email sent successfully');
-      return { success: true };
-    } catch (error) {
-      console.error('❌ Error sending email:', error);
-      throw new Error('Email send failed');
-    }
   });
