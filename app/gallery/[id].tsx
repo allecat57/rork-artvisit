@@ -37,7 +37,7 @@ export default function GalleryDetailScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams();
   const { getVenueById } = useVenueStore();
-  const { addToFavorites, removeFromFavorites, isFavorite } = useFavoritesStore();
+  const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
   const { addVisit } = useVisitHistoryStore();
   
   const [venue, setVenue] = useState<any>(null);
@@ -99,13 +99,13 @@ export default function GalleryDetailScreen() {
   const handleFavoriteToggle = () => {
     if (venue) {
       if (isVenueFavorite) {
-        removeFromFavorites(venue.id);
+        removeFavorite(venue.id);
         Analytics.logEvent("venue_unfavorite", {
           venue_id: venue.id,
           venue_name: venue.name
         });
       } else {
-        addToFavorites(venue);
+        addFavorite(venue);
         Analytics.logEvent("venue_favorite", {
           venue_id: venue.id,
           venue_name: venue.name
