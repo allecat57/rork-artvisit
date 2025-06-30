@@ -326,6 +326,9 @@ export const processBookingPayment = async (
   } catch (error) {
     console.error('Error processing booking payment:', error);
     
+    // Get userId for error logging
+    const userId = await getSessionUserId();
+    
     // Log payment error
     Analytics.logEvent('booking_payment_error', {
       venue_id: venueId,
