@@ -1,183 +1,157 @@
 import React from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { Image } from "expo-image";
-import { Calendar, Clock, MapPin, Ticket, Edit, X } from "lucide-react-native";
+import { Calendar, Clock, Users, MapPin, Phone, MoreVertical } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import { Reservation } from "@/types/reservation";
-import { useVenueStore } from "@/store/useVenueStore";
+import { getVenueById } from "@/mocks/venues";
 
 interface ReservationCardProps {
   reservation: Reservation;
-  onPress?: () => void;
   onCancel: () => void;
-  onEdit?: () => void;
-  onModify?: () => void;
+  onEdit: () => void;
 }
 
 export default function ReservationCard({ 
   reservation, 
-  onPress, 
-  onCancel, 
-  onEdit,
-  onModify 
+  onCancel,
+  onEdit 
 }: ReservationCardProps) {
-  const { getVenueById } = useVenueStore();
+  const venue = getVenueById(reservation.venueId);
   
-  // Format date helper function
+  if (!venue) {
+    return null;
+  }
+
   const formatDate = (dateString: string) => {
-    if (!dateString) return "Date unknown";
-    
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", { 
-        weekday: "short", 
-        month: "short", 
-        day: "numeric" 
-      });
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return "Invalid date";
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  const getStatusColor = () => {
+    switch (reservation.status) {
+      case 'confirmed':
+        return colors.constructive;
+      case 'pending':
+        return colors.status.warning;
+      case 'cancelled':
+        return colors.error;
+      case 'completed':
+        return colors.muted;
+      default:
+        return colors.muted;
     }
   };
-  
-  // Get venue details using venueId from the reservation
-  const venue = reservation.venueId ? getVenueById(reservation.venueId) : null;
-  
-  // Use onEdit or onModify (for backward compatibility)
-  const handleEdit = onEdit || onModify;
-  
-  // If venue is not found, show a fallback UI
-  if (!venue) {
-    return (
-      <View style={[styles.container, styles.fallbackContainer]}>
-        <View style={styles.content}>
-          <Text style={[typography.heading3, styles.name]}>Reservation #{reservation.confirmationCode || "Unknown"}</Text>
-          <Text style={[typography.bodySmall, styles.infoText]}>Venue information unavailable</Text>
-          
-          <View style={styles.infoContainer}>
-            <View style={styles.infoRow}>
-              <Calendar size={16} color={colors.muted} />
-              <Text style={[typography.bodySmall, styles.infoText]}>
-                {reservation.date ? formatDate(reservation.date) : "Date unknown"}
-              </Text>
-            </View>
-            
-            <View style={styles.infoRow}>
-              <Clock size={16} color={colors.muted} />
-              <Text style={[typography.bodySmall, styles.infoText]}>{reservation.time || "Time unknown"}</Text>
-            </View>
-            
-            <View style={styles.infoRow}>
-              <Ticket size={16} color={colors.muted} />
-              <Text style={[typography.bodySmall, styles.infoText]}>
-                Party size: {reservation.partySize || "Unknown"}
-              </Text>
-            </View>
-          </View>
-          
-          <View style={styles.confirmationContainer}>
-            <Ticket size={14} color={colors.accent} />
-            <Text style={styles.confirmationText}>Confirmation: {reservation.confirmationCode || "Pending"}</Text>
-          </View>
-        </View>
-        
-        <View style={styles.actionsContainer}>
-          {handleEdit && (
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.modifyButton]} 
-              onPress={handleEdit}
-            >
-              <Edit size={16} color={colors.accent} />
-              <Text style={styles.modifyText}>Modify</Text>
-            </TouchableOpacity>
-          )}
-          
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.cancelButton, !handleEdit && styles.fullWidthButton]} 
-            onPress={onCancel}
-          >
-            <X size={16} color={colors.status.error} />
-            <Text style={styles.cancelText}>Cancel</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  }
-  
-  const { date, time, confirmationCode } = reservation;
 
-  const CardContent = (
-    <>
-      <Image
-        source={{ uri: venue.imageUrl }}
-        style={styles.image}
-        contentFit="cover"
-        transition={300}
-      />
-      
-      <View style={styles.content}>
-        <Text style={[typography.heading3, styles.name]} numberOfLines={1}>{venue.name}</Text>
-        
-        <View style={styles.infoContainer}>
-          <View style={styles.infoRow}>
-            <Calendar size={16} color={colors.muted} />
-            <Text style={[typography.bodySmall, styles.infoText]}>{formatDate(date)}</Text>
-          </View>
-          
-          <View style={styles.infoRow}>
-            <Clock size={16} color={colors.muted} />
-            <Text style={[typography.bodySmall, styles.infoText]}>{time || "Time not specified"}</Text>
-          </View>
-          
-          <View style={styles.infoRow}>
-            <MapPin size={16} color={colors.muted} />
-            <Text style={[typography.bodySmall, styles.infoText]} numberOfLines={1}>{venue.location}</Text>
-          </View>
-        </View>
-        
-        <View style={styles.confirmationContainer}>
-          <Ticket size={14} color={colors.accent} />
-          <Text style={styles.confirmationText}>Confirmation: {confirmationCode || "Pending"}</Text>
-        </View>
-      </View>
-    </>
-  );
+  const getStatusText = () => {
+    switch (reservation.status) {
+      case 'confirmed':
+        return 'Confirmed';
+      case 'pending':
+        return 'Pending';
+      case 'cancelled':
+        return 'Cancelled';
+      case 'completed':
+        return 'Completed';
+      default:
+        return 'Unknown';
+    }
+  };
+
+  const isUpcoming = () => {
+    const reservationDate = new Date(reservation.date);
+    const now = new Date();
+    return reservationDate >= now && reservation.status !== 'cancelled';
+  };
 
   return (
     <View style={styles.container}>
-      {onPress ? (
-        <TouchableOpacity 
-          style={styles.cardContent} 
-          onPress={onPress}
-          activeOpacity={0.9}
-        >
-          {CardContent}
-        </TouchableOpacity>
-      ) : (
-        <View style={styles.cardContent}>
-          {CardContent}
+      <View style={styles.imageContainer}>
+        <Image
+          source={{ uri: venue.imageUrl }}
+          style={styles.image}
+          contentFit="cover"
+          transition={300}
+        />
+        <View style={[styles.statusBadge, { backgroundColor: getStatusColor() }]}>
+          <Text style={styles.statusText}>{getStatusText()}</Text>
         </View>
-      )}
-      
-      <View style={styles.actionsContainer}>
-        {handleEdit && (
-          <TouchableOpacity 
-            style={[styles.actionButton, styles.modifyButton]} 
-            onPress={handleEdit}
-          >
-            <Edit size={16} color={colors.accent} />
-            <Text style={styles.modifyText}>Modify</Text>
+      </View>
+
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <View style={styles.titleContainer}>
+            <Text style={[typography.heading3, styles.venueName]} numberOfLines={1}>
+              {venue.name}
+            </Text>
+            <Text style={[typography.bodySmall, styles.venueType]}>
+              {venue.type}
+            </Text>
+          </View>
+          
+          <TouchableOpacity style={styles.moreButton}>
+            <MoreVertical size={20} color={colors.muted} />
           </TouchableOpacity>
-        )}
-        
-        <TouchableOpacity 
-          style={[styles.actionButton, styles.cancelButton, !handleEdit && styles.fullWidthButton]} 
-          onPress={onCancel}
-        >
-          <X size={16} color={colors.status.error} />
-          <Text style={styles.cancelText}>Cancel</Text>
-        </TouchableOpacity>
+        </View>
+
+        <View style={styles.detailsContainer}>
+          <View style={styles.detailRow}>
+            <Calendar size={16} color={colors.muted} />
+            <Text style={styles.detailText}>{formatDate(reservation.date)}</Text>
+          </View>
+          
+          <View style={styles.detailRow}>
+            <Clock size={16} color={colors.muted} />
+            <Text style={styles.detailText}>{reservation.time}</Text>
+          </View>
+          
+          <View style={styles.detailRow}>
+            <Users size={16} color={colors.muted} />
+            <Text style={styles.detailText}>
+              {reservation.partySize} {reservation.partySize === 1 ? 'person' : 'people'}
+            </Text>
+          </View>
+          
+          <View style={styles.detailRow}>
+            <MapPin size={16} color={colors.muted} />
+            <Text style={styles.detailText} numberOfLines={1}>{venue.location}</Text>
+          </View>
+        </View>
+
+        <View style={styles.footer}>
+          <View style={styles.confirmationContainer}>
+            <Text style={styles.confirmationLabel}>Confirmation</Text>
+            <Text style={styles.confirmationCode}>{reservation.confirmationCode}</Text>
+          </View>
+          
+          {isUpcoming() && (
+            <View style={styles.actionButtons}>
+              <TouchableOpacity 
+                style={[styles.actionButton, styles.cancelButton]}
+                onPress={onCancel}
+              >
+                <Text style={[styles.actionButtonText, { color: colors.error }]}>
+                  Cancel
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.actionButton, styles.editButton]}
+                onPress={onEdit}
+              >
+                <Text style={[styles.actionButtonText, { color: colors.accent }]}>
+                  Modify
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </View>
     </View>
   );
@@ -186,87 +160,111 @@ export default function ReservationCard({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.card,
-    borderRadius: 12,
-    overflow: "hidden",
+    borderRadius: 16,
     marginBottom: 16,
+    overflow: "hidden",
+    elevation: 2,
+    shadowColor: colors.text,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  fallbackContainer: {
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderStyle: "dashed",
-  },
-  cardContent: {
-    flexDirection: "column",
+  imageContainer: {
+    position: "relative",
   },
   image: {
-    height: 120,
     width: "100%",
+    height: 120,
+  },
+  statusBadge: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusText: {
+    ...typography.caption,
+    color: colors.background,
+    fontWeight: "600",
+    fontSize: 12,
   },
   content: {
     padding: 16,
   },
-  name: {
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 12,
+  },
+  titleContainer: {
+    flex: 1,
+    marginRight: 12,
+  },
+  venueName: {
     color: colors.text,
+    marginBottom: 2,
   },
-  infoContainer: {
-    marginBottom: 12,
+  venueType: {
+    color: colors.muted,
   },
-  infoRow: {
+  moreButton: {
+    padding: 4,
+  },
+  detailsContainer: {
+    marginBottom: 16,
+  },
+  detailRow: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 8,
   },
-  infoText: {
-    marginLeft: 8,
+  detailText: {
+    ...typography.body,
     color: colors.text,
+    marginLeft: 8,
+    flex: 1,
+  },
+  footer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   confirmationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(172, 137, 1, 0.15)",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    flex: 1,
   },
-  confirmationText: {
+  confirmationLabel: {
+    ...typography.caption,
+    color: colors.muted,
+    marginBottom: 2,
+  },
+  confirmationCode: {
     ...typography.bodySmall,
-    color: colors.accent,
-    marginLeft: 8,
-    fontWeight: "500",
+    color: colors.text,
+    fontWeight: "600",
   },
-  actionsContainer: {
+  actionButtons: {
     flexDirection: "row",
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    gap: 8,
   },
   actionButton: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-  },
-  modifyButton: {
-    borderRightWidth: 1,
-    borderRightColor: colors.border,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
   },
   cancelButton: {
-    backgroundColor: "rgba(244, 67, 54, 0.05)",
+    borderColor: colors.error,
+    backgroundColor: "transparent",
   },
-  fullWidthButton: {
-    flex: 1,
+  editButton: {
+    borderColor: colors.accent,
+    backgroundColor: "transparent",
   },
-  modifyText: {
+  actionButtonText: {
     ...typography.bodySmall,
-    color: colors.accent,
     fontWeight: "600",
-    marginLeft: 6,
-  },
-  cancelText: {
-    ...typography.bodySmall,
-    color: colors.status.error,
-    fontWeight: "600",
-    marginLeft: 6,
   },
 });

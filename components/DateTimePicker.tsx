@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: colors.status.success,
+    backgroundColor: colors.constructive,
     justifyContent: 'center',
     alignItems: 'center',
   },

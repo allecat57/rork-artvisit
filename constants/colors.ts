@@ -13,7 +13,7 @@ export default {
     warning: "#F59E0B",
     info: "#3B82F6"
   },
-  // Legacy flat structure for backward compatibility
+  // Flat structure for easy access
   secondary: "#144237",
   background: "#FFFFFF",
   surface: "#F8F9FA", 
@@ -27,5 +27,6 @@ export default {
   light: "#FFFFFF",
   dark: "#013025", 
   white: "#FFFFFF",
-  black: "#013025"
+  black: "#013025",
+  error: "#EF4444"
 };

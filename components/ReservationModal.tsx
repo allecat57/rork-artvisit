@@ -92,7 +92,7 @@ export default function ReservationModal({
       
       // Log modal open event
       if (currentVenue) {
-        Analytics.logEvent(isModifying ? "modify_reservation_modal_open" : "reservation_modal_open", {
+        Analytics.logEvent(isModifying ? Analytics.Events.MODIFY_RESERVATION : Analytics.Events.CREATE_RESERVATION, {
           venue_id: currentVenue.id,
           venue_name: currentVenue.name,
           venue_type: currentVenue.type
@@ -451,7 +451,7 @@ export default function ReservationModal({
     return (
       <View style={styles.confirmationContainer}>
         <View style={styles.confirmationIcon}>
-          <Check size={48} color={colors.status.success} />
+          <Check size={48} color={colors.constructive} />
         </View>
         
         <Text style={[typography.heading2, styles.confirmationTitle]}>
@@ -656,6 +656,18 @@ export default function ReservationModal({
                   <CreditCard size={18} color={colors.background} /> : 
                   undefined
                 }
+                analyticsEventName={
+                  currentStep === 'payment' 
+                    ? "reservation_payment_initiated"
+                    : "reservation_step_continue"
+                }
+                analyticsProperties={{
+                  venue_id: currentVenue.id,
+                  venue_name: currentVenue.name,
+                  venue_type: currentVenue.type,
+                  date: selectedDate?.toISOString(),
+                  time_slot: selectedTimeSlot,
+                }}
               />
             </View>
           )}

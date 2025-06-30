@@ -88,7 +88,7 @@ export default function Button({
         <View style={styles.loadingContainer}>
           <ActivityIndicator 
             size="small" 
-            color={variant === "primary" ? colors.primary.background : colors.primary.accent} 
+            color={variant === "primary" ? colors.background : colors.accent} 
           />
           <Text style={[getTextStyle(), styles.loadingText]}>{title}</Text>
         </View>
@@ -150,17 +150,17 @@ const styles = StyleSheet.create({
   
   // Color variants
   primaryButton: {
-    backgroundColor: colors.primary.accent,
+    backgroundColor: colors.accent,
   },
   secondaryButton: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: colors.primary.border,
+    borderColor: colors.border,
   },
   outlineButton: {
     backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: colors.primary.accent,
+    borderColor: colors.accent,
   },
   ghostButton: {
     backgroundColor: "transparent",
@@ -190,16 +190,16 @@ const styles = StyleSheet.create({
   
   // Text color variants
   primaryButtonText: {
-    color: colors.primary.background,
+    color: colors.background,
   },
   secondaryButtonText: {
-    color: colors.primary.text,
+    color: colors.text,
   },
   outlineButtonText: {
-    color: colors.primary.accent,
+    color: colors.accent,
   },
   ghostButtonText: {
-    color: colors.primary.accent,
+    color: colors.accent,
   },
   
   // Disabled text

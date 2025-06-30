@@ -99,8 +99,8 @@ export default function FeaturedVenueCard({
           >
             <Heart 
               size={24} 
-              color={favorite ? colors.status.error : "white"} 
-              fill={favorite ? colors.status.error : "none"}
+              color={favorite ? colors.error : "white"} 
+              fill={favorite ? colors.error : "none"}
             />
           </TouchableOpacity>
         </View>

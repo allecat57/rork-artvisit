@@ -327,15 +327,19 @@ export const processBookingPayment = async (
     console.error('Error processing booking payment:', error);
     
     // Get userId for error logging
-    const userId = await getSessionUserId();
-    
-    // Log payment error
-    Analytics.logEvent('booking_payment_error', {
-      venue_id: venueId,
-      user_id: userId,
-      total_amount: totalAmount,
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    try {
+      const userId = await getSessionUserId();
+      
+      // Log payment error
+      Analytics.logEvent('booking_payment_error', {
+        venue_id: venueId,
+        user_id: userId,
+        total_amount: totalAmount,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    } catch (authError) {
+      console.error('Error getting user ID for error logging:', authError);
+    }
     
     throw error;
   }

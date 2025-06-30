@@ -18,4 +18,6 @@ export interface Venue {
     latitude: number;
     longitude: number;
   };
+  address?: string;
+  cost?: string;
 }

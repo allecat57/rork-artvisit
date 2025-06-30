@@ -1,176 +1,191 @@
 import React, { useState, useEffect } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  FlatList,
-  TouchableOpacity,
-  ActivityIndicator,
-} from "react-native";
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { Filter, MapPin, Search } from "lucide-react-native";
+import { Search, MapPin, Filter } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
-import VenueCard from "@/components/VenueCard";
-import CategoryCard from "@/components/CategoryCard";
 import SearchBar from "@/components/SearchBar";
-import EmptyState from "@/components/EmptyState";
-import { useVenueStore } from "@/store/useVenueStore";
-import { useLocationStore } from "@/store/useLocationStore";
+import CategoryCard from "@/components/CategoryCard";
+import VenueCard from "@/components/VenueCard";
+import FeaturedVenueCard from "@/components/FeaturedVenueCard";
+import { venues, featuredVenues } from "@/mocks/venues";
 import { categories } from "@/mocks/categories";
-import { Venue } from "@/types/venue";
+import { useLocationStore } from "@/store/useLocationStore";
+import * as Analytics from "@/utils/analytics";
 
 export default function ExploreScreen() {
-  const router = useRouter();
-  const { venues, isLoading, fetchVenues } = useVenueStore();
-  const { currentLocation, getCurrentLocation } = useLocationStore();
-  
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [showFilters, setShowFilters] = useState(false);
+  const [filteredVenues, setFilteredVenues] = useState(venues);
   
+  const { location, requestLocation } = useLocationStore();
+
   useEffect(() => {
-    fetchVenues();
-    getCurrentLocation();
-  }, []);
-  
-  // Filter venues based on search query and selected category
-  const filteredVenues = React.useMemo(() => {
-    let filtered = venues;
+    // Request location when component mounts
+    requestLocation();
     
-    // Apply search filter
+    // Log screen view
+    Analytics.logEvent("screen_view", { screen_name: "explore" });
+  }, []);
+
+  useEffect(() => {
+    // Filter venues based on search query and selected category
+    let filtered = venues;
+
     if (searchQuery) {
-      filtered = filtered.filter((venue: Venue) => 
-        venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        venue.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        venue.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (venue.tags && venue.tags.some((tag: string) => 
-          tag.toLowerCase().includes(searchQuery.toLowerCase())
-        ))
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(venue =>
+        venue.name.toLowerCase().includes(query) ||
+        venue.type.toLowerCase().includes(query) ||
+        venue.description.toLowerCase().includes(query) ||
+        (venue.tags && venue.tags.some((tag: string) => tag.toLowerCase().includes(query)))
       );
     }
-    
-    // Apply category filter
+
     if (selectedCategory) {
-      filtered = filtered.filter((venue: Venue) => venue.category === selectedCategory);
+      filtered = filtered.filter(venue => venue.category === selectedCategory);
     }
+
+    setFilteredVenues(filtered);
+  }, [searchQuery, selectedCategory]);
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
     
-    return filtered;
-  }, [venues, searchQuery, selectedCategory]);
-  
-  const handleVenuePress = (venueId: string) => {
-    router.push(`/venue/${venueId}`);
+    // Log search event
+    Analytics.logEvent("search_performed", {
+      query,
+      results_count: filteredVenues.length
+    });
   };
-  
-  const handleCategoryPress = (categoryId: string) => {
-    router.push(`/category/${categoryId}`);
+
+  const handleCategorySelect = (categoryId: string) => {
+    const newCategory = selectedCategory === categoryId ? null : categoryId;
+    setSelectedCategory(newCategory);
+    
+    // Log category selection
+    Analytics.logEvent("category_selected", {
+      category_id: categoryId,
+      category_name: categories.find(c => c.id === categoryId)?.name
+    });
   };
-  
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <View style={styles.headerTop}>
-        <View style={styles.titleContainer}>
-          <Text style={styles.screenTitle}>Explore</Text>
-          {currentLocation && (
-            <View style={styles.locationContainer}>
-              <MapPin size={14} color={colors.muted} />
+
+  const handleLocationPress = () => {
+    requestLocation();
+    
+    // Log location request
+    Analytics.logEvent("location_requested", {
+      current_location: location ? `${location.latitude}, ${location.longitude}` : "none"
+    });
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <ScrollView 
+        style={styles.scrollContainer}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.titleContainer}>
+            <Text style={[typography.heading1, styles.title]}>Explore</Text>
+            <TouchableOpacity 
+              style={styles.locationButton}
+              onPress={handleLocationPress}
+            >
+              <MapPin size={16} color={colors.accent} />
               <Text style={styles.locationText}>
-                {currentLocation.city || currentLocation.address || "Current Location"}
+                {location ? "Current Location" : "Set Location"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          
+          <TouchableOpacity style={styles.filterButton}>
+            <Filter size={24} color={colors.text} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Search Bar */}
+        <View style={styles.searchContainer}>
+          <SearchBar
+            placeholder="Search museums, galleries, exhibitions..."
+            value={searchQuery}
+            onChangeText={handleSearch}
+            onSubmit={handleSearch}
+          />
+        </View>
+
+        {/* Categories */}
+        {!searchQuery && (
+          <View style={styles.section}>
+            <Text style={[typography.heading3, styles.sectionTitle]}>Categories</Text>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.categoriesContainer}
+            >
+              {categories.map((category) => (
+                <CategoryCard
+                  key={category.id}
+                  category={category}
+                  isSelected={selectedCategory === category.id}
+                  onPress={() => handleCategorySelect(category.id)}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Featured Venues */}
+        {!searchQuery && !selectedCategory && (
+          <View style={styles.section}>
+            <Text style={[typography.heading3, styles.sectionTitle]}>Featured</Text>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.featuredContainer}
+            >
+              {featuredVenues.map((venue) => (
+                <FeaturedVenueCard
+                  key={venue.id}
+                  venue={venue}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* All Venues / Search Results */}
+        <View style={styles.section}>
+          <Text style={[typography.heading3, styles.sectionTitle]}>
+            {searchQuery ? `Search Results (${filteredVenues.length})` : 
+             selectedCategory ? `${categories.find(c => c.id === selectedCategory)?.name || 'Category'} Venues` :
+             'All Venues'}
+          </Text>
+          
+          {filteredVenues.length > 0 ? (
+            <View style={styles.venuesGrid}>
+              {filteredVenues.map((venue) => (
+                <VenueCard
+                  key={venue.id}
+                  venue={venue}
+                />
+              ))}
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <Search size={48} color={colors.muted} />
+              <Text style={[typography.heading4, styles.emptyTitle]}>
+                No venues found
+              </Text>
+              <Text style={[typography.body, styles.emptyMessage]}>
+                Try adjusting your search or browse our categories
               </Text>
             </View>
           )}
         </View>
-        <TouchableOpacity 
-          style={styles.filterButton}
-          onPress={() => setShowFilters(!showFilters)}
-        >
-          <Filter size={20} color={colors.text} />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-  
-  const renderSearchBar = () => (
-    <View style={styles.searchContainer}>
-      <SearchBar
-        placeholder="Search venues, events, or locations..."
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        onClear={() => setSearchQuery("")}
-      />
-    </View>
-  );
-  
-  const renderCategories = () => (
-    <View style={styles.categoriesSection}>
-      <Text style={styles.sectionTitle}>Categories</Text>
-      <FlatList
-        data={categories}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <CategoryCard 
-            category={item} 
-            onPress={() => handleCategoryPress(item.id)}
-          />
-        )}
-        contentContainerStyle={styles.categoriesList}
-      />
-    </View>
-  );
-  
-  const renderVenuesList = () => (
-    <View style={styles.venuesSection}>
-      <Text style={styles.sectionTitle}>
-        {selectedCategory ? `${selectedCategory} Venues` : "All Venues"}
-      </Text>
-      
-      {isLoading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.accent} />
-          <Text style={styles.loadingText}>Loading venues...</Text>
-        </View>
-      ) : filteredVenues.length === 0 ? (
-        <EmptyState
-          icon={<Search size={40} color={colors.muted} />}
-          title="No venues found"
-          message={searchQuery ? `No venues matching "${searchQuery}"` : "There are no venues available at this time."}
-        />
-      ) : (
-        <FlatList
-          data={filteredVenues}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <VenueCard 
-              venue={item} 
-              onPress={() => handleVenuePress(item.id)}
-            />
-          )}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.venuesList}
-        />
-      )}
-    </View>
-  );
-  
-  return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
-      {renderHeader()}
-      {renderSearchBar()}
-      
-      <FlatList
-        data={[1]}
-        renderItem={() => (
-          <View>
-            {renderCategories()}
-            {renderVenuesList()}
-          </View>
-        )}
-        keyExtractor={() => "explore-content"}
-        showsVerticalScrollIndicator={false}
-      />
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -178,83 +193,80 @@ export default function ExploreScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.background,
+  },
+  scrollContainer: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 20,
   },
   header: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  headerTop: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
   },
   titleContainer: {
     flex: 1,
   },
-  screenTitle: {
-    ...typography.heading1,
+  title: {
     color: colors.text,
-    fontSize: 28,
-    fontWeight: "600",
     marginBottom: 4,
   },
-  locationContainer: {
+  locationButton: {
     flexDirection: "row",
     alignItems: "center",
+    marginTop: 4,
   },
   locationText: {
     ...typography.bodySmall,
-    color: colors.muted,
+    color: colors.accent,
     marginLeft: 4,
+    fontWeight: "500",
   },
   filterButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.card,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: colors.border,
+    padding: 8,
+    marginTop: 8,
   },
   searchContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginBottom: 24,
   },
-  categoriesSection: {
-    paddingVertical: 16,
+  section: {
+    marginBottom: 32,
   },
   sectionTitle: {
-    ...typography.heading3,
     color: colors.text,
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    marginBottom: 16,
+    paddingHorizontal: 20,
   },
-  categoriesList: {
-    paddingLeft: 16,
-    paddingRight: 8,
-    gap: 12,
+  categoriesContainer: {
+    paddingLeft: 20,
+    paddingRight: 4,
   },
-  venuesSection: {
-    flex: 1,
-    paddingTop: 16,
+  featuredContainer: {
+    paddingLeft: 20,
+    paddingRight: 4,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
+  venuesGrid: {
+    paddingHorizontal: 20,
+    gap: 16,
+  },
+  emptyState: {
     alignItems: "center",
     paddingVertical: 40,
+    paddingHorizontal: 20,
   },
-  loadingText: {
-    ...typography.body,
+  emptyTitle: {
+    color: colors.text,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyMessage: {
     color: colors.muted,
-    marginTop: 12,
-  },
-  venuesList: {
-    paddingHorizontal: 16,
-    paddingBottom: 20,
+    textAlign: "center",
   },
 });
