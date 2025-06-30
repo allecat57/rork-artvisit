@@ -45,7 +45,7 @@ export default function ExploreScreen() {
         venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         venue.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         venue.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (venue.tags && venue.tags.some(tag => 
+        (venue.tags && venue.tags.some((tag: string) => 
           tag.toLowerCase().includes(searchQuery.toLowerCase())
         ))
       );
@@ -76,7 +76,7 @@ export default function ExploreScreen() {
             <View style={styles.locationContainer}>
               <MapPin size={14} color={colors.muted} />
               <Text style={styles.locationText}>
-                {currentLocation.city || "Current Location"}
+                {currentLocation.city || currentLocation.address || "Current Location"}
               </Text>
             </View>
           )}

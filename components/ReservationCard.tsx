@@ -9,8 +9,9 @@ import { useVenueStore } from "@/store/useVenueStore";
 
 interface ReservationCardProps {
   reservation: Reservation;
-  onPress: () => void;
+  onPress?: () => void;
   onCancel: () => void;
+  onEdit?: () => void;
   onModify?: () => void;
 }
 
@@ -18,6 +19,7 @@ export default function ReservationCard({
   reservation, 
   onPress, 
   onCancel, 
+  onEdit,
   onModify 
 }: ReservationCardProps) {
   const { getVenueById } = useVenueStore();
@@ -42,6 +44,9 @@ export default function ReservationCard({
   // Get venue details using venueId from the reservation
   const venue = reservation.venueId ? getVenueById(reservation.venueId) : null;
   
+  // Use onEdit or onModify (for backward compatibility)
+  const handleEdit = onEdit || onModify;
+  
   // If venue is not found, show a fallback UI
   if (!venue) {
     return (
@@ -52,19 +57,19 @@ export default function ReservationCard({
           
           <View style={styles.infoContainer}>
             <View style={styles.infoRow}>
-              <Calendar size={16} color={colors.primary.muted} />
+              <Calendar size={16} color={colors.muted} />
               <Text style={[typography.bodySmall, styles.infoText]}>
                 {reservation.date ? formatDate(reservation.date) : "Date unknown"}
               </Text>
             </View>
             
             <View style={styles.infoRow}>
-              <Clock size={16} color={colors.primary.muted} />
+              <Clock size={16} color={colors.muted} />
               <Text style={[typography.bodySmall, styles.infoText]}>{reservation.time || "Time unknown"}</Text>
             </View>
             
             <View style={styles.infoRow}>
-              <Ticket size={16} color={colors.primary.muted} />
+              <Ticket size={16} color={colors.muted} />
               <Text style={[typography.bodySmall, styles.infoText]}>
                 Party size: {reservation.partySize || "Unknown"}
               </Text>
@@ -72,27 +77,27 @@ export default function ReservationCard({
           </View>
           
           <View style={styles.confirmationContainer}>
-            <Ticket size={14} color={colors.primary.accent} />
+            <Ticket size={14} color={colors.accent} />
             <Text style={styles.confirmationText}>Confirmation: {reservation.confirmationCode || "Pending"}</Text>
           </View>
         </View>
         
         <View style={styles.actionsContainer}>
-          {onModify && (
+          {handleEdit && (
             <TouchableOpacity 
               style={[styles.actionButton, styles.modifyButton]} 
-              onPress={onModify}
+              onPress={handleEdit}
             >
-              <Edit size={16} color={colors.primary.accent} />
+              <Edit size={16} color={colors.accent} />
               <Text style={styles.modifyText}>Modify</Text>
             </TouchableOpacity>
           )}
           
           <TouchableOpacity 
-            style={[styles.actionButton, styles.cancelButton, !onModify && styles.fullWidthButton]} 
+            style={[styles.actionButton, styles.cancelButton, !handleEdit && styles.fullWidthButton]} 
             onPress={onCancel}
           >
-            <X size={16} color={colors.status.error} />
+            <X size={16} color={colors.error} />
             <Text style={styles.cancelText}>Cancel</Text>
           </TouchableOpacity>
         </View>
@@ -102,63 +107,75 @@ export default function ReservationCard({
   
   const { date, time, confirmationCode } = reservation;
 
-  return (
-    <View style={styles.container}>
-      <TouchableOpacity 
-        style={styles.cardContent} 
-        onPress={onPress}
-        activeOpacity={0.9}
-      >
-        <Image
-          source={{ uri: venue.imageUrl }}
-          style={styles.image}
-          contentFit="cover"
-          transition={300}
-        />
+  const CardContent = (
+    <>
+      <Image
+        source={{ uri: venue.imageUrl }}
+        style={styles.image}
+        contentFit="cover"
+        transition={300}
+      />
+      
+      <View style={styles.content}>
+        <Text style={[typography.heading3, styles.name]} numberOfLines={1}>{venue.name}</Text>
         
-        <View style={styles.content}>
-          <Text style={[typography.heading3, styles.name]} numberOfLines={1}>{venue.name}</Text>
-          
-          <View style={styles.infoContainer}>
-            <View style={styles.infoRow}>
-              <Calendar size={16} color={colors.primary.muted} />
-              <Text style={[typography.bodySmall, styles.infoText]}>{formatDate(date)}</Text>
-            </View>
-            
-            <View style={styles.infoRow}>
-              <Clock size={16} color={colors.primary.muted} />
-              <Text style={[typography.bodySmall, styles.infoText]}>{time || "Time not specified"}</Text>
-            </View>
-            
-            <View style={styles.infoRow}>
-              <MapPin size={16} color={colors.primary.muted} />
-              <Text style={[typography.bodySmall, styles.infoText]} numberOfLines={1}>{venue.location}</Text>
-            </View>
+        <View style={styles.infoContainer}>
+          <View style={styles.infoRow}>
+            <Calendar size={16} color={colors.muted} />
+            <Text style={[typography.bodySmall, styles.infoText]}>{formatDate(date)}</Text>
           </View>
           
-          <View style={styles.confirmationContainer}>
-            <Ticket size={14} color={colors.primary.accent} />
-            <Text style={styles.confirmationText}>Confirmation: {confirmationCode || "Pending"}</Text>
+          <View style={styles.infoRow}>
+            <Clock size={16} color={colors.muted} />
+            <Text style={[typography.bodySmall, styles.infoText]}>{time || "Time not specified"}</Text>
+          </View>
+          
+          <View style={styles.infoRow}>
+            <MapPin size={16} color={colors.muted} />
+            <Text style={[typography.bodySmall, styles.infoText]} numberOfLines={1}>{venue.location}</Text>
           </View>
         </View>
-      </TouchableOpacity>
+        
+        <View style={styles.confirmationContainer}>
+          <Ticket size={14} color={colors.accent} />
+          <Text style={styles.confirmationText}>Confirmation: {confirmationCode || "Pending"}</Text>
+        </View>
+      </View>
+    </>
+  );
+
+  return (
+    <View style={styles.container}>
+      {onPress ? (
+        <TouchableOpacity 
+          style={styles.cardContent} 
+          onPress={onPress}
+          activeOpacity={0.9}
+        >
+          {CardContent}
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.cardContent}>
+          {CardContent}
+        </View>
+      )}
       
       <View style={styles.actionsContainer}>
-        {onModify && (
+        {handleEdit && (
           <TouchableOpacity 
             style={[styles.actionButton, styles.modifyButton]} 
-            onPress={onModify}
+            onPress={handleEdit}
           >
-            <Edit size={16} color={colors.primary.accent} />
+            <Edit size={16} color={colors.accent} />
             <Text style={styles.modifyText}>Modify</Text>
           </TouchableOpacity>
         )}
         
         <TouchableOpacity 
-          style={[styles.actionButton, styles.cancelButton, !onModify && styles.fullWidthButton]} 
+          style={[styles.actionButton, styles.cancelButton, !handleEdit && styles.fullWidthButton]} 
           onPress={onCancel}
         >
-          <X size={16} color={colors.status.error} />
+          <X size={16} color={colors.error} />
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
       </View>
@@ -168,14 +185,14 @@ export default function ReservationCard({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     borderRadius: 12,
     overflow: "hidden",
     marginBottom: 16,
   },
   fallbackContainer: {
     borderWidth: 1,
-    borderColor: colors.primary.border,
+    borderColor: colors.border,
     borderStyle: "dashed",
   },
   cardContent: {
@@ -190,6 +207,7 @@ const styles = StyleSheet.create({
   },
   name: {
     marginBottom: 12,
+    color: colors.text,
   },
   infoContainer: {
     marginBottom: 12,
@@ -201,7 +219,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     marginLeft: 8,
-    color: colors.primary.text,
+    color: colors.text,
   },
   confirmationContainer: {
     flexDirection: "row",
@@ -213,14 +231,14 @@ const styles = StyleSheet.create({
   },
   confirmationText: {
     ...typography.bodySmall,
-    color: colors.primary.accent,
+    color: colors.accent,
     marginLeft: 8,
     fontWeight: "500",
   },
   actionsContainer: {
     flexDirection: "row",
     borderTopWidth: 1,
-    borderTopColor: colors.primary.border,
+    borderTopColor: colors.border,
   },
   actionButton: {
     flex: 1,
@@ -231,7 +249,7 @@ const styles = StyleSheet.create({
   },
   modifyButton: {
     borderRightWidth: 1,
-    borderRightColor: colors.primary.border,
+    borderRightColor: colors.border,
   },
   cancelButton: {
     backgroundColor: "rgba(244, 67, 54, 0.05)",
@@ -241,13 +259,13 @@ const styles = StyleSheet.create({
   },
   modifyText: {
     ...typography.bodySmall,
-    color: colors.primary.accent,
+    color: colors.accent,
     fontWeight: "600",
     marginLeft: 6,
   },
   cancelText: {
     ...typography.bodySmall,
-    color: colors.status.error,
+    color: colors.error,
     fontWeight: "600",
     marginLeft: 6,
   },

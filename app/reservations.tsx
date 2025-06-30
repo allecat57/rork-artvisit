@@ -8,7 +8,6 @@ import typography from "@/constants/typography";
 import ReservationCard from "@/components/ReservationCard";
 import ReservationModal from "@/components/ReservationModal";
 import EmptyState from "@/components/EmptyState";
-import { useReservationStore } from "@/store/useReservationStore";
 import { useVenueStore } from "@/store/useVenueStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Reservation, ReservationStatus } from "@/types/reservation";
@@ -16,25 +15,25 @@ import { Reservation, ReservationStatus } from "@/types/reservation";
 export default function ReservationsScreen() {
   const router = useRouter();
   const { 
-    getCurrentUserReservations, 
+    getUserReservations, 
     cancelReservation, 
-    updateReservation 
-  } = useReservationStore();
-  const { venues } = useVenueStore();
+    updateReservation,
+    venues
+  } = useVenueStore();
   const { user, isAuthenticated } = useAuthStore();
   
   const [modalVisible, setModalVisible] = useState(false);
   const [filterStatus, setFilterStatus] = useState<ReservationStatus | "all">("all");
   const [showFilters, setShowFilters] = useState(false);
   
-  const reservations = getCurrentUserReservations();
+  const reservations = getUserReservations();
   
   // Filter reservations based on status
   const filteredReservations = React.useMemo(() => {
     if (filterStatus === "all") {
       return reservations;
     }
-    return reservations.filter(reservation => reservation.status === filterStatus);
+    return reservations.filter((reservation: Reservation) => reservation.status === filterStatus);
   }, [reservations, filterStatus]);
   
   // Sort reservations by date (upcoming first)

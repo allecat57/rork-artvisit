@@ -11,6 +11,7 @@ export interface Venue {
   admission: string;
   featured?: boolean;
   category?: string;
+  tags?: string[];
   coordinates?: {
     latitude: number;
     longitude: number;

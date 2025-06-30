@@ -19,15 +19,15 @@ import { Venue } from "@/types/venue";
 import * as Analytics from "@/utils/analytics";
 import { bookVenue } from "@/utils/bookingApi";
 import { useAuthStore } from "@/store/useAuthStore";
-import { auth } from "@/config/firebase";
 
 const { height } = Dimensions.get("window");
 
 interface ReservationModalProps {
   visible: boolean;
-  venue: Venue | null;
+  venue?: Venue | null;
+  venues?: Venue[];
   onClose: () => void;
-  onReserve: (venue: Venue, date: Date, timeSlot: string) => void;
+  onReserve?: (venue: Venue, date: Date, timeSlot: string) => void;
   isModifying?: boolean;
   initialDate?: Date;
   initialTimeSlot?: string;
@@ -35,7 +35,8 @@ interface ReservationModalProps {
 
 export default function ReservationModal({ 
   visible, 
-  venue, 
+  venue,
+  venues,
   onClose,
   onReserve,
   isModifying = false,
@@ -44,35 +45,40 @@ export default function ReservationModal({
 }: ReservationModalProps) {
   const [selectedDate, setSelectedDate] = useState<Date | null>(initialDate || null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(initialTimeSlot || null);
+  const [selectedVenue, setSelectedVenue] = useState<Venue | null>(venue || null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
   const { user } = useAuthStore();
+  
+  // Use the provided venue or allow selection from venues list
+  const currentVenue = venue || selectedVenue;
   
   useEffect(() => {
     if (visible) {
       // Reset to initial values when modal becomes visible
       setSelectedDate(initialDate || null);
       setSelectedTimeSlot(initialTimeSlot || null);
+      setSelectedVenue(venue || null);
       
       // Log modal open event
-      if (venue) {
+      if (currentVenue) {
         Analytics.logEvent(isModifying ? "modify_reservation_modal_open" : "reservation_modal_open", {
-          venue_id: venue.id,
-          venue_name: venue.name,
-          venue_type: venue.type
+          venue_id: currentVenue.id,
+          venue_name: currentVenue.name,
+          venue_type: currentVenue.type
         });
       }
     }
-  }, [visible, initialDate, initialTimeSlot, venue, isModifying]);
+  }, [visible, initialDate, initialTimeSlot, venue, currentVenue, isModifying]);
   
   const handleSelectDateTime = (date: Date, timeSlot: string) => {
     setSelectedDate(date);
     setSelectedTimeSlot(timeSlot);
     
     // Log date/time selection
-    if (venue) {
+    if (currentVenue) {
       Analytics.logEvent("reservation_datetime_selected", {
-        venue_id: venue.id,
+        venue_id: currentVenue.id,
         date: date.toISOString(),
         time_slot: timeSlot
       });
@@ -80,7 +86,7 @@ export default function ReservationModal({
   };
   
   const handleReserve = async () => {
-    if (!venue || !selectedDate || !selectedTimeSlot) {
+    if (!currentVenue || !selectedDate || !selectedTimeSlot || !onReserve) {
       return;
     }
     
@@ -90,14 +96,14 @@ export default function ReservationModal({
       // Call booking API (now with Firestore support)
       const bookingResult = await bookVenue({
         userId: user?.id || "app_user",
-        venueId: venue.id,
+        venueId: currentVenue.id,
         date: selectedDate,
         timeSlot: selectedTimeSlot
       });
       
       if (bookingResult.success) {
         // If API call succeeds, proceed with local reservation
-        onReserve(venue, selectedDate, selectedTimeSlot);
+        onReserve(currentVenue, selectedDate, selectedTimeSlot);
         
         // Show success message with booking ID if available
         const successMessage = bookingResult.bookingId 
@@ -108,8 +114,8 @@ export default function ReservationModal({
         
         // Log successful booking
         Analytics.logEvent("reservation_confirmed", {
-          venue_id: venue.id,
-          venue_name: venue.name,
+          venue_id: currentVenue.id,
+          venue_name: currentVenue.name,
           date: selectedDate.toISOString(),
           time_slot: selectedTimeSlot,
           booking_id: bookingResult.bookingId || "local_only"
@@ -120,14 +126,14 @@ export default function ReservationModal({
           "⚠️ Partial Success",
           "Your reservation was saved locally, but we couldn't sync with the server. Your reservation will sync when connectivity is restored.",
           [
-            { text: "OK", onPress: () => onReserve(venue, selectedDate, selectedTimeSlot) }
+            { text: "OK", onPress: () => onReserve(currentVenue, selectedDate, selectedTimeSlot) }
           ]
         );
         
         // Log partial success
         Analytics.logEvent("reservation_partial_success", {
-          venue_id: venue.id,
-          venue_name: venue.name,
+          venue_id: currentVenue.id,
+          venue_name: currentVenue.name,
           error_message: bookingResult.message
         });
       }
@@ -141,8 +147,8 @@ export default function ReservationModal({
       
       // Log error
       Analytics.logEvent("reservation_error", {
-        venue_id: venue.id,
-        venue_name: venue.name,
+        venue_id: currentVenue.id,
+        venue_name: currentVenue.name,
         error_message: error instanceof Error ? error.message : "Unknown error"
       });
     } finally {
@@ -152,10 +158,10 @@ export default function ReservationModal({
   
   const resetAndClose = () => {
     // Log modal close event
-    if (venue) {
+    if (currentVenue) {
       Analytics.logEvent(isModifying ? "modify_reservation_modal_close" : "reservation_modal_close", {
-        venue_id: venue.id,
-        venue_name: venue.name,
+        venue_id: currentVenue.id,
+        venue_name: currentVenue.name,
         completed: false
       });
     }
@@ -163,11 +169,62 @@ export default function ReservationModal({
     if (!isModifying) {
       setSelectedDate(null);
       setSelectedTimeSlot(null);
+      setSelectedVenue(null);
     }
     onClose();
   };
 
-  if (!venue) return null;
+  if (!currentVenue) {
+    return (
+      <Modal
+        visible={visible}
+        transparent
+        animationType="slide"
+        onRequestClose={resetAndClose}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity style={styles.closeButton} onPress={resetAndClose}>
+              <X size={24} color={colors.text} />
+            </TouchableOpacity>
+            
+            <View style={styles.contentPadding}>
+              <Text style={[typography.heading2, styles.title]}>Select a Venue</Text>
+              <Text style={[typography.body, styles.subtitle]}>
+                Please select a venue to make a reservation.
+              </Text>
+              
+              {venues && venues.length > 0 && (
+                <ScrollView style={styles.venuesList}>
+                  {venues.map((venueOption) => (
+                    <TouchableOpacity
+                      key={venueOption.id}
+                      style={styles.venueOption}
+                      onPress={() => setSelectedVenue(venueOption)}
+                    >
+                      <Image
+                        source={{ uri: venueOption.imageUrl }}
+                        style={styles.venueOptionImage}
+                        contentFit="cover"
+                      />
+                      <View style={styles.venueOptionContent}>
+                        <Text style={[typography.heading3, styles.venueOptionName]}>
+                          {venueOption.name}
+                        </Text>
+                        <Text style={[typography.body, styles.venueOptionType]}>
+                          {venueOption.type}
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              )}
+            </View>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
 
   return (
     <Modal
@@ -179,35 +236,35 @@ export default function ReservationModal({
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <TouchableOpacity style={styles.closeButton} onPress={resetAndClose}>
-            <X size={24} color={colors.primary.text} />
+            <X size={24} color={colors.text} />
           </TouchableOpacity>
           
           <ScrollView showsVerticalScrollIndicator={false}>
             <Image
-              source={{ uri: venue.imageUrl }}
+              source={{ uri: currentVenue.imageUrl }}
               style={styles.venueImage}
               contentFit="cover"
               transition={300}
             />
             
             <View style={styles.contentPadding}>
-              <Text style={[typography.heading2, styles.venueName]}>{venue.name}</Text>
-              <Text style={[typography.body, styles.venueDescription]}>{venue.description}</Text>
+              <Text style={[typography.heading2, styles.venueName]}>{currentVenue.name}</Text>
+              <Text style={[typography.body, styles.venueDescription]}>{currentVenue.description}</Text>
               
               <View style={styles.infoContainer}>
                 <View style={styles.infoItem}>
                   <Text style={[typography.bodySmall, styles.infoLabel]}>Type</Text>
-                  <Text style={[typography.body, styles.infoValue]}>{venue.type}</Text>
+                  <Text style={[typography.body, styles.infoValue]}>{currentVenue.type}</Text>
                 </View>
                 
                 <View style={styles.infoItem}>
                   <Text style={[typography.bodySmall, styles.infoLabel]}>Hours</Text>
-                  <Text style={[typography.body, styles.infoValue]}>{venue.openingHours}</Text>
+                  <Text style={[typography.body, styles.infoValue]}>{currentVenue.openingHours}</Text>
                 </View>
                 
                 <View style={styles.infoItem}>
                   <Text style={[typography.bodySmall, styles.infoLabel]}>Admission</Text>
-                  <Text style={[typography.body, styles.infoValue]}>{venue.admission}</Text>
+                  <Text style={[typography.body, styles.infoValue]}>{currentVenue.admission}</Text>
                 </View>
               </View>
               
@@ -231,14 +288,14 @@ export default function ReservationModal({
               disabled={!selectedDate || !selectedTimeSlot || isSubmitting}
               loading={isSubmitting}
               icon={isModifying ? 
-                <Calendar size={18} color={colors.primary.background} /> : 
-                <Check size={18} color={colors.primary.background} />
+                <Calendar size={18} color={colors.primary} /> : 
+                <Check size={18} color={colors.primary} />
               }
               analyticsEventName={isModifying ? Analytics.Events.MODIFY_RESERVATION : Analytics.Events.CREATE_RESERVATION}
               analyticsParams={{
-                venue_id: venue.id,
-                venue_name: venue.name,
-                venue_type: venue.type,
+                venue_id: currentVenue.id,
+                venue_name: currentVenue.name,
+                venue_type: currentVenue.type,
                 date: selectedDate?.toISOString(),
                 time_slot: selectedTimeSlot
               }}
@@ -257,7 +314,7 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
-    backgroundColor: colors.primary.background,
+    backgroundColor: colors.primary,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     height: height * 0.85,
@@ -278,12 +335,21 @@ const styles = StyleSheet.create({
   contentPadding: {
     padding: 20,
   },
+  title: {
+    marginBottom: 8,
+    color: colors.text,
+  },
+  subtitle: {
+    marginBottom: 20,
+    color: colors.muted,
+  },
   venueName: {
     marginBottom: 8,
+    color: colors.text,
   },
   venueDescription: {
     marginBottom: 20,
-    color: colors.primary.text,
+    color: colors.text,
     opacity: 0.9,
   },
   infoContainer: {
@@ -295,23 +361,52 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   infoLabel: {
-    color: colors.primary.muted,
+    color: colors.muted,
     marginBottom: 4,
   },
   infoValue: {
-    color: colors.primary.text,
+    color: colors.text,
   },
   divider: {
     height: 1,
-    backgroundColor: colors.primary.border,
+    backgroundColor: colors.border,
     marginBottom: 24,
   },
   sectionTitle: {
     marginBottom: 16,
+    color: colors.text,
   },
   footer: {
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: colors.primary.border,
+    borderTopColor: colors.border,
+  },
+  venuesList: {
+    maxHeight: 300,
+  },
+  venueOption: {
+    flexDirection: "row",
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: colors.card,
+    marginBottom: 8,
+  },
+  venueOptionImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+  },
+  venueOptionContent: {
+    flex: 1,
+    marginLeft: 12,
+    justifyContent: "center",
+  },
+  venueOptionName: {
+    color: colors.text,
+    marginBottom: 4,
+  },
+  venueOptionType: {
+    color: colors.muted,
+    fontSize: 14,
   },
 });

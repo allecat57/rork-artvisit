@@ -1,8 +1,13 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Calendar, Ticket, Heart, Clock, ShoppingBag, Map, Search } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
+
+interface ActionButton {
+  title: string;
+  onPress: () => void;
+}
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -10,6 +15,7 @@ interface EmptyStateProps {
   title: string;
   message: string;
   action?: React.ReactNode;
+  actionButton?: ActionButton;
 }
 
 export default function EmptyState({ 
@@ -17,7 +23,8 @@ export default function EmptyState({
   iconName,
   title, 
   message, 
-  action 
+  action,
+  actionButton
 }: EmptyStateProps) {
   // Render icon based on iconName if no custom icon is provided
   const renderIcon = () => {
@@ -25,7 +32,7 @@ export default function EmptyState({
     
     if (iconName) {
       const size = 64;
-      const color = colors.primary.muted;
+      const color = colors.muted;
       
       switch (iconName) {
         case "Calendar":
@@ -48,7 +55,7 @@ export default function EmptyState({
     }
     
     // Default icon if none provided
-    return <Calendar size={64} color={colors.primary.muted} />;
+    return <Calendar size={64} color={colors.muted} />;
   };
   
   return (
@@ -65,6 +72,18 @@ export default function EmptyState({
       {action && (
         <View style={styles.actionContainer}>
           {action}
+        </View>
+      )}
+      {actionButton && (
+        <View style={styles.actionContainer}>
+          <TouchableOpacity 
+            style={styles.actionButton}
+            onPress={actionButton.onPress}
+          >
+            <Text style={styles.actionButtonText}>
+              {actionButton.title}
+            </Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>
@@ -85,14 +104,27 @@ const styles = StyleSheet.create({
   title: {
     textAlign: "center",
     marginBottom: 12,
+    color: colors.text,
   },
   message: {
     textAlign: "center",
-    color: colors.primary.muted,
+    color: colors.muted,
     marginBottom: 24,
   },
   actionContainer: {
     width: "100%",
     maxWidth: 250,
+  },
+  actionButton: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  actionButtonText: {
+    ...typography.button,
+    color: colors.primary,
+    fontWeight: "600",
   },
 });
