@@ -79,99 +79,12 @@ export const useEventsStore = create<EventsState>()(
         const userId = getCurrentUserId();
         if (!userId) return [];
         
-        // If Supabase is configured, try to fetch registrations from Supabase
-        if (isSupabaseConfigured()) {
-          // This would normally be an async operation, but for simplicity
-          // we'll use the local cache and update it in the background
-          supabase
-            .from(TABLES.EVENT_REGISTRATIONS)
-            .select('*')
-            .eq('user_id', userId)
-            .then(({ data, error }) => {
-              if (error) {
-                console.log("Supabase table doesn't exist or error fetching registrations:", error.message);
-                return;
-              }
-              
-              if (data && data.length > 0) {
-                // Convert Supabase data to our format
-                const registrations: EventRegistration[] = data.map(item => ({
-                  eventId: item.event_id,
-                  userId: item.user_id,
-                  registrationDate: item.registration_date,
-                  numberOfTickets: item.number_of_tickets,
-                  totalPrice: item.total_price,
-                  confirmationCode: item.confirmation_code
-                }));
-                
-                // Update the local cache with Supabase data
-                set(state => ({
-                  registrations: [
-                    ...state.registrations.filter(reg => reg.userId !== userId),
-                    ...registrations
-                  ]
-                }));
-              }
-            })
-            .catch(err => {
-              console.log("Supabase not available or table doesn't exist:", err.message);
-            });
-        }
-        
         return get().registrations.filter(reg => reg.userId === userId);
       },
       
       isUserRegisteredForEvent: (eventId: string) => {
         const userId = getCurrentUserId();
         if (!userId) return false;
-        
-        // If Supabase is configured, try to check registration in Supabase
-        if (isSupabaseConfigured()) {
-          // This would normally be an async operation, but for simplicity
-          // we'll use the local cache and update it in the background
-          supabase
-            .from(TABLES.EVENT_REGISTRATIONS)
-            .select('*')
-            .eq('user_id', userId)
-            .eq('event_id', eventId)
-            .then(({ data, error }) => {
-              if (error) {
-                console.log("Supabase table doesn't exist or error checking registration:", error.message);
-                return;
-              }
-              
-              if (data && data.length > 0) {
-                // User is registered in Supabase, update local cache
-                const registration: EventRegistration = {
-                  eventId: data[0].event_id,
-                  userId: data[0].user_id,
-                  registrationDate: data[0].registration_date,
-                  numberOfTickets: data[0].number_of_tickets,
-                  totalPrice: data[0].total_price,
-                  confirmationCode: data[0].confirmation_code
-                };
-                
-                // Update the local cache with Supabase data
-                set(state => {
-                  // Check if registration already exists in local cache
-                  const exists = state.registrations.some(
-                    reg => reg.eventId === eventId && reg.userId === userId
-                  );
-                  
-                  if (!exists) {
-                    return {
-                      registrations: [...state.registrations, registration]
-                    };
-                  }
-                  
-                  return state;
-                });
-              }
-            })
-            .catch(err => {
-              console.log("Supabase not available or table doesn't exist:", err.message);
-            });
-        }
         
         return get().registrations.some(
           reg => reg.eventId === eventId && reg.userId === userId
@@ -182,77 +95,13 @@ export const useEventsStore = create<EventsState>()(
         set({ isLoading: true });
         
         try {
-          // If Supabase is configured, try to fetch events from Supabase
-          if (isSupabaseConfigured()) {
-            try {
-              const { data, error } = await supabase
-                .from(TABLES.EVENTS)
-                .select('*');
-                
-              if (error) {
-                console.log("Supabase events table doesn't exist, using mock data:", error.message);
-                // Fall back to mock data
-                set({ allEvents: events, isLoading: false });
-                
-                // Log analytics event
-                Analytics.logEvent("fetch_events", {
-                  count: events.length,
-                  source: "mock_fallback"
-                });
-                
-                return;
-              }
-              
-              if (data && data.length > 0) {
-                // Convert Supabase data to our format
-                const fetchedEvents: Event[] = data.map(item => ({
-                  id: item.id,
-                  title: item.title,
-                  description: item.description,
-                  image: item.image,
-                  date: item.date,
-                  endDate: item.end_date,
-                  location: item.location,
-                  price: item.price,
-                  capacity: item.capacity,
-                  remainingSpots: item.remaining_spots,
-                  accessLevel: item.access_level,
-                  featured: item.is_featured || false,
-                  tags: item.tags,
-                  type: item.type
-                }));
-                
-                set({ allEvents: fetchedEvents, isLoading: false });
-                
-                // Log analytics event
-                Analytics.logEvent("fetch_events", {
-                  count: fetchedEvents.length,
-                  source: "supabase"
-                });
-                
-                return;
-              }
-            } catch (supabaseError) {
-              console.log("Supabase not available, using mock data:", supabaseError);
-              // Fall back to mock data
-              set({ allEvents: events, isLoading: false });
-              
-              // Log analytics event
-              Analytics.logEvent("fetch_events", {
-                count: events.length,
-                source: "mock_fallback_error"
-              });
-              
-              return;
-            }
-          }
+          // Always use mock data for now since Supabase tables don't exist
+          // In a real app, you would check if Supabase is configured and tables exist
+          console.log("Using mock events data");
           
-          // If Supabase is not configured or no events found, use mock data
-          // For this demo, we'll just simulate a network delay
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          // Simulate network delay
+          await new Promise(resolve => setTimeout(resolve, 500));
           
-          // We already have the events loaded from the mocks,
-          // but in a real app you would set the fetched events here
           set({ allEvents: events, isLoading: false });
           
           // Log analytics event
@@ -319,42 +168,6 @@ export const useEventsStore = create<EventsState>()(
             confirmationCode
           };
           
-          // If Supabase is configured, try to create registration in Supabase
-          if (isSupabaseConfigured()) {
-            supabase
-              .from(TABLES.EVENT_REGISTRATIONS)
-              .insert([
-                {
-                  event_id: eventId,
-                  user_id: userId,
-                  registration_date: registration.registrationDate,
-                  number_of_tickets: numberOfTickets,
-                  total_price: event.price * numberOfTickets,
-                  confirmation_code: confirmationCode
-                }
-              ])
-              .then(({ error }) => {
-                if (error) {
-                  console.log("Supabase table doesn't exist or error creating registration:", error.message);
-                  return;
-                }
-                
-                // Update event remaining spots in Supabase
-                supabase
-                  .from(TABLES.EVENTS)
-                  .update({ remaining_spots: event.remainingSpots - numberOfTickets })
-                  .eq('id', eventId)
-                  .then(({ error: updateError }) => {
-                    if (updateError) {
-                      console.log("Supabase table doesn't exist or error updating event spots:", updateError.message);
-                    }
-                  });
-              })
-              .catch(err => {
-                console.log("Supabase not available:", err.message);
-              });
-          }
-          
           // Update event remaining spots
           const updatedEvents = get().allEvents.map(e => {
             if (e.id === eventId) {
@@ -411,39 +224,6 @@ export const useEventsStore = create<EventsState>()(
           if (!registration) {
             console.log("Registration not found");
             return false;
-          }
-          
-          // If Supabase is configured, try to delete registration from Supabase
-          if (isSupabaseConfigured()) {
-            supabase
-              .from(TABLES.EVENT_REGISTRATIONS)
-              .delete()
-              .eq('event_id', eventId)
-              .eq('user_id', userId)
-              .then(({ error }) => {
-                if (error) {
-                  console.log("Supabase table doesn't exist or error deleting registration:", error.message);
-                  return;
-                }
-                
-                // Get the event to update remaining spots
-                const event = get().getEventById(eventId);
-                if (event) {
-                  // Update event remaining spots in Supabase
-                  supabase
-                    .from(TABLES.EVENTS)
-                    .update({ remaining_spots: event.remainingSpots + registration.numberOfTickets })
-                    .eq('id', eventId)
-                    .then(({ error: updateError }) => {
-                      if (updateError) {
-                        console.log("Supabase table doesn't exist or error updating event spots:", updateError.message);
-                      }
-                    });
-                }
-              })
-              .catch(err => {
-                console.log("Supabase not available:", err.message);
-              });
           }
           
           // Update event remaining spots

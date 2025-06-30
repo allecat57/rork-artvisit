@@ -24,54 +24,7 @@ export const createBooking = async (
     
     const confirmationCode = generateConfirmationCode();
     
-    // Create booking in Supabase if configured
-    if (isSupabaseConfigured()) {
-      try {
-        const { data, error } = await supabase
-          .from('bookings')
-          .insert({
-            user_id: userId,
-            venue_id: venueId,
-            date,
-            time,
-            party_size: partySize,
-            notes,
-            confirmation_code: confirmationCode,
-            status: 'confirmed',
-            total_amount: totalAmount,
-            payment_intent_id: paymentIntentId,
-            created_at: new Date().toISOString()
-          })
-          .select()
-          .single();
-        
-        if (error) {
-          console.log("Supabase booking table doesn't exist, using local storage:", error.message);
-          // Fall back to local storage or mock behavior
-        } else {
-          // Log to analytics
-          Analytics.logEvent('booking_created', {
-            booking_id: data.id,
-            venue_id: venueId,
-            user_id: userId,
-            date,
-            time,
-            party_size: partySize,
-            total_amount: totalAmount
-          });
-          
-          return {
-            id: data.id,
-            confirmationCode,
-            status: 'confirmed'
-          };
-        }
-      } catch (supabaseError) {
-        console.log("Supabase not available, using local storage:", supabaseError);
-      }
-    }
-    
-    // Fallback to local behavior
+    // For now, just use local storage since Supabase tables don't exist
     const mockId = `booking_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     
     // Log to analytics
@@ -227,50 +180,7 @@ export const cancelBooking = async (bookingId: string) => {
       throw new Error('User must be logged in to cancel a booking');
     }
     
-    // Try to cancel in Supabase if configured
-    if (isSupabaseConfigured()) {
-      try {
-        // Get booking details first for analytics
-        const { data: bookingData, error: fetchError } = await supabase
-          .from('bookings')
-          .select('*')
-          .eq('id', bookingId)
-          .eq('user_id', userId)
-          .single();
-        
-        if (fetchError) {
-          console.log("Supabase booking table doesn't exist or booking not found:", fetchError.message);
-        } else {
-          // Update booking status in Supabase
-          const { error } = await supabase
-            .from('bookings')
-            .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
-            .eq('id', bookingId)
-            .eq('user_id', userId);
-          
-          if (error) {
-            console.log("Error updating booking in Supabase:", error.message);
-          } else {
-            // Log to analytics
-            Analytics.logEvent('booking_cancelled', {
-              booking_id: bookingId,
-              venue_id: bookingData.venue_id,
-              user_id: userId,
-              date: bookingData.date,
-              time: bookingData.time,
-              party_size: bookingData.party_size,
-              total_amount: bookingData.total_amount
-            });
-            
-            return { success: true };
-          }
-        }
-      } catch (supabaseError) {
-        console.log("Supabase not available:", supabaseError);
-      }
-    }
-    
-    // Fallback to local behavior
+    // For now, just use local behavior since Supabase tables don't exist
     Analytics.logEvent('booking_cancelled', {
       booking_id: bookingId,
       user_id: userId,
@@ -295,40 +205,7 @@ export const getUserBookings = async () => {
       throw new Error('User must be logged in to get bookings');
     }
     
-    // Try to get bookings from Supabase if configured
-    if (isSupabaseConfigured()) {
-      try {
-        const { data, error } = await supabase
-          .from('bookings')
-          .select(`
-            *,
-            venues:venue_id (
-              id,
-              name,
-              image,
-              location
-            )
-          `)
-          .eq('user_id', userId)
-          .order('date', { ascending: true });
-        
-        if (error) {
-          console.log("Supabase booking table doesn't exist:", error.message);
-        } else {
-          // Log to analytics
-          Analytics.logEvent('view_bookings', {
-            user_id: userId,
-            count: data.length
-          });
-          
-          return data;
-        }
-      } catch (supabaseError) {
-        console.log("Supabase not available:", supabaseError);
-      }
-    }
-    
-    // Fallback to empty array
+    // For now, return empty array since Supabase tables don't exist
     Analytics.logEvent('view_bookings', {
       user_id: userId,
       count: 0,
@@ -353,45 +230,7 @@ export const getBookingById = async (bookingId: string) => {
       throw new Error('User must be logged in to get booking details');
     }
     
-    // Try to get booking from Supabase if configured
-    if (isSupabaseConfigured()) {
-      try {
-        const { data, error } = await supabase
-          .from('bookings')
-          .select(`
-            *,
-            venues:venue_id (
-              id,
-              name,
-              image,
-              location,
-              description,
-              phone,
-              website
-            )
-          `)
-          .eq('id', bookingId)
-          .eq('user_id', userId)
-          .single();
-        
-        if (error) {
-          console.log("Supabase booking table doesn't exist or booking not found:", error.message);
-        } else {
-          // Log to analytics
-          Analytics.logEvent('view_booking_details', {
-            booking_id: bookingId,
-            venue_id: data.venue_id,
-            user_id: userId
-          });
-          
-          return data;
-        }
-      } catch (supabaseError) {
-        console.log("Supabase not available:", supabaseError);
-      }
-    }
-    
-    // Fallback to null
+    // For now, return null since Supabase tables don't exist
     return null;
   } catch (error) {
     console.error('Error getting booking details:', error);

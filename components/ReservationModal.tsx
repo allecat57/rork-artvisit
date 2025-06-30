@@ -18,6 +18,7 @@ import DateTimePicker from "./DateTimePicker";
 import PaymentMethodModal from "./PaymentMethodModal";
 import StripePaymentMethodModal from "./StripePaymentMethodModal";
 import { Venue } from "@/types/venue";
+import { Reservation } from "@/types/reservation";
 import * as Analytics from "@/utils/analytics";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useReservationStore } from "@/store/useReservationStore";
@@ -183,13 +184,13 @@ export default function ReservationModal({
         setConfirmationCode(newConfirmationCode);
         
         // Create reservation with required properties
-        const reservation = {
+        const reservation: Reservation = {
           id: `res-${Date.now()}`,
           userId: user?.id || "app_user",
           venueId: currentVenue.id,
           date: selectedDate.toISOString().split('T')[0],
           time: selectedTimeSlot,
-          status: "confirmed" as const,
+          status: "confirmed",
           confirmationCode: newConfirmationCode,
           partySize: partySize
         };
