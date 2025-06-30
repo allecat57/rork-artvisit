@@ -30,6 +30,8 @@ export default function SearchBar({
         placeholderTextColor={colors.textMuted}
         selectionColor={colors.accent}
         returnKeyType="search"
+        autoCapitalize="none"
+        autoCorrect={false}
       />
       {value.length > 0 && (
         <TouchableOpacity
@@ -48,7 +50,6 @@ export default function SearchBar({
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.card,

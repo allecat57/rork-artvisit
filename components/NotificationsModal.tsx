@@ -7,7 +7,8 @@ import {
   TouchableOpacity, 
   ScrollView,
   Switch,
-  Platform
+  Platform,
+  Alert
 } from 'react-native';
 import { X, Bell, BellOff, Calendar, Heart, Tag, ShoppingBag, MessageCircle } from 'lucide-react-native';
 import colors from '@/constants/colors';
@@ -46,6 +47,7 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
   const [localPromotions, setLocalPromotions] = useState(promotions);
   const [localOrderUpdates, setLocalOrderUpdates] = useState(orderUpdates);
   const [localMessageNotifications, setLocalMessageNotifications] = useState(messageNotifications);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Reset local state when modal becomes visible
   useEffect(() => {
@@ -72,33 +74,51 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
     messageNotifications
   ]);
 
-  const handleSave = () => {
-    // Update the store with local state
-    setPushEnabled(localPushEnabled);
-    setEmailEnabled(localEmailEnabled);
-    setReservationReminders(localReservationReminders);
-    setFavoriteUpdates(localFavoriteUpdates);
-    setPromotions(localPromotions);
-    setOrderUpdates(localOrderUpdates);
-    setMessageNotifications(localMessageNotifications);
+  const handleSave = async () => {
+    setIsSaving(true);
     
-    // Log notification settings update
-    Analytics.logEvent("notifications_settings_updated", {
-      push_enabled: localPushEnabled,
-      email_enabled: localEmailEnabled,
-      reservation_reminders: localReservationReminders,
-      favorite_updates: localFavoriteUpdates,
-      promotions: localPromotions,
-      order_updates: localOrderUpdates,
-      message_notifications: localMessageNotifications
-    });
-    
-    // Set user property for analytics
-    Analytics.setUserProperties({
-      notification_enabled: localPushEnabled ? "true" : "false"
-    });
-    
-    onClose();
+    try {
+      // Update the store with local state
+      setPushEnabled(localPushEnabled);
+      setEmailEnabled(localEmailEnabled);
+      setReservationReminders(localReservationReminders);
+      setFavoriteUpdates(localFavoriteUpdates);
+      setPromotions(localPromotions);
+      setOrderUpdates(localOrderUpdates);
+      setMessageNotifications(localMessageNotifications);
+      
+      // Log notification settings update
+      Analytics.logEvent("notifications_settings_updated", {
+        push_enabled: localPushEnabled,
+        email_enabled: localEmailEnabled,
+        reservation_reminders: localReservationReminders,
+        favorite_updates: localFavoriteUpdates,
+        promotions: localPromotions,
+        order_updates: localOrderUpdates,
+        message_notifications: localMessageNotifications
+      });
+      
+      // Set user property for analytics
+      Analytics.setUserProperties({
+        notification_enabled: localPushEnabled ? "true" : "false"
+      });
+      
+      // Show success message
+      Alert.alert(
+        "Settings Saved",
+        "Your notification preferences have been updated successfully.",
+        [{ text: "OK", onPress: onClose }]
+      );
+    } catch (error) {
+      console.error("Error saving notification settings:", error);
+      Alert.alert(
+        "Error",
+        "There was an error saving your settings. Please try again.",
+        [{ text: "OK" }]
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleToggleAll = (enabled: boolean) => {
@@ -126,14 +146,14 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Notifications</Text>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <X size={24} color={colors.primary.text} />
+              <X size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
           
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Bell size={24} color={colors.primary.accent} />
+                <Bell size={24} color={colors.accent} />
                 <Text style={styles.sectionTitle}>Notification Channels</Text>
               </View>
               <Text style={styles.sectionDescription}>
@@ -156,8 +176,8 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
                       Analytics.logEvent("push_notifications_disabled");
                     }
                   }}
-                  trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localPushEnabled ? colors.primary.secondary : '#f4f3f4'}
+                  trackColor={{ false: colors.textMuted, true: colors.accent }}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localPushEnabled ? colors.accent : '#f4f3f4'}
                 />
               </View>
               
@@ -171,15 +191,15 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
                 <Switch
                   value={localEmailEnabled}
                   onValueChange={setLocalEmailEnabled}
-                  trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localEmailEnabled ? colors.primary.secondary : '#f4f3f4'}
+                  trackColor={{ false: colors.textMuted, true: colors.accent }}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localEmailEnabled ? colors.accent : '#f4f3f4'}
                 />
               </View>
             </View>
             
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Bell size={24} color={colors.primary.accent} />
+                <Bell size={24} color={colors.accent} />
                 <Text style={styles.sectionTitle}>Notification Types</Text>
               </View>
               
@@ -204,7 +224,7 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
               <View style={styles.settingItem}>
                 <View style={styles.settingTextContainer}>
                   <View style={styles.settingTitleContainer}>
-                    <Calendar size={18} color={colors.primary.accent} />
+                    <Calendar size={18} color={colors.accent} />
                     <Text style={[styles.settingTitle, styles.settingTitleWithIcon]}>Reservation Reminders</Text>
                   </View>
                   <Text style={styles.settingDescription}>
@@ -214,15 +234,15 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
                 <Switch
                   value={localReservationReminders}
                   onValueChange={setLocalReservationReminders}
-                  trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localReservationReminders ? colors.primary.secondary : '#f4f3f4'}
+                  trackColor={{ false: colors.textMuted, true: colors.accent }}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localReservationReminders ? colors.accent : '#f4f3f4'}
                 />
               </View>
               
               <View style={styles.settingItem}>
                 <View style={styles.settingTextContainer}>
                   <View style={styles.settingTitleContainer}>
-                    <Heart size={18} color={colors.primary.accent} />
+                    <Heart size={18} color={colors.accent} />
                     <Text style={[styles.settingTitle, styles.settingTitleWithIcon]}>Favorite Updates</Text>
                   </View>
                   <Text style={styles.settingDescription}>
@@ -232,15 +252,15 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
                 <Switch
                   value={localFavoriteUpdates}
                   onValueChange={setLocalFavoriteUpdates}
-                  trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localFavoriteUpdates ? colors.primary.secondary : '#f4f3f4'}
+                  trackColor={{ false: colors.textMuted, true: colors.accent }}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localFavoriteUpdates ? colors.accent : '#f4f3f4'}
                 />
               </View>
               
               <View style={styles.settingItem}>
                 <View style={styles.settingTextContainer}>
                   <View style={styles.settingTitleContainer}>
-                    <Tag size={18} color={colors.primary.accent} />
+                    <Tag size={18} color={colors.accent} />
                     <Text style={[styles.settingTitle, styles.settingTitleWithIcon]}>Promotions & Offers</Text>
                   </View>
                   <Text style={styles.settingDescription}>
@@ -250,15 +270,15 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
                 <Switch
                   value={localPromotions}
                   onValueChange={setLocalPromotions}
-                  trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localPromotions ? colors.primary.secondary : '#f4f3f4'}
+                  trackColor={{ false: colors.textMuted, true: colors.accent }}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localPromotions ? colors.accent : '#f4f3f4'}
                 />
               </View>
               
               <View style={styles.settingItem}>
                 <View style={styles.settingTextContainer}>
                   <View style={styles.settingTitleContainer}>
-                    <ShoppingBag size={18} color={colors.primary.accent} />
+                    <ShoppingBag size={18} color={colors.accent} />
                     <Text style={[styles.settingTitle, styles.settingTitleWithIcon]}>Order Updates</Text>
                   </View>
                   <Text style={styles.settingDescription}>
@@ -268,15 +288,15 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
                 <Switch
                   value={localOrderUpdates}
                   onValueChange={setLocalOrderUpdates}
-                  trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localOrderUpdates ? colors.primary.secondary : '#f4f3f4'}
+                  trackColor={{ false: colors.textMuted, true: colors.accent }}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localOrderUpdates ? colors.accent : '#f4f3f4'}
                 />
               </View>
               
               <View style={styles.settingItem}>
                 <View style={styles.settingTextContainer}>
                   <View style={styles.settingTitleContainer}>
-                    <MessageCircle size={18} color={colors.primary.accent} />
+                    <MessageCircle size={18} color={colors.accent} />
                     <Text style={[styles.settingTitle, styles.settingTitleWithIcon]}>Messages</Text>
                   </View>
                   <Text style={styles.settingDescription}>
@@ -286,8 +306,8 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
                 <Switch
                   value={localMessageNotifications}
                   onValueChange={setLocalMessageNotifications}
-                  trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localMessageNotifications ? colors.primary.secondary : '#f4f3f4'}
+                  trackColor={{ false: colors.textMuted, true: colors.accent }}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localMessageNotifications ? colors.accent : '#f4f3f4'}
                 />
               </View>
             </View>
@@ -297,15 +317,19 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
             <TouchableOpacity 
               style={styles.cancelButton}
               onPress={onClose}
+              disabled={isSaving}
             >
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
-              style={styles.saveButton}
+              style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
               onPress={handleSave}
+              disabled={isSaving}
             >
-              <Text style={styles.saveButtonText}>Save Changes</Text>
+              <Text style={styles.saveButtonText}>
+                {isSaving ? "Saving..." : "Save Changes"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -321,7 +345,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: colors.primary.background,
+    backgroundColor: colors.background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     height: '90%',
@@ -334,11 +358,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.primary.border,
+    borderBottomColor: colors.border,
   },
   headerTitle: {
     ...typography.heading3,
-    color: colors.primary.text,
+    color: colors.text,
   },
   closeButton: {
     padding: 4,
@@ -358,10 +382,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...typography.heading3,
     marginLeft: 12,
+    color: colors.text,
   },
   sectionDescription: {
     ...typography.body,
-    color: colors.primary.muted,
+    color: colors.textMuted,
     marginBottom: 16,
   },
   toggleAllContainer: {
@@ -371,33 +396,34 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.primary.border,
+    borderBottomColor: colors.border,
   },
   toggleAllText: {
     ...typography.body,
     fontWeight: '600',
+    color: colors.text,
   },
   toggleButtons: {
     flexDirection: 'row',
     borderRadius: 8,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: colors.primary.border,
+    borderColor: colors.border,
   },
   toggleButton: {
     paddingVertical: 8,
     paddingHorizontal: 16,
   },
   toggleOnButton: {
-    backgroundColor: colors.primary.accent,
+    backgroundColor: colors.accent,
   },
   toggleOffButton: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
   },
   toggleButtonText: {
     ...typography.bodySmall,
     fontWeight: '600',
-    color: colors.primary.background,
+    color: colors.background,
   },
   settingItem: {
     flexDirection: 'row',
@@ -405,7 +431,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.primary.border,
+    borderBottomColor: colors.border,
   },
   settingTextContainer: {
     flex: 1,
@@ -419,19 +445,20 @@ const styles = StyleSheet.create({
   settingTitle: {
     ...typography.body,
     fontWeight: '600',
+    color: colors.text,
   },
   settingTitleWithIcon: {
     marginLeft: 8,
   },
   settingDescription: {
     ...typography.bodySmall,
-    color: colors.primary.muted,
+    color: colors.textMuted,
   },
   footer: {
     flexDirection: 'row',
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: colors.primary.border,
+    borderTopColor: colors.border,
   },
   cancelButton: {
     flex: 1,
@@ -439,24 +466,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 8,
     borderWidth: 1,
-    borderColor: colors.primary.border,
+    borderColor: colors.border,
     borderRadius: 8,
   },
   cancelButtonText: {
     ...typography.body,
-    color: colors.primary.text,
+    color: colors.text,
   },
   saveButton: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
     marginLeft: 8,
-    backgroundColor: colors.primary.accent,
+    backgroundColor: colors.accent,
     borderRadius: 8,
+  },
+  saveButtonDisabled: {
+    backgroundColor: colors.textMuted,
   },
   saveButtonText: {
     ...typography.body,
-    color: colors.primary.background,
+    color: colors.background,
     fontWeight: '600',
   },
 });

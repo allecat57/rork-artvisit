@@ -44,13 +44,14 @@ export default function EventsScreen() {
     let events = getAccessibleEvents();
     
     // Apply search filter
-    if (searchQuery) {
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
       events = events.filter((event: Event) => 
-        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.title.toLowerCase().includes(query) ||
+        event.description.toLowerCase().includes(query) ||
+        event.location.toLowerCase().includes(query) ||
         (event.tags && event.tags.some(tag => 
-          tag.toLowerCase().includes(searchQuery.toLowerCase())
+          tag.toLowerCase().includes(query)
         ))
       );
     }
@@ -73,6 +74,18 @@ export default function EventsScreen() {
     });
     return Array.from(types);
   }, [allEvents]);
+
+  // Handle search
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    
+    // Log search event
+    Analytics.logEvent("search_performed", {
+      query,
+      results_count: filteredEvents.length,
+      screen: "events"
+    });
+  };
   
   // Handle event card press
   const handleEventPress = (event: Event) => {
@@ -129,9 +142,9 @@ export default function EventsScreen() {
   const renderSearchBar = () => (
     <View style={styles.searchContainer}>
       <SearchBar
-        placeholder="Search events..."
+        placeholder="Search museums, galleries, exhibitions..."
         value={searchQuery}
-        onChangeText={setSearchQuery}
+        onChangeText={handleSearch}
         onClear={() => setSearchQuery("")}
       />
     </View>
@@ -276,7 +289,10 @@ export default function EventsScreen() {
   // Render all events section
   const renderAllEvents = () => (
     <View style={styles.allEventsContainer}>
-      <Text style={styles.sectionTitle}>All Events</Text>
+      <Text style={styles.sectionTitle}>
+        All Events
+        {searchQuery.trim() && ` (${filteredEvents.length} results)`}
+      </Text>
       
       {!userSubscriptionLevel ? (
         renderSubscriptionRequired()
@@ -344,10 +360,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
   },
   screenTitle: {
     ...typography.heading1,
@@ -356,8 +371,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   searchContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    marginBottom: 24,
   },
   filterButton: {
     width: 44,
@@ -370,8 +385,8 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   filtersContainer: {
-    paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
   },
   filtersTitle: {
     ...typography.bodySmall,
@@ -403,7 +418,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   content: {
-    padding: 16,
+    padding: 20,
   },
   loadingContainer: {
     flex: 1,

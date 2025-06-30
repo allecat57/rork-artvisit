@@ -7,7 +7,8 @@ import {
   TouchableOpacity, 
   ScrollView,
   Switch,
-  Platform
+  Platform,
+  Alert
 } from 'react-native';
 import { X, Shield, Eye, EyeOff, Database, BarChart } from 'lucide-react-native';
 import colors from '@/constants/colors';
@@ -37,6 +38,7 @@ const PrivacySettingsModal = ({ visible, onClose }: PrivacySettingsModalProps) =
   const [localLocationTracking, setLocalLocationTracking] = useState(locationTracking);
   const [localPersonalization, setLocalPersonalization] = useState(personalization);
   const [localAnalyticsEnabled, setLocalAnalyticsEnabled] = useState(analyticsEnabled);
+  const [isSaving, setIsSaving] = useState(false);
 
   // Reset local state when modal becomes visible
   useEffect(() => {
@@ -51,30 +53,48 @@ const PrivacySettingsModal = ({ visible, onClose }: PrivacySettingsModalProps) =
     }
   }, [visible, dataCollection, locationTracking, personalization, analyticsEnabled]);
 
-  const handleSave = () => {
-    // Update the store with local state
-    setDataCollection(localDataCollection);
-    setLocationTracking(localLocationTracking);
-    setPersonalization(localPersonalization);
-    setAnalyticsEnabled(localAnalyticsEnabled);
+  const handleSave = async () => {
+    setIsSaving(true);
     
-    // Update analytics collection based on user preference
-    Analytics.setAnalyticsEnabled(localAnalyticsEnabled);
-    
-    // Log privacy settings update
-    Analytics.logEvent("privacy_settings_updated", {
-      data_collection: localDataCollection,
-      location_tracking: localLocationTracking,
-      personalization: localPersonalization,
-      analytics_enabled: localAnalyticsEnabled
-    });
-    
-    // Set user property for analytics
-    Analytics.setUserProperties({
-      [Analytics.UserProperties.LOCATION_ENABLED]: localLocationTracking ? "true" : "false"
-    });
-    
-    onClose();
+    try {
+      // Update the store with local state
+      setDataCollection(localDataCollection);
+      setLocationTracking(localLocationTracking);
+      setPersonalization(localPersonalization);
+      setAnalyticsEnabled(localAnalyticsEnabled);
+      
+      // Update analytics collection based on user preference
+      Analytics.setAnalyticsEnabled(localAnalyticsEnabled);
+      
+      // Log privacy settings update
+      Analytics.logEvent("privacy_settings_updated", {
+        data_collection: localDataCollection,
+        location_tracking: localLocationTracking,
+        personalization: localPersonalization,
+        analytics_enabled: localAnalyticsEnabled
+      });
+      
+      // Set user property for analytics
+      Analytics.setUserProperties({
+        [Analytics.UserProperties.LOCATION_ENABLED]: localLocationTracking ? "true" : "false"
+      });
+      
+      // Show success message
+      Alert.alert(
+        "Settings Saved",
+        "Your privacy preferences have been updated successfully.",
+        [{ text: "OK", onPress: onClose }]
+      );
+    } catch (error) {
+      console.error("Error saving privacy settings:", error);
+      Alert.alert(
+        "Error",
+        "There was an error saving your settings. Please try again.",
+        [{ text: "OK" }]
+      );
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -89,14 +109,14 @@ const PrivacySettingsModal = ({ visible, onClose }: PrivacySettingsModalProps) =
           <View style={styles.header}>
             <Text style={styles.headerTitle}>Privacy Settings</Text>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-              <X size={24} color={colors.primary.text} />
+              <X size={24} color={colors.text} />
             </TouchableOpacity>
           </View>
           
           <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Shield size={24} color={colors.primary.accent} />
+                <Shield size={24} color={colors.accent} />
                 <Text style={styles.sectionTitle}>Data Privacy</Text>
               </View>
               <Text style={styles.sectionDescription}>
@@ -113,8 +133,8 @@ const PrivacySettingsModal = ({ visible, onClose }: PrivacySettingsModalProps) =
                 <Switch
                   value={localDataCollection}
                   onValueChange={setLocalDataCollection}
-                  trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localDataCollection ? colors.primary.secondary : '#f4f3f4'}
+                  trackColor={{ false: colors.textMuted, true: colors.accent }}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localDataCollection ? colors.accent : '#f4f3f4'}
                 />
               </View>
               
@@ -128,8 +148,8 @@ const PrivacySettingsModal = ({ visible, onClose }: PrivacySettingsModalProps) =
                 <Switch
                   value={localLocationTracking}
                   onValueChange={setLocalLocationTracking}
-                  trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localLocationTracking ? colors.primary.secondary : '#f4f3f4'}
+                  trackColor={{ false: colors.textMuted, true: colors.accent }}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localLocationTracking ? colors.accent : '#f4f3f4'}
                 />
               </View>
               
@@ -143,15 +163,15 @@ const PrivacySettingsModal = ({ visible, onClose }: PrivacySettingsModalProps) =
                 <Switch
                   value={localPersonalization}
                   onValueChange={setLocalPersonalization}
-                  trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localPersonalization ? colors.primary.secondary : '#f4f3f4'}
+                  trackColor={{ false: colors.textMuted, true: colors.accent }}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localPersonalization ? colors.accent : '#f4f3f4'}
                 />
               </View>
             </View>
             
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <BarChart size={24} color={colors.primary.accent} />
+                <BarChart size={24} color={colors.accent} />
                 <Text style={styles.sectionTitle}>Analytics</Text>
               </View>
               <Text style={styles.sectionDescription}>
@@ -168,15 +188,15 @@ const PrivacySettingsModal = ({ visible, onClose }: PrivacySettingsModalProps) =
                 <Switch
                   value={localAnalyticsEnabled}
                   onValueChange={setLocalAnalyticsEnabled}
-                  trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localAnalyticsEnabled ? colors.primary.secondary : '#f4f3f4'}
+                  trackColor={{ false: colors.textMuted, true: colors.accent }}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localAnalyticsEnabled ? colors.accent : '#f4f3f4'}
                 />
               </View>
             </View>
             
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
-                <Database size={24} color={colors.primary.accent} />
+                <Database size={24} color={colors.accent} />
                 <Text style={styles.sectionTitle}>Your Data</Text>
               </View>
               
@@ -185,6 +205,11 @@ const PrivacySettingsModal = ({ visible, onClose }: PrivacySettingsModalProps) =
                 onPress={() => {
                   // Log data export request
                   Analytics.logEvent("request_data_export");
+                  Alert.alert(
+                    "Data Export",
+                    "Your data export request has been received. You will receive an email with your data within 24 hours.",
+                    [{ text: "OK" }]
+                  );
                 }}
               >
                 <Text style={styles.dataButtonText}>Request Data Export</Text>
@@ -195,6 +220,24 @@ const PrivacySettingsModal = ({ visible, onClose }: PrivacySettingsModalProps) =
                 onPress={() => {
                   // Log data deletion request
                   Analytics.logEvent("request_data_deletion");
+                  Alert.alert(
+                    "Data Deletion",
+                    "Are you sure you want to request deletion of all your data? This action cannot be undone.",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      { 
+                        text: "Request Deletion", 
+                        style: "destructive",
+                        onPress: () => {
+                          Alert.alert(
+                            "Request Submitted",
+                            "Your data deletion request has been submitted. You will receive a confirmation email shortly.",
+                            [{ text: "OK" }]
+                          );
+                        }
+                      }
+                    ]
+                  );
                 }}
               >
                 <Text style={[styles.dataButtonText, styles.deleteButtonText]}>Request Data Deletion</Text>
@@ -209,8 +252,11 @@ const PrivacySettingsModal = ({ visible, onClose }: PrivacySettingsModalProps) =
                   // Log privacy policy view
                   Analytics.logEvent("view_privacy_policy");
                   
-                  // Open privacy policy
-                  // In a real app, this would open a web view or navigate to a privacy policy screen
+                  Alert.alert(
+                    "Privacy Policy",
+                    "This would open the privacy policy in a real app.",
+                    [{ text: "OK" }]
+                  );
                 }}
               >
                 Privacy Policy
@@ -222,15 +268,19 @@ const PrivacySettingsModal = ({ visible, onClose }: PrivacySettingsModalProps) =
             <TouchableOpacity 
               style={styles.cancelButton}
               onPress={onClose}
+              disabled={isSaving}
             >
               <Text style={styles.cancelButtonText}>Cancel</Text>
             </TouchableOpacity>
             
             <TouchableOpacity 
-              style={styles.saveButton}
+              style={[styles.saveButton, isSaving && styles.saveButtonDisabled]}
               onPress={handleSave}
+              disabled={isSaving}
             >
-              <Text style={styles.saveButtonText}>Save Changes</Text>
+              <Text style={styles.saveButtonText}>
+                {isSaving ? "Saving..." : "Save Changes"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -246,7 +296,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: colors.primary.background,
+    backgroundColor: colors.background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     height: '90%',
@@ -259,11 +309,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: colors.primary.border,
+    borderBottomColor: colors.border,
   },
   headerTitle: {
     ...typography.heading3,
-    color: colors.primary.text,
+    color: colors.text,
   },
   closeButton: {
     padding: 4,
@@ -283,10 +333,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...typography.heading3,
     marginLeft: 12,
+    color: colors.text,
   },
   sectionDescription: {
     ...typography.body,
-    color: colors.primary.muted,
+    color: colors.textMuted,
     marginBottom: 16,
   },
   settingItem: {
@@ -295,7 +346,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.primary.border,
+    borderBottomColor: colors.border,
   },
   settingTextContainer: {
     flex: 1,
@@ -305,13 +356,14 @@ const styles = StyleSheet.create({
     ...typography.body,
     fontWeight: '600',
     marginBottom: 4,
+    color: colors.text,
   },
   settingDescription: {
     ...typography.bodySmall,
-    color: colors.primary.muted,
+    color: colors.textMuted,
   },
   dataButton: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -320,30 +372,30 @@ const styles = StyleSheet.create({
   },
   dataButtonText: {
     ...typography.body,
-    color: colors.primary.accent,
+    color: colors.accent,
     fontWeight: '600',
   },
   deleteButton: {
     backgroundColor: 'rgba(244, 67, 54, 0.1)',
   },
   deleteButtonText: {
-    color: colors.status.error,
+    color: colors.error,
   },
   privacyPolicyText: {
     ...typography.bodySmall,
-    color: colors.primary.muted,
+    color: colors.textMuted,
     textAlign: 'center',
     marginBottom: 24,
   },
   privacyPolicyLink: {
-    color: colors.primary.accent,
+    color: colors.accent,
     textDecorationLine: 'underline',
   },
   footer: {
     flexDirection: 'row',
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: colors.primary.border,
+    borderTopColor: colors.border,
   },
   cancelButton: {
     flex: 1,
@@ -351,24 +403,27 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 8,
     borderWidth: 1,
-    borderColor: colors.primary.border,
+    borderColor: colors.border,
     borderRadius: 8,
   },
   cancelButtonText: {
     ...typography.body,
-    color: colors.primary.text,
+    color: colors.text,
   },
   saveButton: {
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
     marginLeft: 8,
-    backgroundColor: colors.primary.accent,
+    backgroundColor: colors.accent,
     borderRadius: 8,
+  },
+  saveButtonDisabled: {
+    backgroundColor: colors.textMuted,
   },
   saveButtonText: {
     ...typography.body,
-    color: colors.primary.background,
+    color: colors.background,
     fontWeight: '600',
   },
 });
