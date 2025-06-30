@@ -20,7 +20,7 @@ import StripePaymentMethodModal from "./StripePaymentMethodModal";
 import { Venue } from "@/types/venue";
 import * as Analytics from "@/utils/analytics";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useVenueStore } from "@/store/useVenueStore";
+import { useReservationStore } from "@/store/useReservationStore";
 import { useProfileStore } from "@/store/useProfileStore";
 import { useStripe } from "@/context/StripeContext";
 
@@ -60,9 +60,10 @@ export default function ReservationModal({
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showStripePaymentModal, setShowStripePaymentModal] = useState(false);
   const [reservationTotal, setReservationTotal] = useState(0);
+  const [confirmationCode, setConfirmationCode] = useState<string>("");
   
   const { user } = useAuthStore();
-  const { addReservation } = useVenueStore();
+  const { addReservation } = useReservationStore();
   const { getCurrentPaymentMethod, setPaymentMethod } = useProfileStore();
   const { processPayment, isLoading: stripeLoading } = useStripe();
   
@@ -89,6 +90,7 @@ export default function ReservationModal({
       setPartySize(initialPartySize);
       setCurrentStep('datetime');
       setIsSubmitting(false);
+      setConfirmationCode("");
       
       // Log modal open event
       if (currentVenue) {
@@ -176,6 +178,10 @@ export default function ReservationModal({
       const paymentResult = await processPayment(reservationTotal * 100, 'usd'); // Convert to cents
       
       if (paymentResult.status === 'succeeded') {
+        // Generate confirmation code
+        const newConfirmationCode = `CONF-${Math.random().toString(36).substring(2, 7).toUpperCase()}`;
+        setConfirmationCode(newConfirmationCode);
+        
         // Create reservation with required properties
         const reservation = {
           id: `res-${Date.now()}`,
@@ -184,10 +190,11 @@ export default function ReservationModal({
           date: selectedDate.toISOString().split('T')[0],
           time: selectedTimeSlot,
           status: "confirmed" as const,
-          confirmationCode: `CONF-${Math.random().toString(36).substring(2, 7).toUpperCase()}`,
+          confirmationCode: newConfirmationCode,
           partySize: partySize
         };
         
+        // Add to reservation store
         addReservation(reservation);
         
         if (onReserve) {
@@ -203,7 +210,8 @@ export default function ReservationModal({
           date: selectedDate.toISOString(),
           time_slot: selectedTimeSlot,
           party_size: partySize,
-          total_amount: reservationTotal
+          total_amount: reservationTotal,
+          confirmation_code: newConfirmationCode
         });
       } else {
         throw new Error('Payment failed');
@@ -262,6 +270,7 @@ export default function ReservationModal({
       setSelectedVenue(null);
       setPartySize(2);
       setCurrentStep('datetime');
+      setConfirmationCode("");
     }
     onClose();
   };
@@ -465,7 +474,7 @@ export default function ReservationModal({
         <View style={styles.confirmationDetails}>
           <Text style={styles.confirmationLabel}>Confirmation Code</Text>
           <Text style={styles.confirmationCode}>
-            CONF-{Math.random().toString(36).substring(2, 7).toUpperCase()}
+            {confirmationCode}
           </Text>
         </View>
         

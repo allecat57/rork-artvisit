@@ -282,7 +282,7 @@ export default function EventsScreen() {
         renderSubscriptionRequired()
       ) : filteredEvents.length === 0 ? (
         <EmptyState
-          icon={<Search size={40} color={colors.muted} />}
+          icon={<Search size={40} color={colors.textMuted} />}
           title="No events found"
           message={searchQuery ? `No events matching "${searchQuery}"` : "There are no events available at this time."}
         />
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(172, 137, 1, 0.2)",
+    borderBottomColor: colors.border,
   },
   screenTitle: {
     ...typography.heading1,
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   },
   filtersTitle: {
     ...typography.bodySmall,
-    color: colors.muted,
+    color: colors.textMuted,
     marginBottom: 8,
   },
   filterOptions: {
@@ -412,7 +412,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     ...typography.body,
-    color: colors.muted,
+    color: colors.textMuted,
     marginTop: 12,
   },
   featuredContainer: {
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
   },
   subscriptionRequiredText: {
     ...typography.body,
-    color: colors.muted,
+    color: colors.textMuted,
     textAlign: "center",
     marginBottom: 16,
   },

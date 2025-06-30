@@ -69,7 +69,7 @@ export default function ShopScreen() {
         style={styles.cartButton}
         onPress={() => router.push("/shop/cart")}
       >
-        <ShoppingCart size={20} color="#AC8901" />
+        <ShoppingCart size={20} color={colors.accent} />
         {cartItemCount > 0 && (
           <View style={styles.cartBadge}>
             <Text style={styles.cartBadgeText}>{cartItemCount}</Text>
@@ -138,7 +138,7 @@ export default function ShopScreen() {
       
       {filteredProducts.length === 0 ? (
         <EmptyState
-          icon={<Search size={40} color="#AC8901" />}
+          icon={<Search size={40} color={colors.textMuted} />}
           title="No products found"
           message={searchQuery ? `No products matching "${searchQuery}"` : "There are no products available at this time."}
         />
@@ -180,7 +180,7 @@ export default function ShopScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#013025",
+    backgroundColor: colors.background,
   },
   header: {
     flexDirection: "row",
@@ -189,11 +189,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "rgba(172, 137, 1, 0.2)",
+    borderBottomColor: colors.border,
   },
   screenTitle: {
     ...typography.heading1,
-    color: "#AC8901",
+    color: colors.text,
     fontSize: 28,
     fontWeight: "600",
   },
@@ -205,17 +205,17 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: "#1a4037",
+    backgroundColor: colors.card,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#AC8901",
+    borderColor: colors.border,
   },
   cartBadge: {
     position: "absolute",
     top: -4,
     right: -4,
-    backgroundColor: "#AC8901",
+    backgroundColor: colors.accent,
     borderRadius: 10,
     minWidth: 20,
     height: 20,
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   },
   cartBadgeText: {
     ...typography.caption,
-    color: "#013025",
+    color: colors.background,
     fontWeight: "bold",
     fontSize: 10,
   },
@@ -238,23 +238,23 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     height: 32,
     borderRadius: 10,
-    backgroundColor: "#1a4037",
+    backgroundColor: colors.card,
     borderWidth: 1,
-    borderColor: "#AC8901",
+    borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
   },
   categoryButtonActive: {
-    backgroundColor: "#AC8901",
+    backgroundColor: colors.accent,
   },
   categoryButtonText: {
     ...typography.caption,
-    color: "#AC8901",
+    color: colors.text,
     fontSize: 12,
     fontWeight: "500",
   },
   categoryButtonTextActive: {
-    color: "#013025",
+    color: colors.background,
     fontWeight: "600",
   },
   content: {
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...typography.heading4,
-    color: "#AC8901",
+    color: colors.text,
   },
   productsContainer: {
     padding: 16,

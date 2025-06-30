@@ -29,9 +29,13 @@ export default function ReservationsScreen() {
   const currentReservations = selectedTab === 'upcoming' ? upcomingReservations : pastReservations;
 
   const handleCancelReservation = (reservation: Reservation) => {
+    // Find the venue name for the alert
+    const venue = venues.find(v => v.id === reservation.venueId);
+    const venueName = venue?.name || "this venue";
+    
     Alert.alert(
       "Cancel Reservation",
-      `Are you sure you want to cancel your reservation at ${reservation.venueId}?`,
+      `Are you sure you want to cancel your reservation at ${venueName}?`,
       [
         { text: "No", style: "cancel" },
         { 
@@ -58,6 +62,18 @@ export default function ReservationsScreen() {
     );
   };
 
+  const handleNewReservation = () => {
+    setShowReservationModal(true);
+    Analytics.logEvent("new_reservation_button_pressed", {
+      source: "reservations_screen"
+    });
+  };
+
+  const handleReservationComplete = () => {
+    setShowReservationModal(false);
+    Analytics.logEvent("reservation_completed_from_reservations_screen", {});
+  };
+
   const renderTabButton = (tab: 'upcoming' | 'past', title: string) => (
     <TouchableOpacity
       style={[
@@ -81,7 +97,7 @@ export default function ReservationsScreen() {
         <Text style={[typography.heading1, styles.title]}>My Reservations</Text>
         <TouchableOpacity 
           style={styles.addButton}
-          onPress={() => setShowReservationModal(true)}
+          onPress={handleNewReservation}
         >
           <Plus size={24} color={colors.background} />
         </TouchableOpacity>
@@ -108,7 +124,7 @@ export default function ReservationsScreen() {
           ))
         ) : (
           <EmptyState
-            icon={<Calendar size={64} color={colors.muted} />}
+            icon={<Calendar size={64} color={colors.textMuted} />}
             title={selectedTab === 'upcoming' ? "No Upcoming Reservations" : "No Past Reservations"}
             message={
               selectedTab === 'upcoming' 
@@ -117,7 +133,7 @@ export default function ReservationsScreen() {
             }
             actionButton={{
               title: "Make a Reservation",
-              onPress: () => setShowReservationModal(true)
+              onPress: handleNewReservation
             }}
           />
         )}
@@ -126,6 +142,7 @@ export default function ReservationsScreen() {
       <ReservationModal
         visible={showReservationModal}
         onClose={() => setShowReservationModal(false)}
+        onReserve={handleReservationComplete}
         venues={venues}
       />
     </SafeAreaView>
@@ -174,7 +191,7 @@ const styles = StyleSheet.create({
   },
   tabButtonText: {
     ...typography.body,
-    color: colors.muted,
+    color: colors.textMuted,
     fontWeight: "500",
   },
   activeTabButtonText: {
