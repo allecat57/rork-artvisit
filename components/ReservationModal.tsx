@@ -39,7 +39,7 @@ interface ReservationModalProps {
   initialPartySize?: number;
 }
 
-type ReservationStep = 'datetime' | 'party-size' | 'review' | 'payment' | 'confirmation';
+type ReservationStep = 'venue-selection' | 'datetime' | 'party-size' | 'review' | 'payment' | 'confirmation';
 
 export default function ReservationModal({ 
   visible, 
@@ -56,7 +56,7 @@ export default function ReservationModal({
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(initialTimeSlot || null);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(venue || null);
   const [partySize, setPartySize] = useState<number>(initialPartySize);
-  const [currentStep, setCurrentStep] = useState<ReservationStep>('datetime');
+  const [currentStep, setCurrentStep] = useState<ReservationStep>(venue ? 'datetime' : 'venue-selection');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showStripePaymentModal, setShowStripePaymentModal] = useState(false);
@@ -89,7 +89,7 @@ export default function ReservationModal({
       setSelectedTimeSlot(initialTimeSlot || null);
       setSelectedVenue(venue || null);
       setPartySize(initialPartySize);
-      setCurrentStep('datetime');
+      setCurrentStep(venue ? 'datetime' : 'venue-selection');
       setIsSubmitting(false);
       setConfirmationCode("");
       
@@ -129,9 +129,26 @@ export default function ReservationModal({
       });
     }
   };
+
+  const handleVenueSelection = (selectedVenueOption: Venue) => {
+    setSelectedVenue(selectedVenueOption);
+    setCurrentStep('datetime');
+    
+    // Log venue selection
+    Analytics.logEvent("reservation_venue_selected", {
+      venue_id: selectedVenueOption.id,
+      venue_name: selectedVenueOption.name,
+      venue_type: selectedVenueOption.type
+    });
+  };
   
   const handleNextStep = () => {
     switch (currentStep) {
+      case 'venue-selection':
+        if (selectedVenue) {
+          setCurrentStep('datetime');
+        }
+        break;
       case 'datetime':
         if (selectedDate && selectedTimeSlot) {
           setCurrentStep('party-size');
@@ -151,6 +168,11 @@ export default function ReservationModal({
   
   const handlePreviousStep = () => {
     switch (currentStep) {
+      case 'datetime':
+        if (!venue && venues) {
+          setCurrentStep('venue-selection');
+        }
+        break;
       case 'party-size':
         setCurrentStep('datetime');
         break;
@@ -270,14 +292,14 @@ export default function ReservationModal({
       setSelectedTimeSlot(null);
       setSelectedVenue(null);
       setPartySize(2);
-      setCurrentStep('datetime');
+      setCurrentStep(venue ? 'datetime' : 'venue-selection');
       setConfirmationCode("");
     }
     onClose();
   };
 
   const renderStepIndicator = () => {
-    const steps = ['datetime', 'party-size', 'review', 'payment'];
+    const steps = venue ? ['datetime', 'party-size', 'review', 'payment'] : ['venue-selection', 'datetime', 'party-size', 'review', 'payment'];
     const currentStepIndex = steps.indexOf(currentStep);
     
     return (
@@ -307,6 +329,55 @@ export default function ReservationModal({
     );
   };
 
+  const renderVenueSelection = () => {
+    if (!venues || venues.length === 0) {
+      return (
+        <View style={styles.contentPadding}>
+          <Text style={[typography.heading2, styles.title]}>No Venues Available</Text>
+          <Text style={[typography.body, styles.subtitle]}>
+            There are no venues available for reservation at this time.
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.contentPadding}>
+        <Text style={[typography.heading2, styles.title]}>Select a Venue</Text>
+        <Text style={[typography.body, styles.subtitle]}>
+          Choose a venue to make your reservation.
+        </Text>
+        
+        <ScrollView style={styles.venuesList} showsVerticalScrollIndicator={false}>
+          {venues.map((venueOption) => (
+            <TouchableOpacity
+              key={venueOption.id}
+              style={styles.venueOption}
+              onPress={() => handleVenueSelection(venueOption)}
+            >
+              <Image
+                source={{ uri: venueOption.imageUrl }}
+                style={styles.venueOptionImage}
+                contentFit="cover"
+              />
+              <View style={styles.venueOptionContent}>
+                <Text style={[typography.heading4, styles.venueOptionName]}>
+                  {venueOption.name}
+                </Text>
+                <Text style={[typography.body, styles.venueOptionType]}>
+                  {venueOption.type}
+                </Text>
+                <Text style={[typography.bodySmall, styles.venueOptionDescription]} numberOfLines={2}>
+                  {venueOption.description}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+    );
+  };
+
   const renderPartySizeSelector = () => {
     const sizes = [1, 2, 3, 4, 5, 6, 7, 8];
     
@@ -329,7 +400,7 @@ export default function ReservationModal({
             >
               <Users 
                 size={20} 
-                color={partySize === size ? colors.accent : colors.text} 
+                color={partySize === size ? colors.background : colors.text} 
               />
               <Text style={[
                 styles.partySizeText,
@@ -490,6 +561,8 @@ export default function ReservationModal({
 
   const getStepTitle = () => {
     switch (currentStep) {
+      case 'venue-selection':
+        return "Select Venue";
       case 'datetime':
         return isModifying ? "Modify Date & Time" : "Select Date & Time";
       case 'party-size':
@@ -507,6 +580,8 @@ export default function ReservationModal({
 
   const canProceedToNext = () => {
     switch (currentStep) {
+      case 'venue-selection':
+        return selectedVenue;
       case 'datetime':
         return selectedDate && selectedTimeSlot;
       case 'party-size':
@@ -520,57 +595,12 @@ export default function ReservationModal({
     }
   };
 
-  if (!currentVenue) {
-    return (
-      <Modal
-        visible={visible}
-        transparent
-        animationType="slide"
-        onRequestClose={resetAndClose}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <TouchableOpacity style={styles.closeButton} onPress={resetAndClose}>
-              <X size={24} color={colors.text} />
-            </TouchableOpacity>
-            
-            <View style={styles.contentPadding}>
-              <Text style={[typography.heading2, styles.title]}>Select a Venue</Text>
-              <Text style={[typography.body, styles.subtitle]}>
-                Please select a venue to make a reservation.
-              </Text>
-              
-              {venues && venues.length > 0 && (
-                <ScrollView style={styles.venuesList}>
-                  {venues.map((venueOption) => (
-                    <TouchableOpacity
-                      key={venueOption.id}
-                      style={styles.venueOption}
-                      onPress={() => setSelectedVenue(venueOption)}
-                    >
-                      <Image
-                        source={{ uri: venueOption.imageUrl }}
-                        style={styles.venueOptionImage}
-                        contentFit="cover"
-                      />
-                      <View style={styles.venueOptionContent}>
-                        <Text style={[typography.heading3, styles.venueOptionName]}>
-                          {venueOption.name}
-                        </Text>
-                        <Text style={[typography.body, styles.venueOptionType]}>
-                          {venueOption.type}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              )}
-            </View>
-          </View>
-        </View>
-      </Modal>
-    );
-  }
+  const canGoBack = () => {
+    if (currentStep === 'venue-selection') return false;
+    if (currentStep === 'datetime' && venue) return false; // Can't go back if venue was pre-selected
+    if (currentStep === 'confirmation') return false;
+    return true;
+  };
 
   return (
     <Modal
@@ -582,7 +612,7 @@ export default function ReservationModal({
       <View style={styles.modalContainer}>
         <View style={styles.modalContent}>
           <View style={styles.header}>
-            {currentStep !== 'datetime' && currentStep !== 'confirmation' && (
+            {canGoBack() && (
               <TouchableOpacity 
                 style={styles.backButton} 
                 onPress={handlePreviousStep}
@@ -606,7 +636,9 @@ export default function ReservationModal({
           {currentStep !== 'confirmation' && renderStepIndicator()}
           
           <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollContainer}>
-            {currentStep === 'datetime' && (
+            {currentStep === 'venue-selection' && renderVenueSelection()}
+            
+            {currentStep === 'datetime' && currentVenue && (
               <>
                 <Image
                   source={{ uri: currentVenue.imageUrl }}
@@ -663,7 +695,7 @@ export default function ReservationModal({
                 disabled={!canProceedToNext()}
                 loading={isSubmitting || stripeLoading}
                 icon={currentStep === 'payment' ? 
-                  <CreditCard size={18} color={colors.accent} /> : 
+                  <CreditCard size={18} color={colors.background} /> : 
                   undefined
                 }
                 analyticsEventName={
@@ -672,9 +704,9 @@ export default function ReservationModal({
                     : "reservation_step_continue"
                 }
                 analyticsProperties={{
-                  venue_id: currentVenue.id,
-                  venue_name: currentVenue.name,
-                  venue_type: currentVenue.type,
+                  venue_id: currentVenue?.id,
+                  venue_name: currentVenue?.name,
+                  venue_type: currentVenue?.type,
                   date: selectedDate?.toISOString(),
                   time_slot: selectedTimeSlot,
                 }}
@@ -821,6 +853,41 @@ const styles = StyleSheet.create({
   sectionSubtitle: {
     marginBottom: 20,
     color: colors.textMuted,
+  },
+  venuesList: {
+    maxHeight: 400,
+  },
+  venueOption: {
+    flexDirection: "row",
+    padding: 16,
+    borderRadius: 12,
+    backgroundColor: colors.card,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  venueOptionImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+  },
+  venueOptionContent: {
+    flex: 1,
+    marginLeft: 16,
+    justifyContent: "center",
+  },
+  venueOptionName: {
+    color: colors.text,
+    marginBottom: 4,
+  },
+  venueOptionType: {
+    color: colors.textMuted,
+    fontSize: 14,
+    marginBottom: 4,
+  },
+  venueOptionDescription: {
+    color: colors.textMuted,
+    fontSize: 12,
   },
   partySizeContainer: {
     marginBottom: 20,
@@ -1051,33 +1118,5 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopWidth: 1,
     borderTopColor: colors.border,
-  },
-  venuesList: {
-    maxHeight: 300,
-  },
-  venueOption: {
-    flexDirection: "row",
-    padding: 12,
-    borderRadius: 8,
-    backgroundColor: colors.card,
-    marginBottom: 8,
-  },
-  venueOptionImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-  },
-  venueOptionContent: {
-    flex: 1,
-    marginLeft: 12,
-    justifyContent: "center",
-  },
-  venueOptionName: {
-    color: colors.text,
-    marginBottom: 4,
-  },
-  venueOptionType: {
-    color: colors.textMuted,
-    fontSize: 14,
   },
 });
