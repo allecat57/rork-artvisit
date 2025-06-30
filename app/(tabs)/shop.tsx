@@ -223,12 +223,14 @@ const styles = StyleSheet.create({
   },
   categoryButton: {
     paddingHorizontal: 12,
-    paddingVertical: 3,
+    paddingVertical: 6,
+    height: 32,
     borderRadius: 10,
     backgroundColor: "#1a4037",
     borderWidth: 1,
     borderColor: "#AC8901",
     alignItems: "center",
+    justifyContent: "center",
   },
   categoryButtonActive: {
     backgroundColor: "#AC8901",
