@@ -172,11 +172,11 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#AC8901",
-    height: 100,
+    height: 220,
   },
   compactImage: {
     width: "100%",
-    height: 60,
+    height: 140,
     resizeMode: "cover",
   },
   compactContent: {
