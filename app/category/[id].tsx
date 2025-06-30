@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View, FlatList, TouchableOpacity } from "react-native";
 import { useLocalSearchParams, Stack, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Calendar } from "lucide-react-native";
+import { Calendar, ArrowLeft } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import VenueCard from "@/components/VenueCard";
@@ -54,9 +54,22 @@ export default function CategoryScreen() {
     }
   };
 
+  const handleBack = () => {
+    router.back();
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={["bottom"]}>
-      <Stack.Screen options={{ title: categoryTitle }} />
+      <Stack.Screen 
+        options={{ 
+          title: categoryTitle,
+          headerLeft: () => (
+            <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+              <ArrowLeft size={24} color={colors.primary.text} />
+            </TouchableOpacity>
+          )
+        }} 
+      />
       
       <View style={styles.header}>
         <Text style={[typography.heading2, styles.title]}>{categoryTitle}</Text>
@@ -147,5 +160,9 @@ const styles = StyleSheet.create({
   emptyText: {
     color: colors.primary.muted,
     textAlign: "center",
+  },
+  backButton: {
+    padding: 4,
+    marginRight: 8,
   },
 });

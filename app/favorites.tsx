@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { StyleSheet, Text, View, FlatList } from "react-native";
+import { StyleSheet, Text, View, FlatList, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, Stack } from "expo-router";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
@@ -9,6 +9,7 @@ import EmptyState from "@/components/EmptyState";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import Button from "@/components/Button";
+import { ArrowLeft } from "lucide-react-native";
 import * as Analytics from "@/utils/analytics";
 
 export default function FavoritesScreen() {
@@ -45,6 +46,10 @@ export default function FavoritesScreen() {
     });
   };
   
+  const handleBack = () => {
+    router.back();
+  };
+  
   const renderEmptyState = () => (
     <EmptyState
       iconName="Heart"
@@ -62,7 +67,16 @@ export default function FavoritesScreen() {
   
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <Stack.Screen options={{ title: "Favorites" }} />
+      <Stack.Screen 
+        options={{ 
+          title: "Favorites",
+          headerLeft: () => (
+            <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+              <ArrowLeft size={24} color={colors.primary.text} />
+            </TouchableOpacity>
+          )
+        }} 
+      />
       
       <FlatList
         data={favoriteVenues}
@@ -98,5 +112,9 @@ const styles = StyleSheet.create({
   listContent: {
     padding: 20,
     flexGrow: 1,
+  },
+  backButton: {
+    padding: 4,
+    marginRight: 8,
   },
 });

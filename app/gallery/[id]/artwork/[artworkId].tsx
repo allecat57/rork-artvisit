@@ -4,8 +4,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Heart, Share2, ArrowLeft, Info, DollarSign } from 'lucide-react-native';
 import colors from '../../../../constants/colors';
-import { GalleryAnalytics } from '../../../../utils/artvisit-integration';
-import * as Analytics from '../../../../utils/analytics';
 
 // Mock data - in a real app, fetch this from your API
 const artworks = [
@@ -75,7 +73,6 @@ export default function ArtworkDetailScreen() {
   
   const [artwork, setArtwork] = useState(null);
   const [gallery, setGallery] = useState(null);
-  const [analytics, setAnalytics] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   
@@ -86,38 +83,6 @@ export default function ArtworkDetailScreen() {
     
     setArtwork(foundArtwork);
     setGallery(foundGallery);
-    
-    if (foundGallery && foundArtwork) {
-      // Initialize analytics
-      const galleryAnalytics = new GalleryAnalytics({
-        id: foundGallery.id,
-        name: foundGallery.name,
-        location: foundGallery.location
-      });
-      
-      setAnalytics(galleryAnalytics);
-      
-      // Track artwork view
-      galleryAnalytics.trackArtworkView(foundArtwork.id, foundArtwork.title);
-      
-      // Log screen view to TimeFrame Analytics
-      Analytics.sendToTimeFrameAnalytics('screen_view', {
-        screen_name: 'Artwork Detail',
-        screen_class: 'ArtworkDetailScreen',
-        gallery_id: foundGallery.id,
-        gallery_name: foundGallery.name,
-        artwork_id: foundArtwork.id,
-        artwork_title: foundArtwork.title,
-        artist: foundArtwork.artist
-      });
-    }
-    
-    return () => {
-      // Track time spent when leaving
-      if (analytics) {
-        analytics.trackTimeSpent(artworkId);
-      }
-    };
   }, [galleryId, artworkId]);
   
   if (!artwork || !gallery) {
@@ -134,52 +99,18 @@ export default function ArtworkDetailScreen() {
   
   const handleFavoriteToggle = () => {
     setIsFavorite(!isFavorite);
-    if (analytics) {
-      analytics.trackInteraction('favorite_toggle', artwork.id, { 
-        is_favorite: !isFavorite,
-        artwork_title: artwork.title
-      });
-    }
   };
   
   const handleShare = () => {
-    if (analytics) {
-      analytics.trackInteraction('share', artwork.id, { 
-        artwork_title: artwork.title,
-        artist: artwork.artist
-      });
-    }
     // Implement share functionality
   };
   
   const handlePurchase = () => {
-    if (analytics) {
-      // Track purchase intent
-      analytics.trackInteraction('purchase_intent', artwork.id, {
-        artwork_title: artwork.title,
-        price: artwork.price
-      });
-      
-      // In a real app, this would navigate to a purchase flow
-      // For demo purposes, we'll simulate a completed purchase
-      const priceValue = artwork.price.startsWith('$') 
-        ? parseFloat(artwork.price.replace('$', '').replace(',', '')) 
-        : 0;
-        
-      if (priceValue > 0) {
-        analytics.trackPurchase(artwork.id, priceValue, 'USD');
-      }
-    }
     // Navigate to purchase flow or show purchase modal
   };
   
   const toggleDescription = () => {
     setShowFullDescription(!showFullDescription);
-    if (analytics) {
-      analytics.trackInteraction('toggle_description', artwork.id, {
-        expanded: !showFullDescription
-      });
-    }
   };
 
   return (
@@ -271,9 +202,6 @@ export default function ArtworkDetailScreen() {
           <TouchableOpacity 
             style={[styles.infoButton, { borderColor: textColor }]}
             onPress={() => {
-              if (analytics) {
-                analytics.trackInteraction('view_artwork_details', artwork.id);
-              }
               // Show more details or navigate to details screen
             }}
           >

@@ -9,8 +9,8 @@ import {
   Platform
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { ShoppingBag, Trash2 } from 'lucide-react-native';
+import { useRouter, Stack } from 'expo-router';
+import { ShoppingBag, Trash2, ArrowLeft } from 'lucide-react-native';
 import { useCartStore } from '@/store/useCartStore';
 import colors from '@/constants/colors';
 import typography from '@/constants/typography';
@@ -121,9 +121,23 @@ export default function CartScreen() {
     );
   };
   
+  const handleBack = () => {
+    router.back();
+  };
+
   if (cartItems.length === 0) {
     return (
       <SafeAreaView style={styles.container} edges={['bottom']}>
+        <Stack.Screen 
+          options={{
+            title: "Your Cart",
+            headerLeft: () => (
+              <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+                <ArrowLeft size={24} color={colors.primary.text} />
+              </TouchableOpacity>
+            )
+          }}
+        />
         <View style={styles.emptyContainer}>
           <ShoppingBag size={64} color={colors.primary.muted} />
           <Text style={styles.emptyTitle}>Your cart is empty</Text>
@@ -142,6 +156,16 @@ export default function CartScreen() {
   
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
+      <Stack.Screen 
+        options={{
+          title: "Your Cart",
+          headerLeft: () => (
+            <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+              <ArrowLeft size={24} color={colors.primary.text} />
+            </TouchableOpacity>
+          )
+        }}
+      />
       <View style={styles.header}>
         <Text style={[typography.heading2, styles.title]}>Your Cart</Text>
         <Text style={styles.itemCount}>{itemCount} {itemCount === 1 ? 'item' : 'items'}</Text>
@@ -316,5 +340,9 @@ const styles = StyleSheet.create({
   },
   browseButton: {
     minWidth: 200
+  },
+  backButton: {
+    padding: 4,
+    marginRight: 8,
   }
 });

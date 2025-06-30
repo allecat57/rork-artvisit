@@ -1,16 +1,18 @@
 import React, { useEffect } from "react";
-import { StyleSheet, Text, View, FlatList } from "react-native";
+import { StyleSheet, Text, View, FlatList, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { usePurchaseHistoryStore } from "@/store/usePurchaseHistoryStore";
 import EmptyState from "@/components/EmptyState";
 import PurchaseHistoryCard from "@/components/PurchaseHistoryCard";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import Button from "@/components/Button";
+import { ArrowLeft } from "lucide-react-native";
 import * as Analytics from "@/utils/analytics";
 
 export default function PurchaseHistoryScreen() {
+  const router = useRouter();
   const { purchases } = usePurchaseHistoryStore();
   
   // Sort purchases by date (newest first)
@@ -24,6 +26,10 @@ export default function PurchaseHistoryScreen() {
     Analytics.logScreenView("PurchaseHistory");
   }, []);
   
+  const handleBack = () => {
+    router.back();
+  };
+  
   const renderEmptyState = () => (
     <EmptyState
       iconName="ShoppingBag"
@@ -32,7 +38,7 @@ export default function PurchaseHistoryScreen() {
       action={
         <Button
           title="Visit Shop"
-          onPress={() => {}}
+          onPress={() => router.push("/shop")}
           variant="primary"
         />
       }
@@ -41,7 +47,16 @@ export default function PurchaseHistoryScreen() {
   
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <Stack.Screen options={{ title: "Purchase History" }} />
+      <Stack.Screen 
+        options={{ 
+          title: "Purchase History",
+          headerLeft: () => (
+            <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+              <ArrowLeft size={24} color={colors.primary.text} />
+            </TouchableOpacity>
+          )
+        }} 
+      />
       
       <FlatList
         data={sortedPurchases}
@@ -72,5 +87,9 @@ const styles = StyleSheet.create({
   listContent: {
     padding: 20,
     flexGrow: 1,
+  },
+  backButton: {
+    padding: 4,
+    marginRight: 8,
   },
 });
