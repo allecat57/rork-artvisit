@@ -64,7 +64,7 @@ export default function ExploreScreen() {
   };
   
   const handleCategoryPress = (categoryId: string) => {
-    router.push(`/category/${categoryId}`);
+    setSelectedCategory(categoryId);
   };
   
   const renderHeader = () => (
@@ -111,10 +111,22 @@ export default function ExploreScreen() {
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <CategoryCard 
-            category={item} 
-            onPress={() => handleCategoryPress(item.id)}
-          />
+          <View style={styles.categoryWrapper}>
+            <TouchableOpacity
+              style={[
+                styles.categoryButton,
+                selectedCategory === item.id && styles.selectedCategoryButton
+              ]}
+              onPress={() => handleCategoryPress(item.id)}
+            >
+              <Text style={[
+                styles.categoryButtonText,
+                selectedCategory === item.id && styles.selectedCategoryButtonText
+              ]}>
+                {item.title}
+              </Text>
+            </TouchableOpacity>
+          </View>
         )}
         contentContainerStyle={styles.categoriesList}
       />
@@ -123,9 +135,19 @@ export default function ExploreScreen() {
   
   const renderVenuesList = () => (
     <View style={styles.venuesSection}>
-      <Text style={styles.sectionTitle}>
-        {selectedCategory ? `${selectedCategory} Venues` : "All Venues"}
-      </Text>
+      <View style={styles.venuesSectionHeader}>
+        <Text style={styles.sectionTitle}>
+          {selectedCategory ? `${categories.find(c => c.id === selectedCategory)?.title || selectedCategory} Venues` : "All Venues"}
+        </Text>
+        {selectedCategory && (
+          <TouchableOpacity
+            style={styles.clearFilterButton}
+            onPress={() => setSelectedCategory(null)}
+          >
+            <Text style={styles.clearFilterText}>Clear Filter</Text>
+          </TouchableOpacity>
+        )}
+      </View>
       
       {isLoading ? (
         <View style={styles.loadingContainer}>
@@ -236,11 +258,58 @@ const styles = StyleSheet.create({
   categoriesList: {
     paddingLeft: 16,
     paddingRight: 8,
-    gap: 12,
+  },
+  categoryWrapper: {
+    marginRight: 8,
+  },
+  categoryButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    minHeight: 36,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  selectedCategoryButton: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  categoryButtonText: {
+    ...typography.bodySmall,
+    color: colors.text,
+    fontWeight: "500",
+    textAlign: "center",
+  },
+  selectedCategoryButtonText: {
+    color: colors.primary,
+    fontWeight: "600",
   },
   venuesSection: {
     flex: 1,
     paddingTop: 16,
+  },
+  venuesSectionHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  clearFilterButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  clearFilterText: {
+    ...typography.bodySmall,
+    color: colors.text,
+    fontWeight: "500",
   },
   loadingContainer: {
     flex: 1,

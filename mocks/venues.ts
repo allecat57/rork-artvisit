@@ -14,6 +14,7 @@ export const venues: Venue[] = [
     admission: "$25",
     featured: true,
     category: "museums",
+    tags: ["art", "culture", "history", "paintings", "sculptures"],
     coordinates: {
       latitude: 40.7794,
       longitude: -73.9632
@@ -32,6 +33,7 @@ export const venues: Venue[] = [
     admission: "$25",
     featured: true,
     category: "museums",
+    tags: ["modern art", "contemporary", "paintings", "design", "architecture"],
     coordinates: {
       latitude: 40.7614,
       longitude: -73.9776
@@ -49,6 +51,7 @@ export const venues: Venue[] = [
     openingHours: "11:00 AM - 6:00 PM",
     admission: "$25",
     category: "museums",
+    tags: ["art", "architecture", "spiral", "modern", "exhibitions"],
     coordinates: {
       latitude: 40.7829,
       longitude: -73.9589
@@ -66,6 +69,7 @@ export const venues: Venue[] = [
     openingHours: "10:30 AM - 6:00 PM",
     admission: "$25",
     category: "museums",
+    tags: ["american art", "contemporary", "whitney biennial", "exhibitions"],
     coordinates: {
       latitude: 40.7396,
       longitude: -74.0089
@@ -84,6 +88,7 @@ export const venues: Venue[] = [
     admission: "$23",
     featured: true,
     category: "museums",
+    tags: ["natural history", "dinosaurs", "planetarium", "science", "fossils"],
     coordinates: {
       latitude: 40.7813,
       longitude: -73.9739
@@ -101,6 +106,7 @@ export const venues: Venue[] = [
     openingHours: "10:00 AM - 6:00 PM",
     admission: "Free",
     category: "galleries",
+    tags: ["contemporary art", "gallery", "exhibitions", "artists", "free"],
     coordinates: {
       latitude: 40.7478,
       longitude: -74.0047
@@ -119,6 +125,7 @@ export const venues: Venue[] = [
     admission: "Free",
     featured: true,
     category: "galleries",
+    tags: ["contemporary art", "modern art", "gallery", "exhibitions", "free"],
     coordinates: {
       latitude: 40.7731,
       longitude: -73.9712
@@ -136,6 +143,7 @@ export const venues: Venue[] = [
     openingHours: "10:00 AM - 6:00 PM",
     admission: "$22",
     category: "museums",
+    tags: ["old masters", "european art", "decorative arts", "mansion", "historic"],
     coordinates: {
       latitude: 40.7713,
       longitude: -73.9672
@@ -153,6 +161,7 @@ export const venues: Venue[] = [
     openingHours: "11:00 AM - 6:00 PM",
     admission: "$16",
     category: "museums",
+    tags: ["egyptian art", "contemporary art", "brooklyn", "diverse collection"],
     coordinates: {
       latitude: 40.6712,
       longitude: -73.9636
@@ -170,6 +179,7 @@ export const venues: Venue[] = [
     openingHours: "10:30 AM - 5:00 PM",
     admission: "$22",
     category: "historical",
+    tags: ["rare books", "manuscripts", "library", "historical", "literature"],
     coordinates: {
       latitude: 40.7492,
       longitude: -73.9819
@@ -187,6 +197,7 @@ export const venues: Venue[] = [
     openingHours: "11:00 AM - 6:00 PM",
     admission: "$18",
     category: "museums",
+    tags: ["contemporary art", "new art", "emerging artists", "innovative"],
     coordinates: {
       latitude: 40.7223,
       longitude: -73.9928
@@ -204,6 +215,7 @@ export const venues: Venue[] = [
     openingHours: "10:00 AM - 5:15 PM",
     admission: "$25",
     category: "historical",
+    tags: ["medieval art", "architecture", "gardens", "manuscripts", "tapestries"],
     coordinates: {
       latitude: 40.8648,
       longitude: -73.9317
@@ -221,6 +233,7 @@ export const venues: Venue[] = [
     openingHours: "11:00 AM - 7:00 PM",
     admission: "$14",
     category: "exhibitions",
+    tags: ["photography", "visual culture", "exhibitions", "contemporary"],
     coordinates: {
       latitude: 40.7182,
       longitude: -73.9962
@@ -238,6 +251,7 @@ export const venues: Venue[] = [
     openingHours: "11:00 AM - 5:30 PM",
     admission: "$18",
     category: "cultural",
+    tags: ["jewish culture", "art", "history", "cultural heritage", "exhibitions"],
     coordinates: {
       latitude: 40.7852,
       longitude: -73.9573
@@ -255,6 +269,7 @@ export const venues: Venue[] = [
     openingHours: "10:00 AM - 6:00 PM",
     admission: "$16",
     category: "exhibitions",
+    tags: ["design", "smithsonian", "contemporary design", "historical design"],
     coordinates: {
       latitude: 40.7841,
       longitude: -73.9582
