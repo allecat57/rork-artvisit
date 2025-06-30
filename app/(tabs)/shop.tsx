@@ -127,7 +127,7 @@ export default function ShopScreen() {
           <Text style={[
             styles.categoryButtonText,
             selectedCategory === category && styles.categoryButtonTextActive
-          ]}>{category} ({productsByCategory[category]})</Text>
+          ]}>{category}</Text>
         </TouchableOpacity>
       ))}
     </ScrollView>
@@ -265,12 +265,14 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   categoryButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
     backgroundColor: "#1a4037",
     borderWidth: 1,
     borderColor: "#AC8901",
+    minWidth: 80,
+    alignItems: "center",
   },
   categoryButtonActive: {
     backgroundColor: "#AC8901",
@@ -278,6 +280,7 @@ const styles = StyleSheet.create({
   categoryButtonText: {
     ...typography.caption,
     color: "#AC8901",
+    fontSize: 12,
   },
   categoryButtonTextActive: {
     color: "#013025",
