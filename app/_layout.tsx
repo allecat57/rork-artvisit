@@ -175,6 +175,13 @@ function RootLayoutContent() {
           }} 
         />
         <Stack.Screen 
+          name="websocket-test" 
+          options={{ 
+            title: 'WebSocket Test',
+            headerShown: true
+          }} 
+        />
+        <Stack.Screen 
           name="modal" 
           options={{ 
             presentation: 'modal',
