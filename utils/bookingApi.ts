@@ -120,6 +120,72 @@ export const bookVenue = async ({
 };
 
 /**
+ * Book an event
+ */
+export const bookEvent = async ({
+  userId,
+  eventId,
+  numberOfTickets,
+  paymentMethodId,
+  price
+}: {
+  userId: string;
+  eventId: string;
+  numberOfTickets: number;
+  paymentMethodId: string;
+  price: number;
+}) => {
+  try {
+    const totalAmount = price * numberOfTickets;
+    
+    // In a real app, this would integrate with your payment processor
+    // For now, we'll simulate a successful payment
+    const mockPaymentIntent = {
+      id: `pi_${Math.random().toString(36).substring(2, 15)}`,
+      status: 'succeeded',
+      amount: totalAmount * 100, // Convert to cents
+      currency: 'usd'
+    };
+    
+    // Log payment attempt
+    Analytics.logEvent('event_payment_started', {
+      event_id: eventId,
+      user_id: userId,
+      total_amount: totalAmount,
+      number_of_tickets: numberOfTickets
+    });
+    
+    // Log successful payment
+    Analytics.logEvent('event_payment_success', {
+      event_id: eventId,
+      user_id: userId,
+      total_amount: totalAmount,
+      payment_intent_id: mockPaymentIntent.id
+    });
+    
+    return {
+      success: true,
+      paymentIntentId: mockPaymentIntent.id,
+      message: 'Payment processed successfully'
+    };
+  } catch (error) {
+    console.error('Error booking event:', error);
+    
+    // Log payment error
+    Analytics.logEvent('event_payment_error', {
+      event_id: eventId,
+      user_id: userId,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+    
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error occurred'
+    };
+  }
+};
+
+/**
  * Cancel a booking in the system
  */
 export const cancelBooking = async (bookingId: string) => {
