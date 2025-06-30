@@ -2,10 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, useColorScheme } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Heart, Share2, MapPin, Clock, ArrowRight } from 'lucide-react-native';
+import { Heart, Share2, MapPin, Clock, ArrowRight, Calendar } from 'lucide-react-native';
 import colors from '../../constants/colors';
 import { GalleryAnalytics } from '../../utils/artvisit-integration';
 import * as Analytics from '../../utils/analytics';
+import ReservationModal from '../../components/ReservationModal';
+import { useVenueStore } from '../../store/useVenueStore';
+import { useAuthStore } from '../../store/useAuthStore';
+import { Venue } from '../../types/venue';
 
 // Mock data - in a real app, fetch this from your API
 const galleries = [
@@ -16,6 +20,7 @@ const galleries = [
     location: 'New York, NY',
     image: 'https://images.unsplash.com/photo-1577720580479-7d839d829c73?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1024&q=80',
     hours: '10:00 AM - 6:00 PM',
+    admission: '$15',
     artworks: [
       { id: '101', title: 'Abstract Harmony', artist: 'Jane Smith', image: 'https://images.unsplash.com/photo-1549887552-cb1071d3e5ca?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
       { id: '102', title: 'Urban Landscape', artist: 'Michael Johnson', image: 'https://images.unsplash.com/photo-1578926375605-eaf7559b1458?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
@@ -28,6 +33,7 @@ const galleries = [
     location: 'London, UK',
     image: 'https://images.unsplash.com/photo-1574182245530-967d9b3831af?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1024&q=80',
     hours: '9:00 AM - 5:00 PM',
+    admission: '$20',
     artworks: [
       { id: '201', title: 'Portrait of a Lady', artist: 'Leonardo da Vinci', image: 'https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
       { id: '202', title: 'Sunset over the Sea', artist: 'Claude Monet', image: 'https://images.unsplash.com/photo-1578321272176-b7bbc0679853?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
@@ -46,6 +52,10 @@ export default function GalleryScreen() {
   const [gallery, setGallery] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [reservationModalVisible, setReservationModalVisible] = useState(false);
+  
+  const { addReservation } = useVenueStore();
+  const { user, isAuthenticated } = useAuthStore();
   
   useEffect(() => {
     // Find gallery from mock data
@@ -118,6 +128,72 @@ export default function GalleryScreen() {
     router.push(`/gallery/${gallery.id}/artworks`);
   };
 
+  const handleMakeReservation = () => {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+    
+    if (analytics) {
+      analytics.trackInteraction('make_reservation_clicked', null, { gallery_name: gallery.name });
+    }
+    
+    setReservationModalVisible(true);
+  };
+
+  const handleReservationComplete = (venue: Venue, date: Date, timeSlot: string) => {
+    if (!user) return;
+    
+    // Create reservation object
+    const reservation = {
+      id: `res_${Date.now()}`,
+      userId: user.id,
+      venueId: venue.id,
+      date: date.toISOString().split('T')[0],
+      time: timeSlot,
+      partySize: 2,
+      status: 'confirmed' as const,
+      confirmationCode: `GR${Math.random().toString(36).substr(2, 6).toUpperCase()}`,
+      specialRequests: '',
+      type: 'venue' as const
+    };
+    
+    // Add to store
+    addReservation(reservation);
+    
+    // Track analytics
+    if (analytics) {
+      analytics.trackInteraction('reservation_completed', null, { 
+        gallery_name: gallery.name,
+        date: date.toISOString(),
+        time_slot: timeSlot
+      });
+    }
+    
+    // Close modal
+    setReservationModalVisible(false);
+  };
+
+  // Convert gallery to venue format for reservation system
+  const galleryAsVenue: Venue = {
+    id: `gallery_${gallery.id}`,
+    name: gallery.name,
+    type: 'Art Gallery',
+    description: gallery.description,
+    imageUrl: gallery.image,
+    location: gallery.location,
+    distance: '0 mi',
+    rating: 4.5,
+    openingHours: gallery.hours,
+    admission: gallery.admission,
+    featured: false,
+    category: 'galleries',
+    coordinates: {
+      latitude: 40.7589,
+      longitude: -73.9851
+    }
+  };
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
       <ScrollView>
@@ -162,6 +238,15 @@ export default function GalleryScreen() {
             {gallery.description}
           </Text>
           
+          {/* Reservation Button */}
+          <TouchableOpacity 
+            style={[styles.reservationButton, { backgroundColor: colors.primary }]}
+            onPress={handleMakeReservation}
+          >
+            <Calendar size={20} color="#fff" />
+            <Text style={styles.reservationButtonText}>Make Reservation</Text>
+          </TouchableOpacity>
+          
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: textColor }]}>Featured Artworks</Text>
@@ -200,6 +285,14 @@ export default function GalleryScreen() {
           </View>
         </View>
       </ScrollView>
+      
+      {/* Reservation Modal */}
+      <ReservationModal
+        visible={reservationModalVisible}
+        venue={galleryAsVenue}
+        onClose={() => setReservationModalVisible(false)}
+        onReserve={handleReservationComplete}
+      />
     </SafeAreaView>
   );
 }
@@ -252,6 +345,20 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     marginTop: 16,
     marginBottom: 24,
+  },
+  reservationButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 24,
+  },
+  reservationButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 8,
   },
   section: {
     marginBottom: 24,
