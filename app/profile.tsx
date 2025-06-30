@@ -86,7 +86,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { getCurrentProfileImage, getCurrentPaymentMethod, getCurrentSubscription, setProfileImage, setPaymentMethod } = useProfileStore();
   const { getCurrentUserFavorites } = useFavoritesStore();
-  const { getCurrentUserVisits } = useVisitHistoryStore();
+  const { visitHistory } = useVisitHistoryStore();
   const { getCurrentUserPurchases } = usePurchaseHistoryStore();
   const { user, logout, isAuthenticated, isHydrated, loginAsTestUser } = useAuthStore();
   
@@ -100,7 +100,6 @@ export default function ProfileScreen() {
   const paymentMethod = getCurrentPaymentMethod();
   const subscription = getCurrentSubscription();
   const favorites = getCurrentUserFavorites();
-  const visits = getCurrentUserVisits();
   const purchases = getCurrentUserPurchases();
   
   // Check authentication status - but don't redirect immediately, give user option to login
@@ -268,17 +267,17 @@ export default function ProfileScreen() {
     if (!subscription) return null;
     
     let color = "#E0E0E0";
-    let icon = <Ticket size={16} color={colors.white} />;
+    let icon = <Ticket size={16} color={colors.background} />;
     
     if (subscription.id === "free") {
       color = "#4CAF50";
-      icon = <Zap size={16} color={colors.white} />;
+      icon = <Zap size={16} color={colors.background} />;
     } else if (subscription.id === "explorer") {
       color = "#FFD700";
-      icon = <Star size={16} color={colors.white} />;
+      icon = <Star size={16} color={colors.background} />;
     } else if (subscription.id === "collector") {
       color = "#9C27B0";
-      icon = <Crown size={16} color={colors.white} />;
+      icon = <Crown size={16} color={colors.background} />;
     }
     
     return (
@@ -303,7 +302,7 @@ export default function ProfileScreen() {
               <User size={40} color={colors.accent} />
             )}
             <View style={styles.cameraIconContainer}>
-              <Camera size={16} color={colors.primary} />
+              <Camera size={16} color={colors.background} />
             </View>
           </TouchableOpacity>
           <Text style={[typography.heading2, styles.name]}>{user?.name || "Guest User"}</Text>
@@ -325,7 +324,7 @@ export default function ProfileScreen() {
             icon={<CheckCircle size={22} color={colors.accent} />}
             title="Visit History"
             onPress={() => router.push("/visit-history")}
-            badge={visits.length}
+            badge={visitHistory.length}
             analyticsEventName="view_visit_history"
           />
           <ProfileOption
@@ -494,7 +493,7 @@ const styles = StyleSheet.create({
   },
   loginButtonText: {
     ...typography.button,
-    color: colors.primary,
+    color: colors.background,
     textAlign: 'center',
   },
   testUserButton: {
@@ -521,7 +520,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.surface,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
@@ -543,7 +542,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: colors.primary,
+    borderColor: colors.background,
   },
   name: {
     marginBottom: 4,
@@ -563,7 +562,7 @@ const styles = StyleSheet.create({
   },
   subscriptionBadgeText: {
     ...typography.bodySmall,
-    color: colors.white,
+    color: colors.background,
     fontWeight: "600",
     marginLeft: 6,
   },
@@ -617,7 +616,7 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     ...typography.caption,
-    color: colors.primary,
+    color: colors.background,
     fontWeight: "bold",
   },
   paymentInfoContainer: {

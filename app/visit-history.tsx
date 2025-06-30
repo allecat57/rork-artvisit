@@ -48,7 +48,7 @@ export default function VisitHistoryScreen() {
       action={
         <Button
           title="Explore Venues"
-          onPress={() => router.push("/(tabs)/explore")}
+          onPress={() => router.push("/explore")}
           variant="primary"
         />
       }
@@ -79,17 +79,17 @@ export default function VisitHistoryScreen() {
               
               <View style={styles.visitDetails}>
                 <View style={styles.detailRow}>
-                  <MapPin size={16} color={colors.primary.muted} style={styles.detailIcon} />
+                  <MapPin size={16} color={colors.textMuted} style={styles.detailIcon} />
                   <Text style={styles.detailText}>{venue.location}</Text>
                 </View>
                 
                 <View style={styles.detailRow}>
-                  <Calendar size={16} color={colors.primary.muted} style={styles.detailIcon} />
+                  <Calendar size={16} color={colors.textMuted} style={styles.detailIcon} />
                   <Text style={styles.detailText}>{formatDate(item.date)}</Text>
                 </View>
                 
                 <View style={styles.detailRow}>
-                  <Clock size={16} color={colors.primary.muted} style={styles.detailIcon} />
+                  <Clock size={16} color={colors.textMuted} style={styles.detailIcon} />
                   <Text style={styles.detailText}>{item.time || "Not specified"}</Text>
                 </View>
               </View>
@@ -118,17 +118,18 @@ export default function VisitHistoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary.background,
+    backgroundColor: colors.background,
   },
   title: {
     marginBottom: 20,
+    color: colors.text,
   },
   listContent: {
     padding: 20,
     flexGrow: 1,
   },
   visitCard: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
@@ -143,10 +144,11 @@ const styles = StyleSheet.create({
     ...typography.heading4,
     flex: 1,
     marginRight: 8,
+    color: colors.text,
   },
   visitDate: {
     ...typography.bodySmall,
-    color: colors.primary.muted,
+    color: colors.textMuted,
   },
   visitDetails: {
     marginBottom: 12,
@@ -161,10 +163,10 @@ const styles = StyleSheet.create({
   },
   detailText: {
     ...typography.body,
-    color: colors.primary.text,
+    color: colors.text,
   },
   notesContainer: {
-    backgroundColor: colors.primary.secondary,
+    backgroundColor: colors.surface,
     borderRadius: 8,
     padding: 12,
   },
@@ -172,9 +174,10 @@ const styles = StyleSheet.create({
     ...typography.bodySmall,
     fontWeight: "600",
     marginBottom: 4,
+    color: colors.text,
   },
   notesText: {
     ...typography.body,
-    color: colors.primary.text,
+    color: colors.text,
   },
 });

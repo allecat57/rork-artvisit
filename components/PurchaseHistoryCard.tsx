@@ -22,15 +22,15 @@ const formatDate = (dateString: string) => {
 const getStatusIcon = (status: Purchase["status"]) => {
   switch (status) {
     case "completed":
-      return <CheckCircle size={16} color={colors.status.success} />;
+      return <CheckCircle size={16} color={colors.constructive} />;
     case "processing":
-      return <Clock size={16} color={colors.primary.accent} />;
+      return <Clock size={16} color={colors.accent} />;
     case "shipped":
-      return <Truck size={16} color={colors.primary.accent} />;
+      return <Truck size={16} color={colors.accent} />;
     case "delivered":
-      return <Package size={16} color={colors.status.success} />;
+      return <Package size={16} color={colors.constructive} />;
     default:
-      return <Clock size={16} color={colors.primary.accent} />;
+      return <Clock size={16} color={colors.accent} />;
   }
 };
 
@@ -107,7 +107,7 @@ const PurchaseHistoryCard = ({ purchase, onPress }: PurchaseHistoryCardProps) =>
       
       <View style={styles.viewDetailsContainer}>
         <Text style={styles.viewDetailsText}>View Details</Text>
-        <ChevronRight size={16} color={colors.primary.accent} />
+        <ChevronRight size={16} color={colors.accent} />
       </View>
     </TouchableOpacity>
   );
@@ -115,7 +115,7 @@ const PurchaseHistoryCard = ({ purchase, onPress }: PurchaseHistoryCardProps) =>
 
 const styles = StyleSheet.create({
   purchaseCard: {
-    backgroundColor: colors.primary.card,
+    backgroundColor: colors.card,
     borderRadius: 12,
     marginBottom: 16,
     padding: 16,
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.primary.border,
+    borderBottomColor: colors.border,
   },
   orderInfo: {
     flex: 1,
@@ -140,10 +140,11 @@ const styles = StyleSheet.create({
   orderId: {
     ...typography.bodyBold,
     marginBottom: 2,
+    color: colors.text,
   },
   orderDate: {
     ...typography.caption,
-    color: colors.primary.muted,
+    color: colors.textMuted,
   },
   statusContainer: {
     flexDirection: "row",
@@ -159,10 +160,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   statusSuccess: {
-    color: colors.status.success,
+    color: colors.constructive,
   },
   statusPending: {
-    color: colors.primary.accent,
+    color: colors.accent,
   },
   itemsContainer: {
     marginBottom: 12,
@@ -176,14 +177,16 @@ const styles = StyleSheet.create({
     ...typography.body,
     flex: 1,
     marginRight: 8,
+    color: colors.text,
   },
   itemPrice: {
     ...typography.body,
     fontWeight: "600",
+    color: colors.text,
   },
   moreItems: {
     ...typography.caption,
-    color: colors.primary.muted,
+    color: colors.textMuted,
     fontStyle: "italic",
     marginTop: 4,
   },
@@ -193,14 +196,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: colors.primary.border,
+    borderTopColor: colors.border,
   },
   paymentMethod: {
     flex: 1,
   },
   paymentText: {
     ...typography.caption,
-    color: colors.primary.muted,
+    color: colors.textMuted,
   },
   totalContainer: {
     flexDirection: "row",
@@ -209,10 +212,11 @@ const styles = StyleSheet.create({
   totalLabel: {
     ...typography.body,
     marginRight: 4,
+    color: colors.text,
   },
   totalAmount: {
     ...typography.bodyBold,
-    color: colors.primary.accent,
+    color: colors.accent,
   },
   viewDetailsContainer: {
     flexDirection: "row",
@@ -222,7 +226,7 @@ const styles = StyleSheet.create({
   },
   viewDetailsText: {
     ...typography.caption,
-    color: colors.primary.accent,
+    color: colors.accent,
     fontWeight: "600",
     marginRight: 4,
   },

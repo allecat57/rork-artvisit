@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
-import { StyleSheet, Text, View, FlatList } from "react-native";
+import { StyleSheet, Text, View, FlatList, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { usePurchaseHistoryStore } from "@/store/usePurchaseHistoryStore";
 import EmptyState from "@/components/EmptyState";
 import PurchaseHistoryCard from "@/components/PurchaseHistoryCard";
@@ -11,7 +11,9 @@ import Button from "@/components/Button";
 import * as Analytics from "@/utils/analytics";
 
 export default function PurchaseHistoryScreen() {
-  const { purchases } = usePurchaseHistoryStore();
+  const router = useRouter();
+  const { getCurrentUserPurchases } = usePurchaseHistoryStore();
+  const purchases = getCurrentUserPurchases();
   
   // Sort purchases by date (newest first)
   const sortedPurchases = [...purchases].sort((a, b) => 
@@ -24,6 +26,21 @@ export default function PurchaseHistoryScreen() {
     Analytics.logScreenView("PurchaseHistory");
   }, []);
   
+  const handlePurchasePress = (purchase: any) => {
+    // For now, just show purchase details in an alert
+    // In a real app, you'd navigate to a detailed purchase view
+    Alert.alert(
+      `Order #${purchase.id}`,
+      `Total: $${purchase.totalAmount.toFixed(2)}\nStatus: ${purchase.status}\nDate: ${new Date(purchase.date).toLocaleDateString()}`,
+      [{ text: "OK" }]
+    );
+    
+    Analytics.logEvent("purchase_history_item_press", {
+      purchase_id: purchase.id,
+      total_amount: purchase.totalAmount
+    });
+  };
+  
   const renderEmptyState = () => (
     <EmptyState
       iconName="ShoppingBag"
@@ -32,7 +49,7 @@ export default function PurchaseHistoryScreen() {
       action={
         <Button
           title="Visit Shop"
-          onPress={() => {}}
+          onPress={() => router.push("/shop")}
           variant="primary"
         />
       }
@@ -47,7 +64,10 @@ export default function PurchaseHistoryScreen() {
         data={sortedPurchases}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <PurchaseHistoryCard purchase={item} />
+          <PurchaseHistoryCard 
+            purchase={item} 
+            onPress={handlePurchasePress}
+          />
         )}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
@@ -64,10 +84,11 @@ export default function PurchaseHistoryScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary.background,
+    backgroundColor: colors.background,
   },
   title: {
     marginBottom: 20,
+    color: colors.text,
   },
   listContent: {
     padding: 20,

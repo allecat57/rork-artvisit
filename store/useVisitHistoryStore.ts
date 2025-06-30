@@ -1,13 +1,14 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Venue } from "@/types/venue";
 import { useAuthStore } from "./useAuthStore";
 
 interface VisitRecord {
   id: string;
-  venue: Venue;
-  visitDate: string; // ISO string
+  venueId: string;
+  date: string; // ISO string
+  time?: string;
+  notes?: string;
 }
 
 interface UserVisitHistory {
@@ -19,10 +20,10 @@ interface VisitHistoryState {
   userVisitHistories: Record<string, UserVisitHistory>;
   
   // Current user getters (derived from auth store)
-  getCurrentUserVisits: () => VisitRecord[];
+  visitHistory: VisitRecord[];
   
   // Actions
-  addVisit: (venue: Venue) => void;
+  addVisit: (venueId: string, time?: string, notes?: string) => void;
   removeVisit: (visitId: string) => void;
   clearHistory: () => void;
   
@@ -48,7 +49,7 @@ export const useVisitHistoryStore = create<VisitHistoryState>()(
     (set, get) => ({
       userVisitHistories: {},
       
-      getCurrentUserVisits: () => {
+      get visitHistory() {
         const userId = getCurrentUserId();
         if (!userId) return [];
         
@@ -56,7 +57,7 @@ export const useVisitHistoryStore = create<VisitHistoryState>()(
         return userVisitHistories[userId]?.visits || [];
       },
       
-      addVisit: (venue) => {
+      addVisit: (venueId, time, notes) => {
         const userId = getCurrentUserId();
         if (!userId) return;
         
@@ -65,8 +66,10 @@ export const useVisitHistoryStore = create<VisitHistoryState>()(
           
           const newVisit: VisitRecord = {
             id: `visit-${Date.now()}`,
-            venue,
-            visitDate: new Date().toISOString(),
+            venueId,
+            date: new Date().toISOString(),
+            time,
+            notes,
           };
           
           return {
@@ -122,13 +125,21 @@ export const useVisitHistoryStore = create<VisitHistoryState>()(
       },
       
       hasVisited: (venueId) => {
-        const visits = get().getCurrentUserVisits();
-        return visits.some(visit => visit.venue.id === venueId);
+        const userId = getCurrentUserId();
+        if (!userId) return false;
+        
+        const userVisitHistories = get().userVisitHistories;
+        const visits = userVisitHistories[userId]?.visits || [];
+        return visits.some(visit => visit.venueId === venueId);
       },
       
       getVisitsByVenue: (venueId) => {
-        const visits = get().getCurrentUserVisits();
-        return visits.filter(visit => visit.venue.id === venueId);
+        const userId = getCurrentUserId();
+        if (!userId) return [];
+        
+        const userVisitHistories = get().userVisitHistories;
+        const visits = userVisitHistories[userId]?.visits || [];
+        return visits.filter(visit => visit.venueId === venueId);
       },
     }),
     {
