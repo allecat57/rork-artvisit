@@ -329,7 +329,7 @@ export default function ReservationModal({
             >
               <Users 
                 size={20} 
-                color={partySize === size ? colors.primary : colors.text} 
+                color={partySize === size ? colors.accent : colors.text} 
               />
               <Text style={[
                 styles.partySizeText,
@@ -663,7 +663,7 @@ export default function ReservationModal({
                 disabled={!canProceedToNext()}
                 loading={isSubmitting || stripeLoading}
                 icon={currentStep === 'payment' ? 
-                  <CreditCard size={18} color={colors.primary} /> : 
+                  <CreditCard size={18} color={colors.accent} /> : 
                   undefined
                 }
                 analyticsEventName={
@@ -766,7 +766,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   stepNumberActive: {
-    color: colors.primary,
+    color: colors.background,
   },
   stepNumberInactive: {
     color: colors.textMuted,
@@ -852,7 +852,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   partySizeTextActive: {
-    color: colors.primary,
+    color: colors.background,
   },
   partySizeNote: {
     backgroundColor: "rgba(172, 137, 1, 0.1)",
