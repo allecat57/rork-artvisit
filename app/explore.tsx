@@ -24,7 +24,7 @@ import { Venue } from "@/types/venue";
 export default function ExploreScreen() {
   const router = useRouter();
   const { venues, isLoading, fetchVenues } = useVenueStore();
-  const { currentLocation } = useLocationStore();
+  const { currentLocation, getCurrentLocation } = useLocationStore();
   
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -32,6 +32,7 @@ export default function ExploreScreen() {
   
   useEffect(() => {
     fetchVenues();
+    getCurrentLocation();
   }, []);
   
   // Filter venues based on search query and selected category
@@ -43,7 +44,10 @@ export default function ExploreScreen() {
       filtered = filtered.filter((venue: Venue) => 
         venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         venue.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        venue.location.toLowerCase().includes(searchQuery.toLowerCase())
+        venue.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (venue.tags && venue.tags.some((tag: string) => 
+          tag.toLowerCase().includes(searchQuery.toLowerCase())
+        ))
       );
     }
     
@@ -56,11 +60,11 @@ export default function ExploreScreen() {
   }, [venues, searchQuery, selectedCategory]);
   
   const handleVenuePress = (venueId: string) => {
-    router.push(`/gallery/${venueId}`);
+    router.push(`/venue/${venueId}`);
   };
   
   const handleCategoryPress = (categoryId: string) => {
-    setSelectedCategory(categoryId === selectedCategory ? null : categoryId);
+    router.push(`/category/${categoryId}`);
   };
   
   const renderHeader = () => (
@@ -72,7 +76,7 @@ export default function ExploreScreen() {
             <View style={styles.locationContainer}>
               <MapPin size={14} color={colors.muted} />
               <Text style={styles.locationText}>
-                Current Location
+                {currentLocation.city || currentLocation.address || "Current Location"}
               </Text>
             </View>
           )}
@@ -107,22 +111,10 @@ export default function ExploreScreen() {
         showsHorizontalScrollIndicator={false}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.categoryWrapper}>
-            <TouchableOpacity
-              style={[
-                styles.categoryButton,
-                selectedCategory === item.id && styles.selectedCategoryButton
-              ]}
-              onPress={() => handleCategoryPress(item.id)}
-            >
-              <Text style={[
-                styles.categoryButtonText,
-                selectedCategory === item.id && styles.selectedCategoryButtonText
-              ]}>
-                {item.title}
-              </Text>
-            </TouchableOpacity>
-          </View>
+          <CategoryCard 
+            category={item} 
+            onPress={() => handleCategoryPress(item.id)}
+          />
         )}
         contentContainerStyle={styles.categoriesList}
       />
@@ -131,19 +123,9 @@ export default function ExploreScreen() {
   
   const renderVenuesList = () => (
     <View style={styles.venuesSection}>
-      <View style={styles.venuesSectionHeader}>
-        <Text style={styles.sectionTitle}>
-          {selectedCategory ? `${categories.find(c => c.id === selectedCategory)?.title || selectedCategory} Venues` : "All Venues"}
-        </Text>
-        {selectedCategory && (
-          <TouchableOpacity
-            style={styles.clearFilterButton}
-            onPress={() => setSelectedCategory(null)}
-          >
-            <Text style={styles.clearFilterText}>Clear Filter</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+      <Text style={styles.sectionTitle}>
+        {selectedCategory ? `${selectedCategory} Venues` : "All Venues"}
+      </Text>
       
       {isLoading ? (
         <View style={styles.loadingContainer}>
@@ -254,58 +236,11 @@ const styles = StyleSheet.create({
   categoriesList: {
     paddingLeft: 16,
     paddingRight: 8,
-  },
-  categoryWrapper: {
-    marginRight: 8,
-  },
-  categoryButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 8,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-    minHeight: 40,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  selectedCategoryButton: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
-  },
-  categoryButtonText: {
-    ...typography.bodySmall,
-    color: colors.text,
-    fontWeight: "500",
-    textAlign: "center",
-  },
-  selectedCategoryButtonText: {
-    color: colors.primary,
-    fontWeight: "600",
+    gap: 12,
   },
   venuesSection: {
     flex: 1,
     paddingTop: 16,
-  },
-  venuesSectionHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    marginBottom: 12,
-  },
-  clearFilterButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    backgroundColor: colors.card,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  clearFilterText: {
-    ...typography.bodySmall,
-    color: colors.text,
-    fontWeight: "500",
   },
   loadingContainer: {
     flex: 1,

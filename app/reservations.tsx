@@ -73,11 +73,6 @@ export default function ReservationsScreen() {
       [{ text: "OK" }]
     );
   };
-
-  const handleMakeReservation = (venue: any, date: Date, timeSlot: string) => {
-    // This will be handled by the ReservationModal
-    setModalVisible(false);
-  };
   
   const renderHeader = () => (
     <View style={styles.header}>
@@ -164,14 +159,10 @@ export default function ReservationsScreen() {
           icon={<Calendar size={40} color={colors.muted} />}
           title={filterStatus === "all" ? "No reservations yet" : `No ${filterStatus} reservations`}
           message={filterStatus === "all" ? "Make your first reservation to get started" : `You have no ${filterStatus} reservations at this time.`}
-          action={
-            <TouchableOpacity 
-              style={styles.makeReservationButton}
-              onPress={() => setModalVisible(true)}
-            >
-              <Text style={styles.makeReservationButtonText}>Make Reservation</Text>
-            </TouchableOpacity>
-          }
+          actionButton={{
+            title: "Make Reservation",
+            onPress: () => setModalVisible(true)
+          }}
         />
       ) : (
         <FlatList
@@ -193,7 +184,6 @@ export default function ReservationsScreen() {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         venues={venues}
-        onReserve={handleMakeReservation}
       />
     </SafeAreaView>
   );
@@ -310,18 +300,6 @@ const styles = StyleSheet.create({
     minWidth: 200,
   },
   loginButtonText: {
-    ...typography.button,
-    color: colors.primary,
-    textAlign: 'center',
-  },
-  makeReservationButton: {
-    backgroundColor: colors.accent,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-    minWidth: 200,
-  },
-  makeReservationButtonText: {
     ...typography.button,
     color: colors.primary,
     textAlign: 'center',

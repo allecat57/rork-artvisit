@@ -1,288 +1,205 @@
-import React, { useState, useEffect } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  TouchableOpacity,
-  FlatList,
-  Dimensions,
-  Alert,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter, useLocalSearchParams, Stack } from "expo-router";
-import { Image } from "expo-image";
-import { 
-  ArrowLeft, 
-  MapPin, 
-  Clock, 
-  DollarSign, 
-  Calendar,
-  Share,
-  Heart,
-  Star
-} from "lucide-react-native";
-import colors from "@/constants/colors";
-import typography from "@/constants/typography";
-import Button from "@/components/Button";
-import ReservationModal from "@/components/ReservationModal";
-import { useVenueStore } from "@/store/useVenueStore";
-import { useFavoritesStore } from "@/store/useFavoritesStore";
-import { useVisitHistoryStore } from "@/store/useVisitHistoryStore";
-import * as Analytics from "@/utils/analytics";
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, useColorScheme } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Heart, Share2, MapPin, Clock, ArrowRight } from 'lucide-react-native';
+import colors from '../../constants/colors';
+import { GalleryAnalytics } from '../../utils/artvisit-integration';
+import * as Analytics from '../../utils/analytics';
 
-const { width } = Dimensions.get("window");
+// Mock data - in a real app, fetch this from your API
+const galleries = [
+  {
+    id: '1',
+    name: 'Modern Art Gallery',
+    description: 'A contemporary art gallery featuring works from emerging artists around the world.',
+    location: 'New York, NY',
+    image: 'https://images.unsplash.com/photo-1577720580479-7d839d829c73?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1024&q=80',
+    hours: '10:00 AM - 6:00 PM',
+    artworks: [
+      { id: '101', title: 'Abstract Harmony', artist: 'Jane Smith', image: 'https://images.unsplash.com/photo-1549887552-cb1071d3e5ca?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
+      { id: '102', title: 'Urban Landscape', artist: 'Michael Johnson', image: 'https://images.unsplash.com/photo-1578926375605-eaf7559b1458?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
+    ]
+  },
+  {
+    id: '2',
+    name: 'Classical Art Museum',
+    description: 'A prestigious museum housing classical art from the Renaissance to the 19th century.',
+    location: 'London, UK',
+    image: 'https://images.unsplash.com/photo-1574182245530-967d9b3831af?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1024&q=80',
+    hours: '9:00 AM - 5:00 PM',
+    artworks: [
+      { id: '201', title: 'Portrait of a Lady', artist: 'Leonardo da Vinci', image: 'https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
+      { id: '202', title: 'Sunset over the Sea', artist: 'Claude Monet', image: 'https://images.unsplash.com/photo-1578321272176-b7bbc0679853?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
+    ]
+  }
+];
 
-export default function GalleryDetailScreen() {
-  const router = useRouter();
+export default function GalleryScreen() {
   const { id } = useLocalSearchParams();
-  const { getVenueById } = useVenueStore();
-  const { addFavorite, removeFavorite, isFavorite } = useFavoritesStore();
-  const { addVisit } = useVisitHistoryStore();
+  const router = useRouter();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === 'dark';
+  const textColor = isDark ? colors.light : colors.dark;
+  const bgColor = isDark ? colors.dark : colors.light;
   
-  const [venue, setVenue] = useState<any>(null);
-  const [showReservationModal, setShowReservationModal] = useState(false);
-  const [selectedArtwork, setSelectedArtwork] = useState<any>(null);
-  
-  const venueId = Array.isArray(id) ? id[0] : id;
-  const isVenueFavorite = venue ? isFavorite(venue.id) : false;
+  const [gallery, setGallery] = useState(null);
+  const [analytics, setAnalytics] = useState(null);
+  const [isFavorite, setIsFavorite] = useState(false);
   
   useEffect(() => {
-    if (venueId) {
-      const venueData = getVenueById(venueId);
-      setVenue(venueData);
+    // Find gallery from mock data
+    const foundGallery = galleries.find(g => g.id === id);
+    setGallery(foundGallery);
+    
+    if (foundGallery) {
+      // Initialize analytics
+      const galleryAnalytics = new GalleryAnalytics({
+        id: foundGallery.id,
+        name: foundGallery.name,
+        location: foundGallery.location
+      });
       
-      if (venueData) {
-        // Track page view
-        Analytics.logEvent("venue_detail_view", {
-          venue_id: venueData.id,
-          venue_name: venueData.name,
-          venue_type: venueData.type
-        });
-        
-        // Add to visit history - use venue.id instead of venueId
-        addVisit({
-          id: `visit-${Date.now()}`,
-          venueId: venueData.id as any, // Temporary type assertion to fix error; adjust based on store type definition
-          visitDate: new Date().toISOString(),
-          duration: 0 // Will be updated when user leaves
-        });
+      setAnalytics(galleryAnalytics);
+      
+      // Track gallery view
+      galleryAnalytics.trackGalleryView();
+      
+      // Log screen view to TimeFrame Analytics
+      Analytics.sendToTimeFrameAnalytics('screen_view', {
+        screen_name: 'Gallery Detail',
+        screen_class: 'GalleryScreen',
+        gallery_id: foundGallery.id,
+        gallery_name: foundGallery.name
+      });
+    }
+    
+    return () => {
+      // Track time spent when leaving
+      if (analytics) {
+        analytics.trackTimeSpent();
       }
-    }
-  }, [venueId]);
+    };
+  }, [id]);
   
-  const handleBack = () => {
-    if (venue) {
-      Analytics.logEvent("venue_detail_back", {
-        venue_id: venue.id,
-        venue_name: venue.name
-      });
-    }
-    router.back();
-  };
-  
-  const handleShare = () => {
-    if (venue) {
-      Analytics.logEvent("venue_share", {
-        venue_id: venue.id,
-        venue_name: venue.name
-      });
-      
-      Alert.alert(
-        "Share Venue",
-        `Share ${venue.name} with friends!`,
-        [{ text: "OK" }]
-      );
-    }
-  };
-  
-  const handleFavoriteToggle = () => {
-    if (venue) {
-      if (isVenueFavorite) {
-        removeFavorite(venue.id);
-        Analytics.logEvent("venue_unfavorite", {
-          venue_id: venue.id,
-          venue_name: venue.name
-        });
-      } else {
-        addFavorite(venue);
-        Analytics.logEvent("venue_favorite", {
-          venue_id: venue.id,
-          venue_name: venue.name
-        });
-      }
-    }
-  };
-  
-  const handleArtworkPress = (artwork: any) => {
-    setSelectedArtwork(artwork);
-    if (venue) {
-      Analytics.logEvent("artwork_view", {
-        venue_id: venue.id,
-        artwork_id: artwork.id,
-        artwork_title: artwork.title
-      });
-      
-      router.push(`/gallery/${venue.id}/artwork/${artwork.id}`);
-    }
-  };
-  
-  const handleMakeReservation = () => {
-    if (venue) {
-      Analytics.logEvent("reservation_start", {
-        venue_id: venue.id,
-        venue_name: venue.name
-      });
-    }
-    setShowReservationModal(true);
-  };
-
-  const handleReservationComplete = (venue: any, date: Date, timeSlot: string) => {
-    setShowReservationModal(false);
-    Alert.alert(
-      "Reservation Confirmed!",
-      `Your visit to ${venue.name} has been scheduled for ${date.toLocaleDateString()} at ${timeSlot}.`,
-      [
-        {
-          text: "View Reservations",
-          onPress: () => router.push("/reservations")
-        },
-        { text: "OK" }
-      ]
-    );
-  };
-  
-  if (!venue) {
+  if (!gallery) {
     return (
-      <SafeAreaView style={styles.container} edges={["bottom"]}>
-        <Stack.Screen options={{ headerShown: false }} />
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>Venue not found</Text>
-          <Button title="Go Back" onPress={handleBack} />
-        </View>
+      <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
+        <Text style={[styles.loadingText, { color: textColor }]}>Loading gallery...</Text>
       </SafeAreaView>
     );
   }
   
-  const renderHeader = () => (
-    <View style={styles.header}>
-      <TouchableOpacity style={styles.backButton} onPress={handleBack}>
-        <ArrowLeft size={24} color={colors.text} />
-      </TouchableOpacity>
-      
-      <View style={styles.headerActions}>
-        <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
-          <Share size={20} color={colors.text} />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.actionButton} onPress={handleFavoriteToggle}>
-          <Heart 
-            size={20} 
-            color={isVenueFavorite ? colors.status.error : colors.text}
-            fill={isVenueFavorite ? colors.status.error : "transparent"}
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
-  );
-  
-  const renderVenueInfo = () => (
-    <View style={styles.venueInfo}>
-      <Text style={styles.venueName}>{venue.name}</Text>
-      
-      <View style={styles.infoRow}>
-        <MapPin size={16} color={colors.muted} />
-        <Text style={styles.infoText}>{venue.location}</Text>
-      </View>
-      
-      <View style={styles.infoRow}>
-        <Clock size={16} color={colors.muted} />
-        <Text style={styles.infoText}>{venue.openingHours}</Text>
-      </View>
-      
-      <Text style={styles.description}>{venue.description}</Text>
-    </View>
-  );
-  
-  const renderArtworks = () => {
-    if (!venue.artworks || venue.artworks.length === 0) {
-      return null;
+  const handleFavoriteToggle = () => {
+    setIsFavorite(!isFavorite);
+    if (analytics) {
+      analytics.trackInteraction('favorite_toggle', null, { is_favorite: !isFavorite });
     }
-    
-    return (
-      <View style={styles.artworksSection}>
-        <Text style={styles.sectionTitle}>Featured Artworks</Text>
-        <FlatList
-          data={venue.artworks}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={styles.artworkCard}
-              onPress={() => handleArtworkPress(item)}
-            >
-              <Image
-                source={{ uri: item.image }}
-                style={styles.artworkImage}
-                contentFit="cover"
-              />
-              <View style={styles.artworkInfo}>
-                <Text style={styles.artworkTitle} numberOfLines={1}>
-                  {item.title}
-                </Text>
-                <Text style={styles.artworkArtist} numberOfLines={1}>
-                  {item.artist}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          )}
-          contentContainerStyle={styles.artworksList}
-        />
-      </View>
-    );
   };
   
+  const handleShare = () => {
+    if (analytics) {
+      analytics.trackInteraction('share', null, { gallery_name: gallery.name });
+    }
+    // Implement share functionality
+  };
+  
+  const handleArtworkPress = (artwork) => {
+    if (analytics) {
+      analytics.trackArtworkView(artwork.id, artwork.title);
+    }
+    router.push(`/gallery/${gallery.id}/artwork/${artwork.id}`);
+  };
+  
+  const handleViewAllArtworks = () => {
+    if (analytics) {
+      analytics.trackInteraction('view_all_artworks');
+    }
+    router.push(`/gallery/${gallery.id}/artworks`);
+  };
+
   return (
-    <SafeAreaView style={styles.container} edges={["bottom"]}>
-      <Stack.Screen options={{ headerShown: false }} />
-      
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: venue.imageUrl }}
-            style={styles.venueImage}
-            contentFit="cover"
-          />
-          {renderHeader()}
-        </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
+      <ScrollView>
+        <Image source={{ uri: gallery.image }} style={styles.image} />
         
         <View style={styles.content}>
-          {renderVenueInfo()}
-          {renderArtworks()}
+          <View style={styles.header}>
+            <Text style={[styles.title, { color: textColor }]}>{gallery.name}</Text>
+            
+            <View style={styles.actions}>
+              <TouchableOpacity 
+                style={styles.actionButton} 
+                onPress={handleFavoriteToggle}
+              >
+                <Heart 
+                  size={24} 
+                  color={isFavorite ? colors.primary : textColor} 
+                  fill={isFavorite ? colors.primary : 'transparent'} 
+                />
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.actionButton}
+                onPress={handleShare}
+              >
+                <Share2 size={24} color={textColor} />
+              </TouchableOpacity>
+            </View>
+          </View>
+          
+          <View style={styles.infoRow}>
+            <MapPin size={18} color={colors.primary} />
+            <Text style={[styles.infoText, { color: textColor }]}>{gallery.location}</Text>
+          </View>
+          
+          <View style={styles.infoRow}>
+            <Clock size={18} color={colors.primary} />
+            <Text style={[styles.infoText, { color: textColor }]}>{gallery.hours}</Text>
+          </View>
+          
+          <Text style={[styles.description, { color: textColor }]}>
+            {gallery.description}
+          </Text>
+          
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: textColor }]}>Featured Artworks</Text>
+              <TouchableOpacity onPress={handleViewAllArtworks}>
+                <Text style={styles.viewAll}>View All</Text>
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.artworksGrid}>
+              {gallery.artworks.map(artwork => (
+                <TouchableOpacity 
+                  key={artwork.id} 
+                  style={styles.artworkCard}
+                  onPress={() => handleArtworkPress(artwork)}
+                >
+                  <Image source={{ uri: artwork.image }} style={styles.artworkImage} />
+                  <View style={styles.artworkInfo}>
+                    <Text style={[styles.artworkTitle, { color: textColor }]} numberOfLines={1}>
+                      {artwork.title}
+                    </Text>
+                    <Text style={[styles.artworkArtist, { color: textColor }]} numberOfLines={1}>
+                      {artwork.artist}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+            
+            <TouchableOpacity 
+              style={[styles.viewAllButton, { backgroundColor: colors.primary }]}
+              onPress={handleViewAllArtworks}
+            >
+              <Text style={styles.viewAllButtonText}>View All Artworks</Text>
+              <ArrowRight size={18} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
-      
-      <View style={styles.footer}>
-        <View style={styles.priceContainer}>
-          <DollarSign size={16} color={colors.muted} />
-          <Text style={styles.priceText}>{venue.admission}</Text>
-        </View>
-        
-        <Button
-          title="Make Reservation"
-          onPress={handleMakeReservation}
-          icon={<Calendar size={18} color={colors.primary} />}
-          style={styles.reservationButton}
-        />
-      </View>
-      
-      <ReservationModal
-        visible={showReservationModal}
-        venue={venue}
-        onClose={() => setShowReservationModal(false)}
-        onReserve={handleReservationComplete}
-      />
     </SafeAreaView>
   );
 }
@@ -290,145 +207,109 @@ export default function GalleryDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
   },
-  scrollView: {
-    flex: 1,
+  loadingText: {
+    fontSize: 16,
+    textAlign: 'center',
+    marginTop: 20,
   },
-  imageContainer: {
-    position: "relative",
-  },
-  venueImage: {
-    width: width,
-    height: 300,
-  },
-  header: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 16,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  headerActions: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  actionButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    justifyContent: "center",
-    alignItems: "center",
+  image: {
+    width: '100%',
+    height: 250,
+    resizeMode: 'cover',
   },
   content: {
-    padding: 20,
+    padding: 16,
   },
-  venueInfo: {
-    marginBottom: 24,
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  venueName: {
-    ...typography.heading1,
-    color: colors.text,
-    marginBottom: 12,
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    flex: 1,
+  },
+  actions: {
+    flexDirection: 'row',
+  },
+  actionButton: {
+    marginLeft: 16,
   },
   infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
   },
   infoText: {
-    ...typography.body,
-    color: colors.text,
+    fontSize: 14,
     marginLeft: 8,
   },
   description: {
-    ...typography.body,
-    color: colors.text,
+    fontSize: 16,
     lineHeight: 24,
-    marginTop: 12,
-  },
-  artworksSection: {
+    marginTop: 16,
     marginBottom: 24,
   },
-  sectionTitle: {
-    ...typography.heading2,
-    color: colors.text,
+  section: {
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 16,
   },
-  artworksList: {
-    paddingLeft: 0,
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  viewAll: {
+    color: colors.primary,
+    fontSize: 14,
+  },
+  artworksGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
   artworkCard: {
-    width: 160,
-    marginRight: 16,
-    backgroundColor: colors.card,
-    borderRadius: 12,
-    overflow: "hidden",
+    width: '48%',
+    marginBottom: 16,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#f5f5f5',
   },
   artworkImage: {
-    width: "100%",
-    height: 120,
+    width: '100%',
+    height: 150,
+    resizeMode: 'cover',
   },
   artworkInfo: {
-    padding: 12,
+    padding: 8,
   },
   artworkTitle: {
-    ...typography.bodySmall,
-    color: colors.text,
-    fontWeight: "600",
-    marginBottom: 4,
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   artworkArtist: {
-    ...typography.caption,
-    color: colors.muted,
+    fontSize: 12,
+    opacity: 0.7,
+    marginTop: 2,
   },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    backgroundColor: colors.primary,
+  viewAllButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 8,
   },
-  priceContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  priceText: {
-    ...typography.heading3,
-    color: colors.text,
-    marginLeft: 4,
-  },
-  reservationButton: {
-    flex: 1,
-    marginLeft: 16,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  errorText: {
-    ...typography.heading2,
-    color: colors.text,
-    marginBottom: 20,
-    textAlign: "center",
+  viewAllButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    marginRight: 8,
   },
 });

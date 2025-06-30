@@ -451,10 +451,6 @@ export default function EventDetailsScreen() {
     }
   };
 
-  const handleBack = () => {
-    router.back();
-  };
-
   if (isLoading || !event) {
     return (
       <SafeAreaView style={styles.loadingContainer} edges={["top"]}>
@@ -468,11 +464,6 @@ export default function EventDetailsScreen() {
       <Stack.Screen
         options={{
           title: "Event Details",
-          headerLeft: () => (
-            <TouchableOpacity onPress={handleBack} style={styles.headerButton}>
-              <ArrowLeft size={24} color={colors.primary.text} />
-            </TouchableOpacity>
-          ),
           headerRight: () => (
             <View style={styles.headerButtons}>
               <TouchableOpacity onPress={toggleFavorite} style={styles.headerButton}>

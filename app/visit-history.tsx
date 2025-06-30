@@ -8,7 +8,7 @@ import EmptyState from "@/components/EmptyState";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import Button from "@/components/Button";
-import { MapPin, Calendar, Clock, ArrowLeft } from "lucide-react-native";
+import { MapPin, Calendar, Clock } from "lucide-react-native";
 import * as Analytics from "@/utils/analytics";
 
 export default function VisitHistoryScreen() {
@@ -29,10 +29,6 @@ export default function VisitHistoryScreen() {
     Analytics.logEvent("visit_history_item_press", {
       venue_id: venueId
     });
-  };
-  
-  const handleBack = () => {
-    router.back();
   };
   
   const formatDate = (dateString: string) => {
@@ -61,16 +57,7 @@ export default function VisitHistoryScreen() {
   
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      <Stack.Screen 
-        options={{ 
-          title: "Visit History",
-          headerLeft: () => (
-            <TouchableOpacity onPress={handleBack} style={styles.backButton}>
-              <ArrowLeft size={24} color={colors.primary.text} />
-            </TouchableOpacity>
-          )
-        }} 
-      />
+      <Stack.Screen options={{ title: "Visit History" }} />
       
       <FlatList
         data={visitHistory}
@@ -189,9 +176,5 @@ const styles = StyleSheet.create({
   notesText: {
     ...typography.body,
     color: colors.primary.text,
-  },
-  backButton: {
-    padding: 4,
-    marginRight: 8,
   },
 });

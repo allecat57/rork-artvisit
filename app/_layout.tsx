@@ -1,157 +1,111 @@
-import { Stack } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import colors from "@/constants/colors";
+import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+import { useColorScheme, Platform, StatusBar } from 'react-native';
+import { ThemeProvider, useTheme } from '@/context/ThemeContext';
+import { StripeProvider } from '@/context/StripeContext';
 
-export default function RootLayout() {
+function RootLayoutContent() {
+  const { isDark, colors } = useTheme();
+
+  useEffect(() => {
+    // Set status bar style based on theme
+    if (Platform.OS === 'ios') {
+      StatusBar.setBarStyle('light-content', true);
+      StatusBar.setBackgroundColor('#013025', true);
+    } else {
+      StatusBar.setBackgroundColor('#013025', true);
+      StatusBar.setBarStyle('light-content', true);
+    }
+  }, [isDark]);
+
   return (
-    <>
-      <StatusBar style="light" backgroundColor={colors.primary} />
+    <StripeProvider>
       <Stack
         screenOptions={{
-          headerStyle: {
-            backgroundColor: colors.primary,
-          },
-          headerTintColor: colors.text,
-          headerTitleStyle: {
-            fontWeight: "600",
-          },
+          headerShown: true,
+          gestureEnabled: true,
+          animation: 'slide_from_right',
           contentStyle: {
-            backgroundColor: colors.primary,
+            backgroundColor: '#013025',
+          },
+          headerStyle: {
+            backgroundColor: '#013025',
+          },
+          headerTintColor: '#AC8901',
+          headerTitleStyle: {
+            fontSize: 18,
+            fontWeight: '600',
+            color: '#AC8901',
           },
         }}
       >
         <Stack.Screen 
           name="index" 
           options={{ 
-            title: "Home",
-            headerShown: false 
+            title: 'Discover Art',
+            headerShown: true
           }} 
         />
         <Stack.Screen 
           name="explore" 
           options={{ 
-            title: "Explore",
-            headerShown: false 
-          }} 
-        />
-        <Stack.Screen 
-          name="gallery/[id]" 
-          options={{ 
-            title: "Gallery",
-            presentation: "card"
-          }} 
-        />
-        <Stack.Screen 
-          name="gallery/[id]/artworks" 
-          options={{ 
-            title: "Artworks",
-            presentation: "card"
-          }} 
-        />
-        <Stack.Screen 
-          name="gallery/[id]/artwork/[artworkId]" 
-          options={{ 
-            title: "Artwork",
-            presentation: "card"
-          }} 
-        />
-        <Stack.Screen 
-          name="login" 
-          options={{ 
-            title: "Login",
-            presentation: "modal"
-          }} 
-        />
-        <Stack.Screen 
-          name="profile" 
-          options={{ 
-            title: "Profile"
-          }} 
-        />
-        <Stack.Screen 
-          name="reservations" 
-          options={{ 
-            title: "Reservations"
-          }} 
-        />
-        <Stack.Screen 
-          name="favorites" 
-          options={{ 
-            title: "Favorites"
-          }} 
-        />
-        <Stack.Screen 
-          name="visit-history" 
-          options={{ 
-            title: "Visit History"
-          }} 
-        />
-        <Stack.Screen 
-          name="events" 
-          options={{ 
-            title: "Events"
-          }} 
-        />
-        <Stack.Screen 
-          name="event/[id]" 
-          options={{ 
-            title: "Event Details",
-            presentation: "card"
+            title: 'Explore',
+            headerShown: true
           }} 
         />
         <Stack.Screen 
           name="shop" 
           options={{ 
-            title: "Shop"
+            title: 'Shop',
+            headerShown: true
           }} 
         />
         <Stack.Screen 
-          name="shop/product/[id]" 
+          name="events" 
           options={{ 
-            title: "Product Details",
-            presentation: "card"
+            title: 'Events',
+            headerShown: true
           }} 
         />
         <Stack.Screen 
-          name="shop/cart" 
+          name="reservations" 
           options={{ 
-            title: "Shopping Cart",
-            presentation: "card"
+            title: 'Reservations',
+            headerShown: true
           }} 
         />
         <Stack.Screen 
-          name="purchase-history" 
+          name="profile" 
           options={{ 
-            title: "Purchase History"
-          }} 
-        />
-        <Stack.Screen 
-          name="category/[id]" 
-          options={{ 
-            title: "Category",
-            presentation: "card"
+            title: 'Profile',
+            headerShown: true
           }} 
         />
         <Stack.Screen 
           name="modal" 
           options={{ 
-            presentation: "modal",
-            title: "Modal"
-          }} 
-        />
-        <Stack.Screen 
-          name="example-usage" 
-          options={{ 
-            title: "Example Usage"
-          }} 
-        />
-        <Stack.Screen 
-          name="+not-found" 
-          options={{ 
-            title: "Not Found"
+            presentation: 'modal',
+            headerShown: true,
+            headerStyle: {
+              backgroundColor: '#013025',
+            },
+            headerTintColor: '#FFFFFF',
+            headerTitleStyle: {
+              fontSize: 18,
+              fontWeight: '600',
+              color: '#FFFFFF',
+            },
           }} 
         />
       </Stack>
-    </>
+    </StripeProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <RootLayoutContent />
+    </ThemeProvider>
   );
 }

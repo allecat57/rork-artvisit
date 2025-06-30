@@ -4,6 +4,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Filter, Search } from 'lucide-react-native';
 import colors from '../../../constants/colors';
+import { GalleryAnalytics } from '../../../utils/artvisit-integration';
+import * as Analytics from '../../../utils/analytics';
 
 // Mock data - in a real app, fetch this from your API
 const galleries = [
@@ -43,6 +45,7 @@ export default function GalleryArtworksScreen() {
   
   const [gallery, setGallery] = useState(null);
   const [artworks, setArtworks] = useState([]);
+  const [analytics, setAnalytics] = useState(null);
   
   useEffect(() => {
     // Find gallery from mock data
@@ -51,7 +54,35 @@ export default function GalleryArtworksScreen() {
     if (foundGallery) {
       setGallery(foundGallery);
       setArtworks(foundGallery.artworks);
+      
+      // Initialize analytics
+      const galleryAnalytics = new GalleryAnalytics({
+        id: foundGallery.id,
+        name: foundGallery.name,
+        location: foundGallery.location
+      });
+      
+      setAnalytics(galleryAnalytics);
+      
+      // Track interaction
+      galleryAnalytics.trackInteraction('view_all_artworks');
+      
+      // Log screen view to TimeFrame Analytics
+      Analytics.sendToTimeFrameAnalytics('screen_view', {
+        screen_name: 'Gallery Artworks',
+        screen_class: 'GalleryArtworksScreen',
+        gallery_id: foundGallery.id,
+        gallery_name: foundGallery.name,
+        artwork_count: foundGallery.artworks.length
+      });
     }
+    
+    return () => {
+      // Track time spent when leaving
+      if (analytics) {
+        analytics.trackTimeSpent();
+      }
+    };
   }, [id]);
   
   if (!gallery) {
@@ -67,14 +98,23 @@ export default function GalleryArtworksScreen() {
   };
   
   const handleArtworkPress = (artwork) => {
+    if (analytics) {
+      analytics.trackArtworkView(artwork.id, artwork.title);
+    }
     router.push(`/gallery/${gallery.id}/artwork/${artwork.id}`);
   };
   
   const handleFilter = () => {
+    if (analytics) {
+      analytics.trackInteraction('filter_artworks');
+    }
     // Implement filter functionality
   };
   
   const handleSearch = () => {
+    if (analytics) {
+      analytics.trackInteraction('search_artworks');
+    }
     // Implement search functionality
   };
 

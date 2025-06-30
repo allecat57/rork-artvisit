@@ -63,15 +63,6 @@ export const logError = (error: Error, fatal: boolean = false) => {
   // For now, we'll just log to console
 };
 
-// TimeFrame Analytics integration
-export const sendToTimeFrameAnalytics = (eventName: string, parameters?: Record<string, any>) => {
-  // Log TimeFrame analytics event for debugging
-  console.log(`TimeFrame Analytics: ${eventName}`, parameters);
-  
-  // In a real app, you would integrate with TimeFrame Analytics
-  // For now, we'll just log to console
-};
-
 // Alias for sendAnalyticsEvent to match usage in stores
 export const sendAnalyticsEvent = logEvent;
 
@@ -107,6 +98,5 @@ export default {
   setUserId,
   logError,
   sendAnalyticsEvent,
-  sendToTimeFrameAnalytics,
   Events,
 };
