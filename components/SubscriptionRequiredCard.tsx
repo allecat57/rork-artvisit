@@ -1,10 +1,10 @@
 import React from "react";
-import { StyleSheet, Text, View, TouchableOpacity, Modal } from "react-native";
-import { X, Crown, Star, Ticket } from "lucide-react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
+import { X, Crown, Star, Diamond } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
-import { AccessLevel } from "@/types/event";
 import Button from "./Button";
+import { AccessLevel } from "@/types/event";
 
 interface SubscriptionRequiredCardProps {
   requiredLevel: AccessLevel;
@@ -12,82 +12,90 @@ interface SubscriptionRequiredCardProps {
   onClose: () => void;
 }
 
+const getSubscriptionInfo = (level: AccessLevel) => {
+  switch (level) {
+    case AccessLevel.ESSENTIAL:
+      return {
+        name: "Essential",
+        icon: <Star size={24} color={colors.accent} />,
+        description: "Access to basic events and exhibitions",
+        color: colors.accent
+      };
+    case AccessLevel.EXPLORER:
+      return {
+        name: "Explorer",
+        icon: <Crown size={24} color={colors.accent} />,
+        description: "Access to premium events, workshops, and tours",
+        color: colors.accent
+      };
+    case AccessLevel.COLLECTOR:
+      return {
+        name: "Collector",
+        icon: <Diamond size={24} color={colors.textMuted} />,
+        description: "VIP access to exclusive events and private collections",
+        color: colors.textMuted
+      };
+    default:
+      return {
+        name: "Essential",
+        icon: <Star size={24} color={colors.accent} />,
+        description: "Access to basic events and exhibitions",
+        color: colors.accent
+      };
+  }
+};
+
 export default function SubscriptionRequiredCard({
   requiredLevel,
   onUpgrade,
   onClose,
 }: SubscriptionRequiredCardProps) {
-  const getAccessLevelInfo = (level: AccessLevel) => {
-    switch (level) {
-      case AccessLevel.COLLECTOR:
-        return {
-          icon: <Crown size={24} color={colors.accent} />,
-          title: "Collector Subscription Required",
-          description: "This exclusive event is only available to Collector members.",
-          color: colors.accent
-        };
-      case AccessLevel.EXPLORER:
-        return {
-          icon: <Star size={24} color={colors.accent} />,
-          title: "Explorer Subscription Required", 
-          description: "This event requires an Explorer subscription or higher.",
-          color: colors.muted
-        };
-      case AccessLevel.ESSENTIAL:
-        return {
-          icon: <Ticket size={24} color={colors.accent} />,
-          title: "Essential Subscription Required",
-          description: "This event requires an Essential subscription or higher.",
-          color: colors.accent
-        };
-      default:
-        return {
-          icon: <Ticket size={24} color={colors.accent} />,
-          title: "Subscription Required",
-          description: "This event requires a subscription to access.",
-          color: colors.accent
-        };
-    }
-  };
-
-  const levelInfo = getAccessLevelInfo(requiredLevel);
-
+  const subscriptionInfo = getSubscriptionInfo(requiredLevel);
+  
   return (
     <Modal
       visible={true}
-      transparent={true}
       animationType="fade"
+      transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-            <X size={24} color={colors.text} />
-          </TouchableOpacity>
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContainer}>
+          <View style={styles.header}>
+            <Text style={styles.title}>Subscription Required</Text>
+            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+              <X size={24} color={colors.text} />
+            </TouchableOpacity>
+          </View>
           
           <View style={styles.content}>
             <View style={styles.iconContainer}>
-              {levelInfo.icon}
+              {subscriptionInfo.icon}
             </View>
             
-            <Text style={styles.title}>{levelInfo.title}</Text>
-            <Text style={styles.description}>{levelInfo.description}</Text>
+            <Text style={styles.subscriptionName}>
+              {subscriptionInfo.name} Membership Required
+            </Text>
             
-            <View style={styles.buttonContainer}>
-              <Button
-                title="Upgrade Subscription"
-                onPress={onUpgrade}
-                variant="primary"
-                style={styles.upgradeButton}
-              />
-              
-              <Button
-                title="Maybe Later"
-                onPress={onClose}
-                variant="outline"
-                style={styles.cancelButton}
-              />
-            </View>
+            <Text style={styles.description}>
+              This event requires a {subscriptionInfo.name} membership or higher to access.
+            </Text>
+            
+            <Text style={styles.features}>
+              {subscriptionInfo.description}
+            </Text>
+          </View>
+          
+          <View style={styles.actions}>
+            <Button
+              title="View Subscriptions"
+              onPress={onUpgrade}
+              style={styles.upgradeButton}
+            />
+            
+            <TouchableOpacity onPress={onClose} style={styles.cancelButton}>
+              <Text style={styles.cancelButtonText}>Maybe Later</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -96,68 +104,79 @@ export default function SubscriptionRequiredCard({
 }
 
 const styles = StyleSheet.create({
-  overlay: {
+  modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
   },
-  container: {
+  modalContainer: {
     backgroundColor: colors.card,
     borderRadius: 16,
     padding: 24,
     width: "100%",
     maxWidth: 400,
-    position: "relative",
     borderWidth: 1,
     borderColor: colors.border,
   },
-  closeButton: {
-    position: "absolute",
-    top: 16,
-    right: 16,
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: colors.border,
-    justifyContent: "center",
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: 20,
+  },
+  title: {
+    ...typography.heading3,
+    color: colors.text,
+  },
+  closeButton: {
+    padding: 4,
   },
   content: {
     alignItems: "center",
-    paddingTop: 20,
+    marginBottom: 24,
   },
   iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: colors.background,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  title: {
-    ...typography.heading3,
+  subscriptionName: {
+    ...typography.heading4,
     color: colors.text,
     textAlign: "center",
     marginBottom: 8,
   },
   description: {
     ...typography.body,
-    color: colors.muted,
+    color: colors.text,
     textAlign: "center",
-    marginBottom: 24,
-    lineHeight: 20,
+    marginBottom: 12,
   },
-  buttonContainer: {
-    width: "100%",
+  features: {
+    ...typography.bodySmall,
+    color: colors.textMuted,
+    textAlign: "center",
+  },
+  actions: {
     gap: 12,
   },
   upgradeButton: {
     marginBottom: 0,
   },
   cancelButton: {
-    marginBottom: 0,
+    padding: 12,
+    alignItems: "center",
+  },
+  cancelButtonText: {
+    ...typography.body,
+    color: colors.textMuted,
   },
 });

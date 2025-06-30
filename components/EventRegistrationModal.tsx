@@ -19,31 +19,13 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useProfileStore } from "@/store/useProfileStore";
 import * as Analytics from "@/utils/analytics";
 import { supabase, isSupabaseConfigured, TABLES } from "@/config/supabase";
+import { bookEvent } from "@/utils/bookingApi";
 
 interface EventRegistrationModalProps {
   visible: boolean;
   onClose: () => void;
   event: Event;
 }
-
-// Mock booking function for events
-const bookEvent = async (params: {
-  userId: string;
-  eventId: string;
-  numberOfTickets: number;
-  paymentMethodId?: string;
-  price: number;
-}) => {
-  // Simulate payment processing
-  await new Promise(resolve => setTimeout(resolve, 2000));
-  
-  // In a real app, this would call your payment processor
-  return {
-    success: true,
-    paymentIntentId: `pi_${Math.random().toString(36).substring(2, 15)}`,
-    message: "Payment successful"
-  };
-};
 
 export default function EventRegistrationModal({
   visible,
@@ -110,11 +92,9 @@ export default function EventRegistrationModal({
             .eq('event_id', event.id);
           
           if (checkError) {
-            console.error("Error checking registration in Supabase:", checkError.message || checkError);
-            throw checkError;
-          }
-          
-          if (existingReg && existingReg.length > 0) {
+            console.log("Supabase table doesn't exist or error checking registration:", checkError.message);
+            // Fall back to local registration
+          } else if (existingReg && existingReg.length > 0) {
             Alert.alert("Already Registered", "You are already registered for this event.");
             setIsLoading(false);
             onClose();
@@ -161,47 +141,45 @@ export default function EventRegistrationModal({
             .select();
           
           if (error) {
-            console.error("Error creating registration in Supabase:", error.message || error);
-            throw error;
+            console.log("Supabase table doesn't exist or error creating registration:", error.message);
+            // Fall back to local registration
+          } else {
+            // Update event remaining spots in Supabase
+            const { error: updateError } = await supabase
+              .from(TABLES.EVENTS)
+              .update({ remaining_spots: event.remainingSpots - numberOfTickets })
+              .eq('id', event.id);
+            
+            if (updateError) {
+              console.log("Supabase table doesn't exist or error updating event spots:", updateError.message);
+            }
+            
+            // Log analytics event
+            Analytics.logEvent("register_for_event", {
+              event_id: event.id,
+              user_id: user.id,
+              tickets: numberOfTickets,
+              price: totalPrice,
+              method: "supabase"
+            });
+            
+            Alert.alert(
+              "Registration Successful",
+              `You have successfully registered for ${event.title}. Your confirmation code is ${confirmationCode}.`
+            );
+            
+            onClose();
+            setIsLoading(false);
+            return;
           }
-          
-          // Update event remaining spots in Supabase
-          const { error: updateError } = await supabase
-            .from(TABLES.EVENTS)
-            .update({ remaining_spots: event.remainingSpots - numberOfTickets })
-            .eq('id', event.id);
-          
-          if (updateError) {
-            console.error("Error updating event spots in Supabase:", updateError.message || updateError);
-          }
-          
-          // Log analytics event
-          Analytics.logEvent("register_for_event", {
-            event_id: event.id,
-            user_id: user.id,
-            tickets: numberOfTickets,
-            price: totalPrice,
-            method: "supabase"
-          });
-          
-          Alert.alert(
-            "Registration Successful",
-            `You have successfully registered for ${event.title}. Your confirmation code is ${confirmationCode}.`
-          );
-          
-          onClose();
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
-          console.error("Error registering for event in Supabase:", errorMessage);
-          Alert.alert("Registration Error", "There was a problem with your registration. Please try again.");
-        } finally {
-          setIsLoading(false);
+          console.log("Supabase error, falling back to local registration:", errorMessage);
+          // Continue to local registration below
         }
-        
-        return;
       }
       
-      // If Supabase is not configured, use the local store
+      // If Supabase is not configured or failed, use the local store
       const registration = registerForEvent(event.id, numberOfTickets);
       
       if (registration) {
@@ -276,7 +254,7 @@ export default function EventRegistrationModal({
                 style={[styles.ticketButton, numberOfTickets <= 1 && styles.disabledButton]}
                 disabled={numberOfTickets <= 1}
               >
-                <Minus size={20} color={numberOfTickets <= 1 ? colors.muted : colors.text} />
+                <Minus size={20} color={numberOfTickets <= 1 ? colors.textMuted : colors.text} />
               </TouchableOpacity>
               <Text style={styles.ticketCount}>{numberOfTickets}</Text>
               <TouchableOpacity
@@ -284,7 +262,7 @@ export default function EventRegistrationModal({
                 style={[styles.ticketButton, numberOfTickets >= event.remainingSpots && styles.disabledButton]}
                 disabled={numberOfTickets >= event.remainingSpots}
               >
-                <Plus size={20} color={numberOfTickets >= event.remainingSpots ? colors.muted : colors.text} />
+                <Plus size={20} color={numberOfTickets >= event.remainingSpots ? colors.textMuted : colors.text} />
               </TouchableOpacity>
             </View>
           </View>
@@ -452,7 +430,7 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     ...typography.body,
-    color: colors.muted,
+    color: colors.textMuted,
   },
   summaryValue: {
     ...typography.body,

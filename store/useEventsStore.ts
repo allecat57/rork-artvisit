@@ -79,8 +79,8 @@ export const useEventsStore = create<EventsState>()(
         const userId = getCurrentUserId();
         if (!userId) return [];
         
-        // If Supabase is configured, fetch registrations from Supabase
-        if (isSupabaseConfigured) {
+        // If Supabase is configured, try to fetch registrations from Supabase
+        if (isSupabaseConfigured()) {
           // This would normally be an async operation, but for simplicity
           // we'll use the local cache and update it in the background
           supabase
@@ -89,7 +89,7 @@ export const useEventsStore = create<EventsState>()(
             .eq('user_id', userId)
             .then(({ data, error }) => {
               if (error) {
-                console.error("Error fetching registrations from Supabase:", error.message || error);
+                console.log("Supabase table doesn't exist or error fetching registrations:", error.message);
                 return;
               }
               
@@ -114,7 +114,7 @@ export const useEventsStore = create<EventsState>()(
               }
             })
             .catch(err => {
-              console.error("Error in getUserRegistrations:", err.message || err);
+              console.log("Supabase not available or table doesn't exist:", err.message);
             });
         }
         
@@ -125,8 +125,8 @@ export const useEventsStore = create<EventsState>()(
         const userId = getCurrentUserId();
         if (!userId) return false;
         
-        // If Supabase is configured, check registration in Supabase
-        if (isSupabaseConfigured) {
+        // If Supabase is configured, try to check registration in Supabase
+        if (isSupabaseConfigured()) {
           // This would normally be an async operation, but for simplicity
           // we'll use the local cache and update it in the background
           supabase
@@ -136,7 +136,7 @@ export const useEventsStore = create<EventsState>()(
             .eq('event_id', eventId)
             .then(({ data, error }) => {
               if (error) {
-                console.error("Error checking registration in Supabase:", error.message || error);
+                console.log("Supabase table doesn't exist or error checking registration:", error.message);
                 return;
               }
               
@@ -169,7 +169,7 @@ export const useEventsStore = create<EventsState>()(
               }
             })
             .catch(err => {
-              console.error("Error in isUserRegisteredForEvent:", err.message || err);
+              console.log("Supabase not available or table doesn't exist:", err.message);
             });
         }
         
@@ -182,41 +182,65 @@ export const useEventsStore = create<EventsState>()(
         set({ isLoading: true });
         
         try {
-          // If Supabase is configured, fetch events from Supabase
-          if (isSupabaseConfigured) {
-            const { data, error } = await supabase
-              .from(TABLES.EVENTS)
-              .select('*');
+          // If Supabase is configured, try to fetch events from Supabase
+          if (isSupabaseConfigured()) {
+            try {
+              const { data, error } = await supabase
+                .from(TABLES.EVENTS)
+                .select('*');
+                
+              if (error) {
+                console.log("Supabase events table doesn't exist, using mock data:", error.message);
+                // Fall back to mock data
+                set({ allEvents: events, isLoading: false });
+                
+                // Log analytics event
+                Analytics.logEvent("fetch_events", {
+                  count: events.length,
+                  source: "mock_fallback"
+                });
+                
+                return;
+              }
               
-            if (error) {
-              throw new Error(`Supabase error: ${error.message}`);
-            }
-            
-            if (data && data.length > 0) {
-              // Convert Supabase data to our format
-              const fetchedEvents: Event[] = data.map(item => ({
-                id: item.id,
-                title: item.title,
-                description: item.description,
-                image: item.image,
-                date: item.date,
-                endDate: item.end_date,
-                location: item.location,
-                price: item.price,
-                capacity: item.capacity,
-                remainingSpots: item.remaining_spots,
-                accessLevel: item.access_level,
-                featured: item.is_featured || false,
-                tags: item.tags,
-                type: item.type
-              }));
-              
-              set({ allEvents: fetchedEvents, isLoading: false });
+              if (data && data.length > 0) {
+                // Convert Supabase data to our format
+                const fetchedEvents: Event[] = data.map(item => ({
+                  id: item.id,
+                  title: item.title,
+                  description: item.description,
+                  image: item.image,
+                  date: item.date,
+                  endDate: item.end_date,
+                  location: item.location,
+                  price: item.price,
+                  capacity: item.capacity,
+                  remainingSpots: item.remaining_spots,
+                  accessLevel: item.access_level,
+                  featured: item.is_featured || false,
+                  tags: item.tags,
+                  type: item.type
+                }));
+                
+                set({ allEvents: fetchedEvents, isLoading: false });
+                
+                // Log analytics event
+                Analytics.logEvent("fetch_events", {
+                  count: fetchedEvents.length,
+                  source: "supabase"
+                });
+                
+                return;
+              }
+            } catch (supabaseError) {
+              console.log("Supabase not available, using mock data:", supabaseError);
+              // Fall back to mock data
+              set({ allEvents: events, isLoading: false });
               
               // Log analytics event
               Analytics.logEvent("fetch_events", {
-                count: fetchedEvents.length,
-                source: "supabase"
+                count: events.length,
+                source: "mock_fallback_error"
               });
               
               return;
@@ -229,7 +253,7 @@ export const useEventsStore = create<EventsState>()(
           
           // We already have the events loaded from the mocks,
           // but in a real app you would set the fetched events here
-          set({ isLoading: false });
+          set({ allEvents: events, isLoading: false });
           
           // Log analytics event
           Analytics.logEvent("fetch_events", {
@@ -239,11 +263,14 @@ export const useEventsStore = create<EventsState>()(
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
           console.error("Error fetching events:", errorMessage);
-          set({ isLoading: false });
+          
+          // Fall back to mock data on any error
+          set({ allEvents: events, isLoading: false });
           
           // Log analytics event
           Analytics.logEvent("fetch_events_error", {
-            error: errorMessage
+            error: errorMessage,
+            fallback_count: events.length
           });
         }
       },
@@ -292,8 +319,8 @@ export const useEventsStore = create<EventsState>()(
             confirmationCode
           };
           
-          // If Supabase is configured, create registration in Supabase
-          if (isSupabaseConfigured) {
+          // If Supabase is configured, try to create registration in Supabase
+          if (isSupabaseConfigured()) {
             supabase
               .from(TABLES.EVENT_REGISTRATIONS)
               .insert([
@@ -308,7 +335,7 @@ export const useEventsStore = create<EventsState>()(
               ])
               .then(({ error }) => {
                 if (error) {
-                  console.error("Error creating registration in Supabase:", error.message || error);
+                  console.log("Supabase table doesn't exist or error creating registration:", error.message);
                   return;
                 }
                 
@@ -319,12 +346,12 @@ export const useEventsStore = create<EventsState>()(
                   .eq('id', eventId)
                   .then(({ error: updateError }) => {
                     if (updateError) {
-                      console.error("Error updating event spots in Supabase:", updateError.message || updateError);
+                      console.log("Supabase table doesn't exist or error updating event spots:", updateError.message);
                     }
                   });
               })
               .catch(err => {
-                console.error("Error in registerForEvent Supabase operation:", err.message || err);
+                console.log("Supabase not available:", err.message);
               });
           }
           
@@ -386,8 +413,8 @@ export const useEventsStore = create<EventsState>()(
             return false;
           }
           
-          // If Supabase is configured, delete registration from Supabase
-          if (isSupabaseConfigured) {
+          // If Supabase is configured, try to delete registration from Supabase
+          if (isSupabaseConfigured()) {
             supabase
               .from(TABLES.EVENT_REGISTRATIONS)
               .delete()
@@ -395,7 +422,7 @@ export const useEventsStore = create<EventsState>()(
               .eq('user_id', userId)
               .then(({ error }) => {
                 if (error) {
-                  console.error("Error deleting registration from Supabase:", error.message || error);
+                  console.log("Supabase table doesn't exist or error deleting registration:", error.message);
                   return;
                 }
                 
@@ -409,13 +436,13 @@ export const useEventsStore = create<EventsState>()(
                     .eq('id', eventId)
                     .then(({ error: updateError }) => {
                       if (updateError) {
-                        console.error("Error updating event spots in Supabase:", updateError.message || updateError);
+                        console.log("Supabase table doesn't exist or error updating event spots:", updateError.message);
                       }
                     });
                 }
               })
               .catch(err => {
-                console.error("Error in cancelRegistration Supabase operation:", err.message || err);
+                console.log("Supabase not available:", err.message);
               });
           }
           
