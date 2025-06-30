@@ -4,6 +4,8 @@ import { cors } from "hono/cors";
 import { upgradeWebSocket } from "hono/ws";
 import { appRouter } from "./trpc/app-router";
 import { createContext } from "./trpc/create-context";
+import type { Context } from "hono";
+import type { WSContext } from "hono/ws";
 
 // app will be mounted at /api
 const app = new Hono();
@@ -18,9 +20,9 @@ app.use("*", cors({
 // WebSocket endpoint
 app.get(
   "/ws",
-  upgradeWebSocket((c) => {
+  upgradeWebSocket((c: Context) => {
     return {
-      onOpen(event, ws) {
+      onOpen(event: Event, ws: WSContext) {
         console.log("WebSocket connection opened");
         ws.send(JSON.stringify({ 
           type: "connection", 
@@ -28,7 +30,7 @@ app.get(
           timestamp: new Date().toISOString()
         }));
       },
-      onMessage(event, ws) {
+      onMessage(event: MessageEvent, ws: WSContext) {
         console.log("Received message:", event.data);
         
         try {
@@ -52,7 +54,7 @@ app.get(
       onClose: () => {
         console.log("WebSocket connection closed");
       },
-      onError(event, ws) {
+      onError(event: Event, ws: WSContext) {
         console.error("WebSocket error:", event);
       },
     };
