@@ -1,22 +1,19 @@
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
 import { Platform, StatusBar } from 'react-native';
-import { ThemeProvider, useTheme } from '@/context/ThemeContext';
+import { ThemeProvider } from '@/context/ThemeContext';
 import { StripeProvider } from '@/context/StripeContext';
 
 function RootLayoutContent() {
-  const { isDark, colors } = useTheme();
-
   useEffect(() => {
-    // Set status bar style based on theme
+    // Set status bar style
     if (Platform.OS === 'ios') {
       StatusBar.setBarStyle('light-content', true);
-      StatusBar.setBackgroundColor('#013025', true);
     } else {
       StatusBar.setBackgroundColor('#013025', true);
       StatusBar.setBarStyle('light-content', true);
     }
-  }, [isDark]);
+  }, []);
 
   return (
     <StripeProvider>
