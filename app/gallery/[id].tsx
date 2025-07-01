@@ -39,78 +39,98 @@ const mockArtworks = [
   }
 ];
 
+interface Artwork {
+  id: string;
+  title: string;
+  artist: string;
+  image: string;
+}
+
+interface Gallery {
+  id: string;
+  name: string;
+  location: string;
+  description?: string;
+  image_url: string;
+  hours: string;
+  rating: number;
+  artworks?: Artwork[];
+}
+
 export default function GalleryScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const textColor = isDark ? colors.light : colors.dark;
-  const bgColor = isDark ? colors.dark : colors.light;
   
-  const [gallery, setGallery] = useState(null);
+  // Use consistent color scheme
+  const backgroundColor = isDark ? colors.surface : colors.background;
+  const textColor = colors.text;
+  const secondaryTextColor = colors.textSecondary;
+
+  const [gallery, setGallery] = useState<Gallery | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [analytics, setAnalytics] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [analytics, setAnalytics] = useState<GalleryAnalytics | null>(null);
   const [isFavorite, setIsFavorite] = useState(false);
 
-  useEffect(() => {
-    async function fetchGallery() {
-      if (!id) {
-        setError('No gallery ID provided');
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-      
-      try {
-        console.log(`Fetching gallery with ID: ${id}`);
-        const data = await fetchGalleryById(String(id));
-        
-        if (data) {
-          // Add mock artworks to the gallery data
-          const galleryWithArtworks = {
-            ...data,
-            artworks: mockArtworks,
-            // Ensure we have default values for display
-            image_url: data.image_url || 'https://images.unsplash.com/photo-1577720580479-7d839d829c73?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1024&q=80',
-            hours: data.hours || 'Open today 10AM - 6PM',
-            rating: data.rating || 4.8
-          };
-          
-          setGallery(galleryWithArtworks);
-          
-          // Initialize analytics
-          const galleryAnalytics = new GalleryAnalytics({
-            id: data.id,
-            name: data.name,
-            location: data.location
-          });
-          
-          setAnalytics(galleryAnalytics);
-          
-          // Track gallery view
-          galleryAnalytics.trackGalleryView();
-          
-          // Log screen view to TimeFrame Analytics
-          Analytics.sendToTimeFrameAnalytics('screen_view', {
-            screen_name: 'Gallery Detail',
-            screen_class: 'GalleryScreen',
-            gallery_id: data.id,
-            gallery_name: data.name
-          });
-        } else {
-          setError('Gallery not found');
-        }
-      } catch (err) {
-        console.error('Error fetching gallery:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load gallery');
-      } finally {
-        setLoading(false);
-      }
+  const fetchGallery = async () => {
+    if (!id) {
+      setError('No gallery ID provided');
+      setLoading(false);
+      return;
     }
 
+    setLoading(true);
+    setError(null);
+    
+    try {
+      console.log(`Fetching gallery with ID: ${id}`);
+      const data = await fetchGalleryById(String(id));
+      
+      if (data) {
+        // Add mock artworks to the gallery data
+        const galleryWithArtworks: Gallery = {
+          ...data,
+          artworks: mockArtworks,
+          image_url: data.image_url || 'https://images.unsplash.com/photo-1577720580479-7d839d829c73?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80',
+          hours: data.hours || 'Open today 10AM - 6PM',
+          rating: data.rating || 4.8
+        };
+        
+        setGallery(galleryWithArtworks);
+        
+        // Initialize analytics
+        const galleryAnalytics = new GalleryAnalytics({
+          id: data.id,
+          name: data.name,
+          location: data.location
+        });
+        
+        setAnalytics(galleryAnalytics);
+        
+        // Track gallery view
+        galleryAnalytics.trackGalleryView();
+        
+        // Log screen view to Analytics
+        Analytics.logEvent('screen_view', {
+          screen_name: 'Gallery Detail',
+          screen_class: 'GalleryScreen',
+          gallery_id: data.id,
+          gallery_name: data.name
+        });
+      } else {
+        setError('Gallery not found');
+      }
+    } catch (err) {
+      console.error('Error fetching gallery:', err);
+      setError(err instanceof Error ? err.message : 'Failed to load gallery');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchGallery();
   }, [id]);
 
@@ -124,7 +144,7 @@ export default function GalleryScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor }]}>
         <View style={styles.loadingContainer}>
           <Text style={[styles.loadingText, { color: textColor }]}>Loading gallery...</Text>
         </View>
@@ -134,14 +154,15 @@ export default function GalleryScreen() {
 
   if (error) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor }]}>
         <View style={styles.errorContainer}>
-          <Text style={[styles.errorText, { color: colors.status?.error || '#DC2626' }]}>
+          <Text style={[styles.errorText, { color: colors.error }]}>
             {error}
           </Text>
           <TouchableOpacity 
-            style={[styles.retryButton, { backgroundColor: colors.primary }]}
-            onPress={() => window.location.reload()}
+            style={[styles.retryButton, { backgroundColor: colors.accent }]}
+            onPress={fetchGallery}
+            activeOpacity={0.8}
           >
             <Text style={styles.retryButtonText}>Try Again</Text>
           </TouchableOpacity>
@@ -152,7 +173,7 @@ export default function GalleryScreen() {
 
   if (!gallery) {
     return (
-      <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
+      <SafeAreaView style={[styles.container, { backgroundColor }]}>
         <View style={styles.errorContainer}>
           <Text style={[styles.loadingText, { color: textColor }]}>Gallery not found.</Text>
         </View>
@@ -174,7 +195,7 @@ export default function GalleryScreen() {
     Alert.alert('Share', `Share ${gallery.name} gallery`);
   };
   
-  const handleArtworkPress = (artwork) => {
+  const handleArtworkPress = (artwork: Artwork) => {
     if (analytics) {
       analytics.trackArtworkView(artwork.id, artwork.title);
     }
@@ -189,7 +210,7 @@ export default function GalleryScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
+    <SafeAreaView style={[styles.container, { backgroundColor }]}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <Image source={{ uri: gallery.image_url }} style={styles.image} />
         
@@ -205,8 +226,8 @@ export default function GalleryScreen() {
               >
                 <Heart 
                   size={24} 
-                  color={isFavorite ? colors.primary : textColor} 
-                  fill={isFavorite ? colors.primary : 'transparent'} 
+                  color={isFavorite ? colors.accent : textColor} 
+                  fill={isFavorite ? colors.accent : 'transparent'} 
                 />
               </TouchableOpacity>
               
@@ -221,13 +242,13 @@ export default function GalleryScreen() {
           </View>
           
           <View style={styles.infoRow}>
-            <MapPin size={18} color={colors.primary} />
-            <Text style={[styles.infoText, { color: textColor }]}>{gallery.location}</Text>
+            <MapPin size={18} color={colors.accent} />
+            <Text style={[styles.infoText, { color: secondaryTextColor }]}>{gallery.location}</Text>
           </View>
           
           <View style={styles.infoRow}>
-            <Clock size={18} color={colors.primary} />
-            <Text style={[styles.infoText, { color: textColor }]}>{gallery.hours}</Text>
+            <Clock size={18} color={colors.accent} />
+            <Text style={[styles.infoText, { color: secondaryTextColor }]}>{gallery.hours}</Text>
           </View>
           
           {gallery.description && (
@@ -240,8 +261,8 @@ export default function GalleryScreen() {
             <View style={styles.section}>
               <View style={styles.sectionHeader}>
                 <Text style={[styles.sectionTitle, { color: textColor }]}>Featured Artworks</Text>
-                <TouchableOpacity onPress={handleViewAllArtworks}>
-                  <Text style={styles.viewAll}>View All</Text>
+                <TouchableOpacity onPress={handleViewAllArtworks} activeOpacity={0.7}>
+                  <Text style={[styles.viewAll, { color: colors.accent }]}>View All</Text>
                 </TouchableOpacity>
               </View>
               
@@ -249,7 +270,7 @@ export default function GalleryScreen() {
                 {gallery.artworks.slice(0, 4).map(artwork => (
                   <TouchableOpacity 
                     key={artwork.id} 
-                    style={styles.artworkCard}
+                    style={[styles.artworkCard, { backgroundColor: colors.card, borderColor: colors.border }]}
                     onPress={() => handleArtworkPress(artwork)}
                     activeOpacity={0.7}
                   >
@@ -258,7 +279,7 @@ export default function GalleryScreen() {
                       <Text style={[styles.artworkTitle, { color: textColor }]} numberOfLines={1}>
                         {artwork.title}
                       </Text>
-                      <Text style={[styles.artworkArtist, { color: textColor }]} numberOfLines={1}>
+                      <Text style={[styles.artworkArtist, { color: secondaryTextColor }]} numberOfLines={1}>
                         {artwork.artist}
                       </Text>
                     </View>
@@ -267,12 +288,12 @@ export default function GalleryScreen() {
               </View>
               
               <TouchableOpacity 
-                style={[styles.viewAllButton, { backgroundColor: colors.primary }]}
+                style={[styles.viewAllButton, { backgroundColor: colors.accent }]}
                 onPress={handleViewAllArtworks}
                 activeOpacity={0.8}
               >
                 <Text style={styles.viewAllButtonText}>View All Artworks</Text>
-                <ArrowRight size={18} color="#fff" />
+                <ArrowRight size={18} color={colors.background} />
               </TouchableOpacity>
             </View>
           )}
@@ -309,12 +330,13 @@ const styles = StyleSheet.create({
   },
   retryButton: {
     paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderRadius: 8,
   },
   retryButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: colors.background,
+    fontWeight: '600',
+    fontSize: 16,
   },
   image: {
     width: '100%',
@@ -322,72 +344,71 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
   content: {
-    padding: 16,
+    padding: 20,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+    alignItems: 'flex-start',
+    marginBottom: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     flex: 1,
+    marginRight: 16,
   },
   actions: {
     flexDirection: 'row',
     gap: 16,
   },
   actionButton: {
-    padding: 4,
+    padding: 8,
   },
   infoRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
-    gap: 8,
+    marginBottom: 12,
+    gap: 12,
   },
   infoText: {
-    fontSize: 14,
+    fontSize: 16,
+    flex: 1,
   },
   description: {
     fontSize: 16,
     lineHeight: 24,
-    marginTop: 16,
-    marginBottom: 24,
+    marginTop: 20,
+    marginBottom: 32,
   },
   section: {
-    marginBottom: 24,
+    marginBottom: 32,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
   },
   viewAll: {
-    color: colors.primary,
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
   },
   artworksGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: 16,
   },
   artworkCard: {
     width: '48%',
-    borderRadius: 8,
+    borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: colors.surface || '#f5f5f5',
     borderWidth: 1,
-    borderColor: colors.border || '#e5e5e5',
   },
   artworkImage: {
     width: '100%',
@@ -399,24 +420,24 @@ const styles = StyleSheet.create({
   },
   artworkTitle: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: '600',
     marginBottom: 4,
   },
   artworkArtist: {
     fontSize: 12,
-    opacity: 0.7,
   },
   viewAllButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
-    borderRadius: 8,
-    marginTop: 16,
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 20,
     gap: 8,
   },
   viewAllButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: colors.background,
+    fontWeight: '600',
+    fontSize: 16,
   },
 });
