@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -13,6 +13,8 @@ import typography from "@/constants/typography";
 import SearchBar from "@/components/SearchBar";
 import EventCard from "@/components/EventCard";
 import { useEventsStore } from "@/store/useEventsStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useProfileStore } from "@/store/useProfileStore";
 import { Event } from "@/types/event";
 
 const fontFamily = Platform.select({
@@ -25,40 +27,51 @@ export default function EventsScreen() {
   const { 
     allEvents, 
     loading, 
-    fetchEvents, 
-    getAccessibleEvents 
+    fetchEvents
   } = useEventsStore();
   
+  const { user } = useAuthStore();
+  const { getCurrentSubscription } = useProfileStore();
+  
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
 
-  // Get accessible events based on user's subscription
-  const accessibleEvents = getAccessibleEvents();
+  // Get current subscription to determine accessible events
+  const currentSubscription = getCurrentSubscription();
+  
+  // Memoize accessible events to prevent infinite re-renders
+  const accessibleEvents = useMemo(() => {
+    const subscriptionLevel = currentSubscription?.level || 'free';
+    
+    // Filter events based on subscription level
+    return allEvents.filter(event => {
+      if (subscriptionLevel === 'collector') {
+        return true; // Collector can see all events
+      } else if (subscriptionLevel === 'essential') {
+        return event.accessLevel === 'free' || event.accessLevel === 'essential';
+      } else {
+        return event.accessLevel === 'free';
+      }
+    });
+  }, [allEvents, currentSubscription?.level]);
+
+  // Memoize filtered events based on search query
+  const filteredEvents = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return accessibleEvents;
+    }
+    
+    return accessibleEvents.filter(event =>
+      event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      event.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (event.tags && event.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
+    );
+  }, [searchQuery, accessibleEvents]);
 
   useEffect(() => {
     console.log("EventsScreen: Component mounted, fetching events...");
     fetchEvents();
   }, [fetchEvents]);
-
-  useEffect(() => {
-    console.log("EventsScreen: Events or search query changed");
-    console.log("Accessible events count:", accessibleEvents.length);
-    console.log("Search query:", searchQuery);
-    
-    if (searchQuery.trim()) {
-      const filtered = accessibleEvents.filter(event =>
-        event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (event.tags && event.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())))
-      );
-      setFilteredEvents(filtered);
-      console.log("Filtered events count:", filtered.length);
-    } else {
-      setFilteredEvents(accessibleEvents);
-      console.log("Showing all accessible events:", accessibleEvents.length);
-    }
-  }, [searchQuery, accessibleEvents]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);

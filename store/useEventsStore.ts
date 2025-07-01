@@ -3,7 +3,6 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Event, EventRegistration, AccessLevel } from "@/types/event";
 import { events, getEventsByAccessLevel, getFeaturedEventsByAccessLevel, getUpcomingEventsByAccessLevel } from "@/mocks/events";
-import { useProfileStore } from "./useProfileStore";
 import { generateConfirmationCode } from "@/utils/generateConfirmationCode";
 import * as Analytics from "@/utils/analytics";
 import { supabase, isSupabaseConfigured, TABLES } from "@/config/supabase";
@@ -16,39 +15,14 @@ interface EventsState {
   
   // Getters
   getEventById: (id: string) => Event | undefined;
-  getAccessibleEvents: () => Event[];
-  getFeaturedEvents: () => Event[];
-  getUpcomingEvents: () => Event[];
-  getUserRegistrations: () => EventRegistration[];
-  isUserRegisteredForEvent: (eventId: string) => boolean;
+  getUserRegistrations: (userId: string) => EventRegistration[];
+  isUserRegisteredForEvent: (eventId: string, userId: string) => boolean;
   
   // Actions
   fetchEvents: () => Promise<void>;
-  registerForEvent: (eventId: string, numberOfTickets: number) => EventRegistration | null;
-  cancelRegistration: (eventId: string) => boolean;
+  registerForEvent: (eventId: string, numberOfTickets: number, userId: string) => EventRegistration | null;
+  cancelRegistration: (eventId: string, userId: string) => boolean;
 }
-
-// Helper to get current user's subscription level
-const getCurrentSubscriptionLevel = (): AccessLevel | null => {
-  try {
-    const subscription = useProfileStore.getState().getCurrentSubscription();
-    return (subscription?.id as AccessLevel) || AccessLevel.ESSENTIAL; // Default to ESSENTIAL if no subscription
-  } catch (error) {
-    console.log("No subscription found, defaulting to ESSENTIAL");
-    return AccessLevel.ESSENTIAL; // Default fallback
-  }
-};
-
-// Helper to get current user ID
-const getCurrentUserId = (): string | null => {
-  try {
-    const user = useProfileStore.getState().getCurrentProfile();
-    return user?.userId || "default-user"; // Default user ID if none found
-  } catch (error) {
-    console.log("No user found, using default user");
-    return "default-user"; // Default fallback
-  }
-};
 
 export const useEventsStore = create<EventsState>()(
   persist(
@@ -61,44 +35,13 @@ export const useEventsStore = create<EventsState>()(
         return get().allEvents.find(event => event.id === id);
       },
       
-      getAccessibleEvents: () => {
-        const subscriptionLevel = getCurrentSubscriptionLevel();
-        if (!subscriptionLevel) {
-          // If no subscription level, show ESSENTIAL level events
-          return getEventsByAccessLevel(AccessLevel.ESSENTIAL);
-        }
-        return getEventsByAccessLevel(subscriptionLevel);
-      },
-      
-      getFeaturedEvents: () => {
-        const subscriptionLevel = getCurrentSubscriptionLevel();
-        if (!subscriptionLevel) {
-          // If no subscription level, show ESSENTIAL level events
-          return getFeaturedEventsByAccessLevel(AccessLevel.ESSENTIAL);
-        }
-        return getFeaturedEventsByAccessLevel(subscriptionLevel);
-      },
-      
-      getUpcomingEvents: () => {
-        const subscriptionLevel = getCurrentSubscriptionLevel();
-        if (!subscriptionLevel) {
-          // If no subscription level, show ESSENTIAL level events
-          return getUpcomingEventsByAccessLevel(AccessLevel.ESSENTIAL);
-        }
-        return getUpcomingEventsByAccessLevel(subscriptionLevel);
-      },
-      
-      getUserRegistrations: () => {
-        const userId = getCurrentUserId();
+      getUserRegistrations: (userId: string) => {
         if (!userId) return [];
-        
         return get().registrations.filter(reg => reg.userId === userId);
       },
       
-      isUserRegisteredForEvent: (eventId: string) => {
-        const userId = getCurrentUserId();
+      isUserRegisteredForEvent: (eventId: string, userId: string) => {
         if (!userId) return false;
-        
         return get().registrations.some(
           reg => reg.eventId === eventId && reg.userId === userId
         );
@@ -137,11 +80,10 @@ export const useEventsStore = create<EventsState>()(
         }
       },
       
-      registerForEvent: (eventId: string, numberOfTickets: number) => {
+      registerForEvent: (eventId: string, numberOfTickets: number, userId: string) => {
         try {
-          const userId = getCurrentUserId();
           if (!userId) {
-            console.error("No user ID available for registration");
+            console.error("No user ID provided for registration");
             return null;
           }
           
@@ -152,7 +94,7 @@ export const useEventsStore = create<EventsState>()(
           }
           
           // Check if already registered
-          if (get().isUserRegisteredForEvent(eventId)) {
+          if (get().isUserRegisteredForEvent(eventId, userId)) {
             console.log("User already registered for this event");
             
             // Return the existing registration
@@ -221,11 +163,10 @@ export const useEventsStore = create<EventsState>()(
         }
       },
       
-      cancelRegistration: (eventId: string) => {
+      cancelRegistration: (eventId: string, userId: string) => {
         try {
-          const userId = getCurrentUserId();
           if (!userId) {
-            console.error("No user ID available for cancellation");
+            console.error("No user ID provided for cancellation");
             return false;
           }
           

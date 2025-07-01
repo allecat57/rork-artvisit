@@ -7,24 +7,12 @@ import { Platform } from "react-native";
 import { supabase, isSupabaseConfigured } from "@/config/supabase";
 import { AccessLevel } from "@/types/event";
 
-// Subscription interface - moved from useProfileStore to break circular dependency
-export interface Subscription {
-  id: string;
-  name: string;
-  price: number;
-  renewalDate: string;
-  stripeSubscriptionId?: string;
-  stripePriceId?: string;
-  level?: AccessLevel;
-}
-
 // User interface
 export interface User {
   id: string;
   email: string;
   name: string;
   avatar?: string;
-  subscription?: Subscription;
 }
 
 // Test user for demo purposes
@@ -32,14 +20,7 @@ export const TEST_USER: User = {
   id: "test-user-123",
   email: "test@example.com",
   name: "Test User",
-  avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxjb2xsZWN0aW9uLXBhZ2V8MXw3NjA4Mjc3NHx8ZW58MHx8fHx8",
-  subscription: {
-    id: "collector",
-    name: "Master Collector",
-    price: 20.00,
-    renewalDate: "2023-12-31",
-    level: AccessLevel.COLLECTOR
-  }
+  avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxjb2xsZWN0aW9uLXBhZ2V8MXw3NjA4Mjc3NHx8ZW58MHx8fHx8"
 };
 
 // Auth store state interface
@@ -112,29 +93,11 @@ export const useAuthStore = create<AuthState>()(
               if (error) throw error;
               
               if (data.user) {
-                // Get user profile from Supabase
-                const { data: profileData, error: profileError } = await supabase
-                  .from('profiles')
-                  .select('*')
-                  .eq('id', data.user.id)
-                  .single();
-                
-                if (profileError && profileError.code !== 'PGRST116') {
-                  console.warn("Error fetching profile:", profileError);
-                }
-                
                 const newUser: User = {
                   id: data.user.id,
                   email: data.user.email || email,
-                  name: profileData?.name || email.split('@')[0],
-                  avatar: profileData?.avatar_url,
-                  subscription: profileData ? {
-                    id: profileData.subscription_id,
-                    name: profileData.subscription_name,
-                    price: profileData.subscription_price,
-                    renewalDate: profileData.subscription_renewal_date,
-                    level: profileData.subscription_id as AccessLevel
-                  } : undefined
+                  name: email.split('@')[0],
+                  avatar: data.user.user_metadata?.avatar_url,
                 };
                 
                 set({ user: newUser, isAuthenticated: true, isLoading: false });
@@ -181,13 +144,6 @@ export const useAuthStore = create<AuthState>()(
             id: `user-${Date.now()}`,
             email,
             name: email.split('@')[0],
-            subscription: {
-              id: "free",
-              name: "Free Access",
-              price: 0,
-              renewalDate: "Never",
-              level: AccessLevel.FREE
-            }
           };
           
           set({ user: newUser, isAuthenticated: true, isLoading: false });
@@ -269,36 +225,10 @@ export const useAuthStore = create<AuthState>()(
               if (error) throw error;
               
               if (data.user) {
-                // Create a profile in the profiles table
-                const { error: profileError } = await supabase
-                  .from('profiles')
-                  .insert([
-                    {
-                      id: data.user.id,
-                      name,
-                      email,
-                      subscription_id: 'free',
-                      subscription_name: 'Free Access',
-                      subscription_price: 0,
-                      subscription_renewal_date: 'Never',
-                    },
-                  ]);
-                
-                if (profileError) {
-                  console.warn("Error creating profile:", profileError);
-                }
-                
                 const newUser: User = {
                   id: data.user.id,
                   email: data.user.email || email,
                   name,
-                  subscription: {
-                    id: "free",
-                    name: "Free Access",
-                    price: 0,
-                    renewalDate: "Never",
-                    level: AccessLevel.FREE
-                  }
                 };
                 
                 set({ user: newUser, isAuthenticated: true, isLoading: false });
@@ -327,13 +257,6 @@ export const useAuthStore = create<AuthState>()(
             id: `user-${Date.now()}`,
             email,
             name,
-            subscription: {
-              id: "free",
-              name: "Free Access",
-              price: 0,
-              renewalDate: "Never",
-              level: AccessLevel.FREE
-            }
           };
           
           set({ user: newUser, isAuthenticated: true, isLoading: false });
@@ -416,10 +339,7 @@ export const useAuthStore = create<AuthState>()(
       setupTestUserProfile: () => {
         try {
           // Import dynamically to avoid circular dependency
-          // Use a function to get the store state instead of importing the module directly
           const getProfileStore = () => {
-            // This is a workaround to avoid circular dependency issues
-            // We're dynamically accessing the profile store only when needed
             return require("./useProfileStore").useProfileStore.getState();
           };
           
@@ -461,12 +381,10 @@ export const useAuthStore = create<AuthState>()(
     {
       name: "auth-storage",
       storage: createJSONStorage(() => AsyncStorage),
-      // Only persist the user and authentication state
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated
       }),
-      // When the store is hydrated from storage, mark it as hydrated
       onRehydrateStorage: () => (state) => {
         try {
           if (state) {
