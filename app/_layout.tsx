@@ -1,5 +1,5 @@
 import { Stack } from 'expo-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Platform, StatusBar } from 'react-native';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { StripeProvider } from '@/context/StripeContext';
@@ -11,6 +11,7 @@ function RootLayoutContent() {
   const { isAuthenticated, isHydrated, ensureTestUserExists } = useAuthStore();
   const segments = useSegments();
   const router = useRouter();
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     // Set status bar style
@@ -24,35 +25,52 @@ function RootLayoutContent() {
   }, []);
 
   useEffect(() => {
-    // Ensure test user exists on app startup
-    try {
-      ensureTestUserExists();
-    } catch (error) {
-      console.warn("Error setting up test user:", error);
-    }
-  }, [ensureTestUserExists]);
+    // Mark component as mounted after first render
+    const timer = setTimeout(() => {
+      setIsMounted(true);
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
-    if (!isHydrated) return; // Wait for auth state to be loaded from storage
+    // Ensure test user exists on app startup
+    if (isMounted) {
+      try {
+        ensureTestUserExists();
+      } catch (error) {
+        console.warn("Error setting up test user:", error);
+      }
+    }
+  }, [ensureTestUserExists, isMounted]);
+
+  useEffect(() => {
+    // Only handle navigation after component is mounted and auth is hydrated
+    if (!isHydrated || !isMounted) return;
 
     const inAuthGroup = segments[0] === 'login';
     const inTabsGroup = segments[0] === '(tabs)';
 
-    try {
-      if (!isAuthenticated && !inAuthGroup) {
-        // User is not authenticated and not in auth group, redirect to login
-        router.replace('/login');
-      } else if (isAuthenticated && inAuthGroup) {
-        // User is authenticated but in auth group, redirect to tabs
-        router.replace('/(tabs)');
-      } else if (isAuthenticated && segments.length === 0) {
-        // User is authenticated and at root, redirect to tabs
-        router.replace('/(tabs)');
+    // Add a small delay to ensure Stack is fully rendered
+    const navigationTimer = setTimeout(() => {
+      try {
+        if (!isAuthenticated && !inAuthGroup) {
+          // User is not authenticated and not in auth group, redirect to login
+          router.replace('/login');
+        } else if (isAuthenticated && inAuthGroup) {
+          // User is authenticated but in auth group, redirect to tabs
+          router.replace('/(tabs)');
+        } else if (isAuthenticated && segments.length === 0) {
+          // User is authenticated and at root, redirect to tabs
+          router.replace('/(tabs)');
+        }
+      } catch (error) {
+        console.warn("Navigation error:", error);
       }
-    } catch (error) {
-      console.warn("Navigation error:", error);
-    }
-  }, [isAuthenticated, isHydrated, segments, router]);
+    }, 50);
+
+    return () => clearTimeout(navigationTimer);
+  }, [isAuthenticated, isHydrated, segments, router, isMounted]);
 
   return (
     <StripeProvider>
