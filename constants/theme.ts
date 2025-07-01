@@ -11,4 +11,22 @@ export const CustomTheme: Theme = {
     border: colors.border, // Gold border with opacity
     notification: colors.accent, // Gold for notifications
   },
+  fonts: {
+    regular: {
+      fontFamily: 'System',
+      fontWeight: '400',
+    },
+    medium: {
+      fontFamily: 'System',
+      fontWeight: '500',
+    },
+    bold: {
+      fontFamily: 'System',
+      fontWeight: '700',
+    },
+    heavy: {
+      fontFamily: 'System',
+      fontWeight: '900',
+    },
+  },
 };
