@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View, Image, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, View, Image, TouchableOpacity, Dimensions } from "react-native";
 import { ShoppingCart, Star } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
@@ -12,6 +12,8 @@ interface ProductCardProps {
   onPress?: () => void;
   compact?: boolean;
 }
+
+const { width: screenWidth } = Dimensions.get('window');
 
 export default function ProductCard({ product, onPress, compact = false }: ProductCardProps) {
   const { addToCart } = useCartStore();
@@ -37,8 +39,15 @@ export default function ProductCard({ product, onPress, compact = false }: Produ
         activeOpacity={0.7}
       >
         <Image source={{ uri: product.image }} style={styles.compactImage} />
+        
+        {product.featured && (
+          <View style={styles.compactFeaturedBadge}>
+            <Star size={10} color="#013025" />
+          </View>
+        )}
+        
         <View style={styles.compactContent}>
-          <Text style={styles.compactCategory}>{product.category}</Text>
+          <Text style={styles.compactCategory} numberOfLines={1}>{product.category}</Text>
           <Text style={styles.compactTitle} numberOfLines={2}>{product.title}</Text>
           <View style={styles.compactFooter}>
             <Text style={styles.compactPrice}>${product.price.toFixed(2)}</Text>
@@ -46,7 +55,7 @@ export default function ProductCard({ product, onPress, compact = false }: Produ
               style={styles.compactCartButton}
               onPress={handleAddToCart}
             >
-              <ShoppingCart size={14} color="#013025" />
+              <ShoppingCart size={12} color="#013025" />
             </TouchableOpacity>
           </View>
         </View>
@@ -172,12 +181,21 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#AC8901",
-    height: 220,
+    flex: 1,
+    minHeight: 200,
   },
   compactImage: {
     width: "100%",
-    height: 140,
+    height: 120,
     resizeMode: "cover",
+  },
+  compactFeaturedBadge: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    backgroundColor: "#AC8901",
+    padding: 4,
+    borderRadius: 8,
   },
   compactContent: {
     padding: 8,
@@ -185,31 +203,32 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   compactCategory: {
-    ...typography.caption,
+    fontSize: 10,
     color: "#AC8901",
-    fontSize: 9,
+    fontWeight: "500",
+    textTransform: "uppercase",
   },
   compactTitle: {
-    ...typography.caption,
+    fontSize: 12,
     fontWeight: "600",
     color: "#AC8901",
-    marginVertical: 2,
-    fontSize: 10,
+    marginVertical: 4,
+    lineHeight: 16,
   },
   compactFooter: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    marginTop: 8,
   },
   compactPrice: {
-    ...typography.bodySmall,
+    fontSize: 13,
     fontWeight: "700",
     color: "#AC8901",
-    fontSize: 11,
   },
   compactCartButton: {
     backgroundColor: "#AC8901",
-    padding: 3,
-    borderRadius: 8,
+    padding: 4,
+    borderRadius: 6,
   },
 });

@@ -21,7 +21,7 @@ export const CartButton = () => {
 
   return (
     <TouchableOpacity style={styles.container} onPress={handleCartPress}>
-      <ShoppingCart size={20} color="#AC8901" />
+      <ShoppingCart size={16} color="#AC8901" />
       <Text style={styles.text}>
         Cart ({cartItemCount})
       </Text>
@@ -39,34 +39,33 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#1a4037",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: "#AC8901",
-    gap: 8,
+    gap: 6,
   },
   text: {
-    ...typography.body,
+    fontSize: 14,
     color: "#AC8901",
     fontWeight: "600",
   },
   badge: {
     position: "absolute",
-    top: -4,
-    right: -4,
+    top: -3,
+    right: -3,
     backgroundColor: "#AC8901",
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
     justifyContent: "center",
     alignItems: "center",
   },
   badgeText: {
-    ...typography.caption,
+    fontSize: 9,
     color: "#013025",
     fontWeight: "bold",
-    fontSize: 10,
   },
 });
 

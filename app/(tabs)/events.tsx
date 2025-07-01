@@ -22,26 +22,43 @@ const fontFamily = Platform.select({
 });
 
 export default function EventsScreen() {
-  const { events, loading, fetchEvents } = useEventsStore();
+  const { 
+    allEvents, 
+    loading, 
+    fetchEvents, 
+    getAccessibleEvents 
+  } = useEventsStore();
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
 
+  // Get accessible events based on user's subscription
+  const accessibleEvents = getAccessibleEvents();
+
   useEffect(() => {
+    console.log("EventsScreen: Component mounted, fetching events...");
     fetchEvents();
   }, [fetchEvents]);
 
   useEffect(() => {
+    console.log("EventsScreen: Events or search query changed");
+    console.log("Accessible events count:", accessibleEvents.length);
+    console.log("Search query:", searchQuery);
+    
     if (searchQuery.trim()) {
-      const filtered = events.filter(event =>
+      const filtered = accessibleEvents.filter(event =>
         event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.venue.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.category.toLowerCase().includes(searchQuery.toLowerCase())
+        event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        event.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
       );
       setFilteredEvents(filtered);
+      console.log("Filtered events count:", filtered.length);
     } else {
-      setFilteredEvents(events);
+      setFilteredEvents(accessibleEvents);
+      console.log("Showing all accessible events:", accessibleEvents.length);
     }
-  }, [searchQuery, events]);
+  }, [searchQuery, accessibleEvents]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -63,7 +80,7 @@ export default function EventsScreen() {
       <Text style={styles.emptyDescription}>
         {searchQuery 
           ? `No events match "${searchQuery}". Try a different search term.`
-          : "Check back later for upcoming art events."
+          : "Check back later for upcoming art events, or upgrade your subscription to access more events."
         }
       </Text>
     </View>

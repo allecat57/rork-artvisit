@@ -6,6 +6,7 @@ import {
   FlatList,
   ActivityIndicator,
   Platform,
+  Dimensions,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
@@ -21,6 +22,11 @@ const fontFamily = Platform.select({
   android: "serif",
   default: "Georgia, serif",
 });
+
+const { width: screenWidth } = Dimensions.get('window');
+const cardMargin = 8;
+const containerPadding = 16;
+const cardWidth = (screenWidth - containerPadding * 2 - cardMargin * 2) / 2;
 
 export default function ShopScreen() {
   const [loading, setLoading] = useState(true);
@@ -56,7 +62,9 @@ export default function ShopScreen() {
   };
 
   const renderProduct = ({ item }: { item: Product }) => (
-    <ProductCard product={item} />
+    <View style={[styles.productContainer, { width: cardWidth }]}>
+      <ProductCard product={item} compact />
+    </View>
   );
 
   const renderEmptyState = () => (
@@ -93,6 +101,12 @@ export default function ShopScreen() {
     </View>
   );
 
+  const renderFooter = () => (
+    <View style={styles.footer}>
+      <CartButton />
+    </View>
+  );
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -112,12 +126,11 @@ export default function ShopScreen() {
         columnWrapperStyle={styles.row}
         ListHeaderComponent={renderHeader}
         ListEmptyComponent={renderEmptyState}
+        ListFooterComponent={renderFooter}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
-      
-      <CartButton />
     </View>
   );
 }
@@ -147,10 +160,18 @@ const styles = StyleSheet.create({
   },
   row: {
     justifyContent: "space-between",
-    paddingHorizontal: 4,
+    marginHorizontal: -cardMargin / 2,
+  },
+  productContainer: {
+    marginHorizontal: cardMargin / 2,
   },
   separator: {
     height: 16,
+  },
+  footer: {
+    alignItems: "center",
+    paddingVertical: 20,
+    marginTop: 16,
   },
   loadingContainer: {
     flex: 1,

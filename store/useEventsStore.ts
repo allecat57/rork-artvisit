@@ -12,7 +12,7 @@ interface EventsState {
   // Event data
   allEvents: Event[];
   registrations: EventRegistration[];
-  isLoading: boolean;
+  loading: boolean;
   
   // Getters
   getEventById: (id: string) => Event | undefined;
@@ -30,14 +30,24 @@ interface EventsState {
 
 // Helper to get current user's subscription level
 const getCurrentSubscriptionLevel = (): AccessLevel | null => {
-  const subscription = useProfileStore.getState().getCurrentSubscription();
-  return (subscription?.id as AccessLevel) || null;
+  try {
+    const subscription = useProfileStore.getState().getCurrentSubscription();
+    return (subscription?.id as AccessLevel) || AccessLevel.ESSENTIAL; // Default to ESSENTIAL if no subscription
+  } catch (error) {
+    console.log("No subscription found, defaulting to ESSENTIAL");
+    return AccessLevel.ESSENTIAL; // Default fallback
+  }
 };
 
 // Helper to get current user ID
 const getCurrentUserId = (): string | null => {
-  const user = useProfileStore.getState().getCurrentProfile();
-  return user?.userId || null;
+  try {
+    const user = useProfileStore.getState().getCurrentProfile();
+    return user?.userId || "default-user"; // Default user ID if none found
+  } catch (error) {
+    console.log("No user found, using default user");
+    return "default-user"; // Default fallback
+  }
 };
 
 export const useEventsStore = create<EventsState>()(
@@ -45,7 +55,7 @@ export const useEventsStore = create<EventsState>()(
     (set, get) => ({
       allEvents: events,
       registrations: [],
-      isLoading: false,
+      loading: false,
       
       getEventById: (id: string) => {
         return get().allEvents.find(event => event.id === id);
@@ -54,7 +64,8 @@ export const useEventsStore = create<EventsState>()(
       getAccessibleEvents: () => {
         const subscriptionLevel = getCurrentSubscriptionLevel();
         if (!subscriptionLevel) {
-          return []; // No subscription = no access to any events
+          // If no subscription level, show ESSENTIAL level events
+          return getEventsByAccessLevel(AccessLevel.ESSENTIAL);
         }
         return getEventsByAccessLevel(subscriptionLevel);
       },
@@ -62,7 +73,8 @@ export const useEventsStore = create<EventsState>()(
       getFeaturedEvents: () => {
         const subscriptionLevel = getCurrentSubscriptionLevel();
         if (!subscriptionLevel) {
-          return []; // No subscription = no access to any events
+          // If no subscription level, show ESSENTIAL level events
+          return getFeaturedEventsByAccessLevel(AccessLevel.ESSENTIAL);
         }
         return getFeaturedEventsByAccessLevel(subscriptionLevel);
       },
@@ -70,7 +82,8 @@ export const useEventsStore = create<EventsState>()(
       getUpcomingEvents: () => {
         const subscriptionLevel = getCurrentSubscriptionLevel();
         if (!subscriptionLevel) {
-          return []; // No subscription = no access to any events
+          // If no subscription level, show ESSENTIAL level events
+          return getUpcomingEventsByAccessLevel(AccessLevel.ESSENTIAL);
         }
         return getUpcomingEventsByAccessLevel(subscriptionLevel);
       },
@@ -92,17 +105,17 @@ export const useEventsStore = create<EventsState>()(
       },
       
       fetchEvents: async () => {
-        set({ isLoading: true });
+        set({ loading: true });
         
         try {
-          // Always use mock data for now since Supabase tables don't exist
-          // In a real app, you would check if Supabase is configured and tables exist
-          console.log("Using mock events data");
+          console.log("Fetching events...");
           
           // Simulate network delay
           await new Promise(resolve => setTimeout(resolve, 500));
           
-          set({ allEvents: events, isLoading: false });
+          set({ allEvents: events, loading: false });
+          
+          console.log(`✅ Loaded ${events.length} events successfully`);
           
           // Log analytics event
           Analytics.logEvent("fetch_events", {
@@ -111,10 +124,10 @@ export const useEventsStore = create<EventsState>()(
           });
         } catch (error) {
           const errorMessage = error instanceof Error ? error.message : String(error);
-          console.error("Error fetching events:", errorMessage);
+          console.error("❌ Error fetching events:", errorMessage);
           
           // Fall back to mock data on any error
-          set({ allEvents: events, isLoading: false });
+          set({ allEvents: events, loading: false });
           
           // Log analytics event
           Analytics.logEvent("fetch_events_error", {
