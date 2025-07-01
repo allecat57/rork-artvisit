@@ -70,15 +70,17 @@ export const useEventsStore = create<EventsState>()(
                   id: event.id,
                   title: event.title,
                   description: event.description || '',
-                  date: event.date,
+                  date: event.events_date, // Use events_date from Supabase
+                  endDate: event.end_date || event.events_date,
                   location: event.location,
                   price: event.price,
                   capacity: event.capacity,
                   remainingSpots: event.remaining_spots,
-                  imageUrl: event.image_url,
+                  image: event.image_url || '',
                   type: event.type,
                   accessLevel: event.access_level as AccessLevel,
-                  tags: event.tags || []
+                  tags: event.tags || [],
+                  featured: event.is_featured || false
                 }));
                 
                 set({ allEvents: transformedEvents, loading: false });

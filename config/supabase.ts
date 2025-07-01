@@ -125,7 +125,8 @@ export interface Database {
           id: string;
           title: string;
           description?: string;
-          date: string;
+          events_date: string;
+          end_date?: string;
           location: string;
           price: number;
           capacity: number;
@@ -134,13 +135,15 @@ export interface Database {
           type: string;
           access_level: 'free' | 'essential' | 'collector';
           tags?: string[];
+          is_featured?: boolean;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           title: string;
           description?: string;
-          date: string;
+          events_date: string;
+          end_date?: string;
           location: string;
           price?: number;
           capacity: number;
@@ -149,11 +152,13 @@ export interface Database {
           type: string;
           access_level?: 'free' | 'essential' | 'collector';
           tags?: string[];
+          is_featured?: boolean;
         };
         Update: {
           title?: string;
           description?: string;
-          date?: string;
+          events_date?: string;
+          end_date?: string;
           location?: string;
           price?: number;
           capacity?: number;
@@ -162,6 +167,7 @@ export interface Database {
           type?: string;
           access_level?: 'free' | 'essential' | 'collector';
           tags?: string[];
+          is_featured?: boolean;
           updated_at?: string;
         };
       };
@@ -383,7 +389,7 @@ export const fetchEvents = async (accessLevel?: 'free' | 'essential' | 'collecto
     let query = supabase
       .from(TABLES.EVENTS)
       .select('*')
-      .order('date', { ascending: true });
+      .order('events_date', { ascending: true });
 
     if (accessLevel) {
       // Filter events based on access level

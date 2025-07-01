@@ -87,17 +87,17 @@ export default function EventDetailsScreen() {
           const fetchedEvent: Event = {
             id: data.id,
             title: data.title,
-            description: data.description,
-            image: data.image,
-            date: data.date,
-            endDate: data.end_date,
+            description: data.description || '',
+            image: data.image_url || '',
+            date: data.events_date, // Use events_date from Supabase
+            endDate: data.end_date || data.events_date,
             location: data.location,
             price: data.price,
             capacity: data.capacity,
             remainingSpots: data.remaining_spots,
             accessLevel: data.access_level,
-            featured: data.is_featured,
-            tags: data.tags,
+            featured: data.is_featured || false,
+            tags: data.tags || [],
             type: data.type
           };
           
@@ -142,7 +142,7 @@ export default function EventDetailsScreen() {
           
           setIsRegistered(data && data.length > 0);
         } else {
-          const isUserRegistered = isUserRegisteredForEvent(eventId);
+          const isUserRegistered = isUserRegisteredForEvent(eventId, user.id);
           setIsRegistered(isUserRegistered);
         }
       } catch (error) {
@@ -221,7 +221,7 @@ export default function EventDetailsScreen() {
                   setIsRegistered(false);
                   Alert.alert("Success", "Your registration has been cancelled.");
                 } else {
-                  const success = cancelRegistration(eventId);
+                  const success = cancelRegistration(eventId, user.id);
                   
                   if (success) {
                     setIsRegistered(false);
