@@ -15,7 +15,11 @@ export type Context = Awaited<ReturnType<typeof createContext>>;
 // Initialize tRPC
 const t = initTRPC.context<Context>().create({
   transformer: superjson,
+  errorFormatter({ shape }) {
+    return shape;
+  },
 });
 
 export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
+export const protectedProcedure = t.procedure;
