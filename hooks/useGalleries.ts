@@ -1,15 +1,29 @@
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 
-export const fetchGalleries = async () => {
-  const { data, error } = await supabase
-    .from("galleries")
-    .select("*")
-    .order("created_at", { ascending: false });
+export const useGalleries = () => {
+  const [galleries, setGalleries] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  if (error) {
-    console.error("Error fetching galleries:", error);
-    return [];
-  }
+  useEffect(() => {
+    const fetchGalleries = async () => {
+      const { data, error } = await supabase
+        .from("galleries")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-  return data;
+      if (error) {
+        console.error("Error loading galleries:", error);
+        setLoading(false);
+        return;
+      }
+
+      setGalleries(data);
+      setLoading(false);
+    };
+
+    fetchGalleries();
+  }, []);
+
+  return { galleries, loading };
 };
