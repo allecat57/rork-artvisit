@@ -80,7 +80,7 @@ const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onPress 
         <View style={styles.detailRow}>
           <Calendar size={16} color={colors.accent} />
           <Text style={styles.detailText}>
-            {formatDate(reservationDate)}
+            {formatDate(reservation.date)}
           </Text>
         </View>
         
@@ -112,7 +112,7 @@ const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onPress 
 export default function ReservationsScreen() {
   const router = useRouter();
   const { user } = useAuthStore();
-  const { reservations, loading, fetchReservations } = useReservationStore();
+  const { reservations, isLoading, fetchReservations } = useReservationStore();
   const [filter, setFilter] = useState<"all" | "upcoming" | "past">("all");
 
   useEffect(() => {
@@ -210,7 +210,7 @@ export default function ReservationsScreen() {
     </TouchableOpacity>
   );
 
-  if (loading) {
+  if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <Stack.Screen options={{ title: "My Reservations" }} />
