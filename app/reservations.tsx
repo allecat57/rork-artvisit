@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Calendar, Plus } from "lucide-react-native";
+import { Calendar } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import { useReservationStore } from "@/store/useReservationStore";
@@ -95,12 +95,6 @@ export default function ReservationsScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={[typography.heading1, styles.title]}>My Reservations</Text>
-        <TouchableOpacity 
-          style={styles.addButton}
-          onPress={handleNewReservation}
-        >
-          <Plus size={24} color={colors.background} />
-        </TouchableOpacity>
       </View>
 
       <View style={styles.tabContainer}>
@@ -163,14 +157,6 @@ const styles = StyleSheet.create({
   },
   title: {
     color: colors.text,
-  },
-  addButton: {
-    backgroundColor: colors.accent,
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    justifyContent: "center",
-    alignItems: "center",
   },
   tabContainer: {
     flexDirection: "row",

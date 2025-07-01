@@ -21,6 +21,12 @@ export const TABLES = {
   CART_ITEMS: 'cart_items',
   NOTIFICATIONS: 'notifications',
   PRIVACY_SETTINGS: 'privacy_settings',
+  GALLERIES: 'galleries',
+  ARTWORKS: 'artworks',
+  GALLERY_VISITS: 'gallery_visits',
+  ARTWORK_VIEWS: 'artwork_views',
+  ARTWORK_PURCHASES: 'artwork_purchases',
+  USER_FEEDBACK: 'user_feedback',
 } as const;
 
 // Database schemas
@@ -62,6 +68,156 @@ export interface Database {
           subscription_renewal_date?: string;
           stripe_customer_id?: string;
           updated_at?: string;
+        };
+      };
+      galleries: {
+        Row: {
+          id: string;
+          name: string;
+          description?: string;
+          location: string;
+          image_url?: string;
+          hours?: string;
+          created_by: string;
+          featured: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          name: string;
+          description?: string;
+          location: string;
+          image_url?: string;
+          hours?: string;
+          created_by: string;
+          featured?: boolean;
+        };
+        Update: {
+          name?: string;
+          description?: string;
+          location?: string;
+          image_url?: string;
+          hours?: string;
+          featured?: boolean;
+          updated_at?: string;
+        };
+      };
+      artworks: {
+        Row: {
+          id: string;
+          gallery_id: string;
+          title: string;
+          artist: string;
+          year?: string;
+          medium?: string;
+          dimensions?: string;
+          description?: string;
+          price?: string;
+          image_url?: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          gallery_id: string;
+          title: string;
+          artist: string;
+          year?: string;
+          medium?: string;
+          dimensions?: string;
+          description?: string;
+          price?: string;
+          image_url?: string;
+        };
+        Update: {
+          title?: string;
+          artist?: string;
+          year?: string;
+          medium?: string;
+          dimensions?: string;
+          description?: string;
+          price?: string;
+          image_url?: string;
+          updated_at?: string;
+        };
+      };
+      gallery_visits: {
+        Row: {
+          id: string;
+          user_id: string;
+          gallery_id: string;
+          timestamp: string;
+        };
+        Insert: {
+          user_id: string;
+          gallery_id: string;
+          timestamp?: string;
+        };
+        Update: {
+          timestamp?: string;
+        };
+      };
+      artwork_views: {
+        Row: {
+          id: string;
+          user_id: string;
+          artwork_id: string;
+          gallery_id: string;
+          timestamp: string;
+        };
+        Insert: {
+          user_id: string;
+          artwork_id: string;
+          gallery_id: string;
+          timestamp?: string;
+        };
+        Update: {
+          timestamp?: string;
+        };
+      };
+      artwork_purchases: {
+        Row: {
+          id: string;
+          user_id: string;
+          artwork_id: string;
+          gallery_id: string;
+          price: number;
+          currency: string;
+          timestamp: string;
+        };
+        Insert: {
+          user_id: string;
+          artwork_id: string;
+          gallery_id: string;
+          price: number;
+          currency?: string;
+          timestamp?: string;
+        };
+        Update: {
+          price?: number;
+          currency?: string;
+          timestamp?: string;
+        };
+      };
+      user_feedback: {
+        Row: {
+          id: string;
+          user_id: string;
+          gallery_id: string;
+          rating: number;
+          comment?: string;
+          timestamp: string;
+        };
+        Insert: {
+          user_id: string;
+          gallery_id: string;
+          rating: number;
+          comment?: string;
+          timestamp?: string;
+        };
+        Update: {
+          rating?: number;
+          comment?: string;
+          timestamp?: string;
         };
       };
     };
@@ -121,6 +277,96 @@ export const updateUserProfile = async (userId: string, updates: Database['publi
   
   if (error) {
     console.error('Error updating user profile:', error);
+    throw error;
+  }
+  
+  return data;
+};
+
+// Gallery helper functions
+export const createGallery = async (galleryData: Database['public']['Tables']['galleries']['Insert']) => {
+  const { data, error } = await supabase
+    .from(TABLES.GALLERIES)
+    .insert(galleryData)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error creating gallery:', error);
+    throw error;
+  }
+  
+  return data;
+};
+
+export const getGalleries = async () => {
+  const { data, error } = await supabase
+    .from(TABLES.GALLERIES)
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('Error fetching galleries:', error);
+    throw error;
+  }
+  
+  return data;
+};
+
+export const getGalleryById = async (id: string) => {
+  const { data, error } = await supabase
+    .from(TABLES.GALLERIES)
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching gallery:', error);
+    throw error;
+  }
+  
+  return data;
+};
+
+export const getArtworksByGallery = async (galleryId: string) => {
+  const { data, error } = await supabase
+    .from(TABLES.ARTWORKS)
+    .select('*')
+    .eq('gallery_id', galleryId)
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('Error fetching artworks:', error);
+    throw error;
+  }
+  
+  return data;
+};
+
+export const getArtworkById = async (id: string) => {
+  const { data, error } = await supabase
+    .from(TABLES.ARTWORKS)
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching artwork:', error);
+    throw error;
+  }
+  
+  return data;
+};
+
+export const createArtwork = async (artworkData: Database['public']['Tables']['artworks']['Insert']) => {
+  const { data, error } = await supabase
+    .from(TABLES.ARTWORKS)
+    .insert(artworkData)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error creating artwork:', error);
     throw error;
   }
   
