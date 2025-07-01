@@ -18,26 +18,32 @@ export default function VisitHistoryScreen() {
   
   // Log screen view
   useEffect(() => {
-    // Log screen view with analytics
     Analytics.logScreenView("VisitHistory");
   }, []);
   
   const handleVisitPress = (venueId: string) => {
     router.push(`/venue/${venueId}`);
     
-    // Log analytics event
     Analytics.logEvent("visit_history_item_press", {
       venue_id: venueId
     });
   };
   
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString(undefined, { 
-      year: "numeric", 
-      month: "long", 
-      day: "numeric" 
-    });
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "Invalid Date";
+      }
+      return date.toLocaleDateString(undefined, { 
+        year: "numeric", 
+        month: "long", 
+        day: "numeric" 
+      });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid Date";
+    }
   };
   
   const renderEmptyState = () => (
@@ -48,12 +54,60 @@ export default function VisitHistoryScreen() {
       action={
         <Button
           title="Explore Venues"
-          onPress={() => router.push("/explore")}
+          onPress={() => router.push("/(tabs)/explore")}
           variant="primary"
         />
       }
     />
   );
+  
+  const renderVisitItem = ({ item }: { item: any }) => {
+    const venue = getVenueById(item.venueId);
+    if (!venue) {
+      return (
+        <View style={styles.visitCard}>
+          <Text style={styles.errorText}>Venue not found</Text>
+        </View>
+      );
+    }
+    
+    return (
+      <TouchableOpacity 
+        style={styles.visitCard}
+        onPress={() => handleVisitPress(item.venueId)}
+        activeOpacity={0.7}
+      >
+        <View style={styles.visitHeader}>
+          <Text style={styles.venueName}>{venue.name}</Text>
+          <Text style={styles.visitDate}>{formatDate(item.date)}</Text>
+        </View>
+        
+        <View style={styles.visitDetails}>
+          <View style={styles.detailRow}>
+            <MapPin size={16} color={colors.textMuted} style={styles.detailIcon} />
+            <Text style={styles.detailText}>{venue.location}</Text>
+          </View>
+          
+          <View style={styles.detailRow}>
+            <Calendar size={16} color={colors.textMuted} style={styles.detailIcon} />
+            <Text style={styles.detailText}>{formatDate(item.date)}</Text>
+          </View>
+          
+          <View style={styles.detailRow}>
+            <Clock size={16} color={colors.textMuted} style={styles.detailIcon} />
+            <Text style={styles.detailText}>{item.time || "Not specified"}</Text>
+          </View>
+        </View>
+        
+        {item.notes && (
+          <View style={styles.notesContainer}>
+            <Text style={styles.notesLabel}>Notes:</Text>
+            <Text style={styles.notesText}>{item.notes}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  };
   
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -62,47 +116,7 @@ export default function VisitHistoryScreen() {
       <FlatList
         data={visitHistory}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => {
-          const venue = getVenueById(item.venueId);
-          if (!venue) return null;
-          
-          return (
-            <TouchableOpacity 
-              style={styles.visitCard}
-              onPress={() => handleVisitPress(item.venueId)}
-              activeOpacity={0.7}
-            >
-              <View style={styles.visitHeader}>
-                <Text style={styles.venueName}>{venue.name}</Text>
-                <Text style={styles.visitDate}>{formatDate(item.date)}</Text>
-              </View>
-              
-              <View style={styles.visitDetails}>
-                <View style={styles.detailRow}>
-                  <MapPin size={16} color={colors.textMuted} style={styles.detailIcon} />
-                  <Text style={styles.detailText}>{venue.location}</Text>
-                </View>
-                
-                <View style={styles.detailRow}>
-                  <Calendar size={16} color={colors.textMuted} style={styles.detailIcon} />
-                  <Text style={styles.detailText}>{formatDate(item.date)}</Text>
-                </View>
-                
-                <View style={styles.detailRow}>
-                  <Clock size={16} color={colors.textMuted} style={styles.detailIcon} />
-                  <Text style={styles.detailText}>{item.time || "Not specified"}</Text>
-                </View>
-              </View>
-              
-              {item.notes && (
-                <View style={styles.notesContainer}>
-                  <Text style={styles.notesLabel}>Notes:</Text>
-                  <Text style={styles.notesText}>{item.notes}</Text>
-                </View>
-              )}
-            </TouchableOpacity>
-          );
-        }}
+        renderItem={renderVisitItem}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           visitHistory.length > 0 ? (
@@ -110,6 +124,7 @@ export default function VisitHistoryScreen() {
           ) : null
         }
         ListEmptyComponent={renderEmptyState}
+        showsVerticalScrollIndicator={false}
       />
     </SafeAreaView>
   );
@@ -133,6 +148,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   visitHeader: {
     flexDirection: "row",
@@ -179,5 +196,10 @@ const styles = StyleSheet.create({
   notesText: {
     ...typography.body,
     color: colors.text,
+  },
+  errorText: {
+    ...typography.body,
+    color: colors.error,
+    textAlign: "center",
   },
 });

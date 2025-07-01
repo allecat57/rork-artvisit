@@ -1,15 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
   View,
   ScrollView,
   TouchableOpacity,
-  Image,
   Alert,
   Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
+import { Image } from "expo-image";
 import {
   User,
   Settings,
@@ -22,15 +22,14 @@ import {
   Shield,
   HelpCircle,
   LogOut,
-  Camera,
+  ChevronRight,
+  Star,
   Crown,
 } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useProfileStore } from "@/store/useProfileStore";
-import Button from "@/components/Button";
-import PaymentMethodModal from "@/components/PaymentMethodModal";
 import SubscriptionModal from "@/components/SubscriptionModal";
 import PrivacySettingsModal from "@/components/PrivacySettingsModal";
 import NotificationsModal from "@/components/NotificationsModal";
@@ -43,7 +42,7 @@ const fontFamily = Platform.select({
   default: "Georgia, serif",
 });
 
-interface ProfileMenuItemProps {
+interface MenuItemProps {
   icon: React.ReactNode;
   title: string;
   subtitle?: string;
@@ -52,7 +51,7 @@ interface ProfileMenuItemProps {
   badge?: string;
 }
 
-const ProfileMenuItem: React.FC<ProfileMenuItemProps> = ({
+const MenuItem: React.FC<MenuItemProps> = ({
   icon,
   title,
   subtitle,
@@ -63,7 +62,7 @@ const ProfileMenuItem: React.FC<ProfileMenuItemProps> = ({
   <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
     <View style={styles.menuItemLeft}>
       <View style={styles.menuItemIcon}>{icon}</View>
-      <View style={styles.menuItemText}>
+      <View style={styles.menuItemContent}>
         <Text style={styles.menuItemTitle}>{title}</Text>
         {subtitle && <Text style={styles.menuItemSubtitle}>{subtitle}</Text>}
       </View>
@@ -74,9 +73,7 @@ const ProfileMenuItem: React.FC<ProfileMenuItemProps> = ({
           <Text style={styles.badgeText}>{badge}</Text>
         </View>
       )}
-      {showChevron && (
-        <Text style={styles.chevron}>›</Text>
-      )}
+      {showChevron && <ChevronRight size={20} color={colors.textSecondary} />}
     </View>
   </TouchableOpacity>
 );
@@ -84,22 +81,19 @@ const ProfileMenuItem: React.FC<ProfileMenuItemProps> = ({
 export default function ProfileScreen() {
   const router = useRouter();
   const { user, logout } = useAuthStore();
-  const { 
-    getCurrentProfileImage, 
-    getCurrentPaymentMethod, 
-    getCurrentSubscription,
-    setProfileImage 
-  } = useProfileStore();
+  const { getCurrentSubscription, getCurrentPaymentMethod } = useProfileStore();
+  
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
+  const [showPrivacyModal, setShowPrivacyModal] = useState(false);
+  const [showNotificationsModal, setShowNotificationsModal] = useState(false);
+  const [showHelpModal, setShowHelpModal] = useState(false);
 
-  const [paymentModalVisible, setPaymentModalVisible] = useState(false);
-  const [subscriptionModalVisible, setSubscriptionModalVisible] = useState(false);
-  const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
-  const [notificationsModalVisible, setNotificationsModalVisible] = useState(false);
-  const [helpModalVisible, setHelpModalVisible] = useState(false);
-
-  const profileImage = getCurrentProfileImage();
-  const paymentMethod = getCurrentPaymentMethod();
   const subscription = getCurrentSubscription();
+  const paymentMethod = getCurrentPaymentMethod();
+
+  useEffect(() => {
+    Analytics.logScreenView("Profile");
+  }, []);
 
   const handleLogout = () => {
     Alert.alert(
@@ -111,11 +105,9 @@ export default function ProfileScreen() {
           text: "Sign Out",
           style: "destructive",
           onPress: async () => {
-            // Log analytics event
             Analytics.logEvent(Analytics.Events.USER_LOGOUT, {
               user_id: user?.id
             });
-            
             await logout();
             router.replace("/login");
           },
@@ -124,205 +116,189 @@ export default function ProfileScreen() {
     );
   };
 
-  const handleChangeProfileImage = () => {
-    Alert.alert(
-      "Change Profile Photo",
-      "Choose an option",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Remove Photo",
-          style: "destructive",
-          onPress: () => {
-            setProfileImage(null);
-            Analytics.logEvent("profile_image_removed");
-          },
-        },
-        {
-          text: "Choose Photo",
-          onPress: () => {
-            // For demo purposes, set a random avatar
-            const avatars = [
-              "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxjb2xsZWN0aW9uLXBhZ2V8MXw3NjA4Mjc3NHx8ZW58MHx8fHx8",
-              "https://images.unsplash.com/photo-1494790108755-2616b612b786?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxjb2xsZWN0aW9uLXBhZ2V8Mnw3NjA4Mjc3NHx8ZW58MHx8fHx8",
-              "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxjb2xsZWN0aW9uLXBhZ2V8M3w3NjA4Mjc3NHx8ZW58MHx8fHx8",
-            ];
-            const randomAvatar = avatars[Math.floor(Math.random() * avatars.length)];
-            setProfileImage(randomAvatar);
-            Analytics.logEvent("profile_image_changed");
-          },
-        },
-      ]
-    );
+  const getSubscriptionBadge = () => {
+    if (!subscription) return undefined;
+    
+    switch (subscription.id) {
+      case "collector":
+        return "Premium";
+      case "enthusiast":
+        return "Plus";
+      default:
+        return undefined;
+    }
   };
 
-  if (!user) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyTitle}>Not Signed In</Text>
-          <Text style={styles.emptyDescription}>
-            Please sign in to view your profile
-          </Text>
-          <Button
-            title="Sign In"
-            onPress={() => router.replace("/login")}
-            variant="primary"
-            style={styles.signInButton}
-          />
-        </View>
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Profile Header */}
-        <View style={styles.profileHeader}>
-          <TouchableOpacity 
-            style={styles.profileImageContainer}
-            onPress={handleChangeProfileImage}
-            activeOpacity={0.7}
-          >
-            {profileImage || user.avatar ? (
-              <Image 
-                source={{ uri: profileImage || user.avatar }} 
-                style={styles.profileImage}
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* Profile Header */}
+      <View style={styles.header}>
+        <View style={styles.profileSection}>
+          <View style={styles.avatarContainer}>
+            {user?.avatar ? (
+              <Image
+                source={{ uri: user.avatar }}
+                style={styles.avatar}
+                contentFit="cover"
               />
             ) : (
-              <View style={styles.profileImagePlaceholder}>
-                <User size={40} color={colors.textSecondary} />
+              <View style={styles.avatarPlaceholder}>
+                <User size={32} color={colors.accent} />
               </View>
             )}
-            <View style={styles.cameraIcon}>
-              <Camera size={16} color={colors.background} />
-            </View>
-          </TouchableOpacity>
+            {subscription?.id === "collector" && (
+              <View style={styles.crownBadge}>
+                <Crown size={16} color={colors.accent} />
+              </View>
+            )}
+          </View>
           
-          <Text style={styles.userName}>{user.name}</Text>
-          <Text style={styles.userEmail}>{user.email}</Text>
-          
-          {subscription && (
-            <View style={styles.subscriptionBadge}>
-              <Crown size={14} color={colors.accent} />
-              <Text style={styles.subscriptionText}>{subscription.name}</Text>
-            </View>
-          )}
+          <View style={styles.profileInfo}>
+            <Text style={styles.userName}>{user?.name || "Guest User"}</Text>
+            <Text style={styles.userEmail}>{user?.email || "guest@example.com"}</Text>
+            
+            {subscription && (
+              <View style={styles.subscriptionBadge}>
+                <Star size={12} color={colors.accent} />
+                <Text style={styles.subscriptionText}>{subscription.name}</Text>
+              </View>
+            )}
+          </View>
         </View>
+      </View>
 
-        {/* Menu Items */}
-        <View style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>Account</Text>
-          
-          <ProfileMenuItem
-            icon={<CreditCard size={20} color={colors.accent} />}
-            title="Payment Method"
-            subtitle={paymentMethod ? `${paymentMethod.cardType} •••• ${paymentMethod.last4}` : "Add payment method"}
-            onPress={() => setPaymentModalVisible(true)}
-          />
-          
-          <ProfileMenuItem
-            icon={<Crown size={20} color={colors.accent} />}
-            title="Subscription"
-            subtitle={subscription ? `${subscription.name} - $${subscription.price}/month` : "Free Access"}
-            onPress={() => setSubscriptionModalVisible(true)}
-          />
-        </View>
+      {/* Menu Sections */}
+      <View style={styles.menuSection}>
+        <Text style={styles.sectionTitle}>Account</Text>
+        
+        <MenuItem
+          icon={<CreditCard size={20} color={colors.accent} />}
+          title="Subscription"
+          subtitle={subscription ? subscription.name : "Free Access"}
+          onPress={() => setShowSubscriptionModal(true)}
+          badge={getSubscriptionBadge()}
+        />
+        
+        <MenuItem
+          icon={<CreditCard size={20} color={colors.accent} />}
+          title="Payment Methods"
+          subtitle={paymentMethod ? `•••• ${paymentMethod.last4}` : "No payment method"}
+          onPress={() => {
+            Analytics.logEvent("profile_payment_methods_press");
+            // Navigate to payment methods screen
+            Alert.alert("Payment Methods", "Payment methods management coming soon!");
+          }}
+        />
+      </View>
 
-        <View style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>Activity</Text>
-          
-          <ProfileMenuItem
-            icon={<Heart size={20} color={colors.accent} />}
-            title="Favorites"
-            subtitle="Your saved venues and events"
-            onPress={() => router.push("/favorites")}
-          />
-          
-          <ProfileMenuItem
-            icon={<Clock size={20} color={colors.accent} />}
-            title="Visit History"
-            subtitle="Places you have visited"
-            onPress={() => router.push("/visit-history")}
-          />
-          
-          <ProfileMenuItem
-            icon={<ShoppingBag size={20} color={colors.accent} />}
-            title="Purchase History"
-            subtitle="Your art purchases"
-            onPress={() => router.push("/purchase-history")}
-          />
-          
-          <ProfileMenuItem
-            icon={<Calendar size={20} color={colors.accent} />}
-            title="Reservations"
-            subtitle="Your bookings and events"
-            onPress={() => router.push("/reservations")}
-          />
-        </View>
+      <View style={styles.menuSection}>
+        <Text style={styles.sectionTitle}>Activity</Text>
+        
+        <MenuItem
+          icon={<Heart size={20} color={colors.accent} />}
+          title="Favorites"
+          subtitle="Your saved venues and artworks"
+          onPress={() => {
+            Analytics.logEvent("profile_favorites_press");
+            router.push("/favorites");
+          }}
+        />
+        
+        <MenuItem
+          icon={<Clock size={20} color={colors.accent} />}
+          title="Visit History"
+          subtitle="Places you've been"
+          onPress={() => {
+            Analytics.logEvent("profile_visit_history_press");
+            router.push("/visit-history");
+          }}
+        />
+        
+        <MenuItem
+          icon={<Calendar size={20} color={colors.accent} />}
+          title="Reservations"
+          subtitle="Your bookings and appointments"
+          onPress={() => {
+            Analytics.logEvent("profile_reservations_press");
+            router.push("/reservations");
+          }}
+        />
+        
+        <MenuItem
+          icon={<ShoppingBag size={20} color={colors.accent} />}
+          title="Purchase History"
+          subtitle="Your orders and receipts"
+          onPress={() => {
+            Analytics.logEvent("profile_purchase_history_press");
+            router.push("/purchase-history");
+          }}
+        />
+      </View>
 
-        <View style={styles.menuSection}>
-          <Text style={styles.sectionTitle}>Settings</Text>
-          
-          <ProfileMenuItem
-            icon={<Bell size={20} color={colors.accent} />}
-            title="Notifications"
-            subtitle="Manage your notifications"
-            onPress={() => setNotificationsModalVisible(true)}
-          />
-          
-          <ProfileMenuItem
-            icon={<Shield size={20} color={colors.accent} />}
-            title="Privacy & Security"
-            subtitle="Control your privacy settings"
-            onPress={() => setPrivacyModalVisible(true)}
-          />
-          
-          <ProfileMenuItem
-            icon={<HelpCircle size={20} color={colors.accent} />}
-            title="Help & Support"
-            subtitle="Get help and contact support"
-            onPress={() => setHelpModalVisible(true)}
-          />
-        </View>
+      <View style={styles.menuSection}>
+        <Text style={styles.sectionTitle}>Settings</Text>
+        
+        <MenuItem
+          icon={<Bell size={20} color={colors.accent} />}
+          title="Notifications"
+          subtitle="Manage your notification preferences"
+          onPress={() => {
+            Analytics.logEvent("profile_notifications_press");
+            setShowNotificationsModal(true);
+          }}
+        />
+        
+        <MenuItem
+          icon={<Shield size={20} color={colors.accent} />}
+          title="Privacy & Security"
+          subtitle="Control your data and privacy"
+          onPress={() => {
+            Analytics.logEvent("profile_privacy_press");
+            setShowPrivacyModal(true);
+          }}
+        />
+        
+        <MenuItem
+          icon={<HelpCircle size={20} color={colors.accent} />}
+          title="Help & Support"
+          subtitle="Get help and contact support"
+          onPress={() => {
+            Analytics.logEvent("profile_help_press");
+            setShowHelpModal(true);
+          }}
+        />
+      </View>
 
-        <View style={styles.menuSection}>
-          <ProfileMenuItem
-            icon={<LogOut size={20} color={colors.status.error} />}
-            title="Sign Out"
-            onPress={handleLogout}
-            showChevron={false}
-          />
-        </View>
-      </ScrollView>
+      <View style={styles.menuSection}>
+        <MenuItem
+          icon={<LogOut size={20} color={colors.error} />}
+          title="Sign Out"
+          onPress={handleLogout}
+          showChevron={false}
+        />
+      </View>
 
       {/* Modals */}
-      <PaymentMethodModal
-        visible={paymentModalVisible}
-        onClose={() => setPaymentModalVisible(false)}
-      />
-      
       <SubscriptionModal
-        visible={subscriptionModalVisible}
-        onClose={() => setSubscriptionModalVisible(false)}
+        visible={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
       />
       
       <PrivacySettingsModal
-        visible={privacyModalVisible}
-        onClose={() => setPrivacyModalVisible(false)}
+        visible={showPrivacyModal}
+        onClose={() => setShowPrivacyModal(false)}
       />
       
       <NotificationsModal
-        visible={notificationsModalVisible}
-        onClose={() => setNotificationsModalVisible(false)}
+        visible={showNotificationsModal}
+        onClose={() => setShowNotificationsModal(false)}
       />
       
       <HelpCenterModal
-        visible={helpModalVisible}
-        onClose={() => setHelpModalVisible(false)}
+        visible={showHelpModal}
+        onClose={() => setShowHelpModal(false)}
       />
-    </View>
+    </ScrollView>
   );
 }
 
@@ -331,46 +307,49 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  scrollView: {
-    flex: 1,
-  },
-  profileHeader: {
-    alignItems: "center",
-    paddingVertical: 32,
+  header: {
     paddingHorizontal: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    paddingTop: 20,
+    paddingBottom: 32,
   },
-  profileImageContainer: {
-    position: "relative",
-    marginBottom: 16,
-  },
-  profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.surface,
-  },
-  profileImagePlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.surface,
-    justifyContent: "center",
+  profileSection: {
+    flexDirection: "row",
     alignItems: "center",
   },
-  cameraIcon: {
-    position: "absolute",
-    bottom: 0,
-    right: 0,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: colors.accent,
+  avatarContainer: {
+    position: "relative",
+    marginRight: 16,
+  },
+  avatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+  },
+  avatarPlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.card,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: colors.background,
+    borderColor: colors.accent,
+  },
+  crownBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.background,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: colors.accent,
+  },
+  profileInfo: {
+    flex: 1,
   },
   userName: {
     fontSize: 24,
@@ -382,16 +361,17 @@ const styles = StyleSheet.create({
   userEmail: {
     fontSize: 14,
     color: colors.textSecondary,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   subscriptionBadge: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: colors.surface,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    gap: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    alignSelf: "flex-start",
+    gap: 4,
   },
   subscriptionText: {
     fontSize: 12,
@@ -399,14 +379,14 @@ const styles = StyleSheet.create({
     color: colors.accent,
   },
   menuSection: {
-    paddingVertical: 8,
+    marginBottom: 32,
   },
   sectionTitle: {
-    fontSize: 16,
-    fontWeight: "600",
+    fontSize: 18,
+    fontWeight: "700",
     color: colors.text,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
+    marginBottom: 16,
+    marginHorizontal: 24,
     fontFamily,
   },
   menuItem: {
@@ -415,7 +395,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 24,
     paddingVertical: 16,
-    backgroundColor: colors.background,
+    backgroundColor: colors.card,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   menuItemLeft: {
     flexDirection: "row",
@@ -429,14 +411,14 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 16,
+    marginRight: 12,
   },
-  menuItemText: {
+  menuItemContent: {
     flex: 1,
   },
   menuItemTitle: {
     fontSize: 16,
-    fontWeight: "500",
+    fontWeight: "600",
     color: colors.text,
     marginBottom: 2,
   },
@@ -459,34 +441,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     color: colors.background,
-  },
-  chevron: {
-    fontSize: 20,
-    color: colors.textSecondary,
-    fontWeight: "300",
-  },
-  emptyState: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 32,
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: colors.text,
-    marginBottom: 8,
-    textAlign: "center",
-    fontFamily,
-  },
-  emptyDescription: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    textAlign: "center",
-    marginBottom: 32,
-    lineHeight: 24,
-  },
-  signInButton: {
-    minWidth: 120,
   },
 });

@@ -9,14 +9,17 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, Stack } from "expo-router";
 import { Calendar, MapPin, Clock, Users, ChevronRight } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import { useReservationStore } from "@/store/useReservationStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useVenueStore } from "@/store/useVenueStore";
 import { Reservation } from "@/types/reservation";
 import { formatDate, formatTime } from "@/utils/date";
+import EmptyState from "@/components/EmptyState";
+import Button from "@/components/Button";
 
 const fontFamily = Platform.select({
   ios: "Georgia",
@@ -30,17 +33,33 @@ interface ReservationCardProps {
 }
 
 const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onPress }) => {
-  const isPast = new Date(reservation.date) < new Date();
-  const isToday = formatDate(new Date(reservation.date)) === formatDate(new Date());
+  const { getVenueById } = useVenueStore();
+  const venue = getVenueById(reservation.venueId);
+  
+  const reservationDate = new Date(reservation.date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  reservationDate.setHours(0, 0, 0, 0);
+  
+  const isPast = reservationDate < today;
+  const isToday = reservationDate.getTime() === today.getTime();
+  
+  if (!venue) {
+    return (
+      <View style={styles.reservationCard}>
+        <Text style={styles.errorText}>Venue not found</Text>
+      </View>
+    );
+  }
   
   return (
     <TouchableOpacity style={styles.reservationCard} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.cardHeader}>
         <View style={styles.venueInfo}>
-          <Text style={styles.venueName}>{reservation.venueName}</Text>
+          <Text style={styles.venueName}>{venue.name}</Text>
           <View style={styles.locationContainer}>
             <MapPin size={14} color={colors.textSecondary} />
-            <Text style={styles.location}>{reservation.venueLocation}</Text>
+            <Text style={styles.location}>{venue.location}</Text>
           </View>
         </View>
         <View style={[
@@ -60,21 +79,21 @@ const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onPress 
         <View style={styles.detailRow}>
           <Calendar size={16} color={colors.accent} />
           <Text style={styles.detailText}>
-            {formatDate(new Date(reservation.date))}
+            {formatDate(reservationDate)}
           </Text>
         </View>
         
         <View style={styles.detailRow}>
           <Clock size={16} color={colors.accent} />
           <Text style={styles.detailText}>
-            {formatTime(new Date(`2000-01-01T${reservation.time}`))}
+            {reservation.time}
           </Text>
         </View>
         
         <View style={styles.detailRow}>
           <Users size={16} color={colors.accent} />
           <Text style={styles.detailText}>
-            {reservation.guests} {reservation.guests === 1 ? "guest" : "guests"}
+            {reservation.partySize} {reservation.partySize === 1 ? "guest" : "guests"}
           </Text>
         </View>
       </View>
@@ -105,6 +124,7 @@ export default function ReservationsScreen() {
     const reservationDate = new Date(reservation.date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    reservationDate.setHours(0, 0, 0, 0);
     
     if (filter === "upcoming") {
       return reservationDate >= today;
@@ -115,7 +135,6 @@ export default function ReservationsScreen() {
   });
 
   const handleReservationPress = (reservation: Reservation) => {
-    // Navigate to venue details or reservation details
     router.push(`/venue/${reservation.venueId}`);
   };
 
@@ -127,34 +146,32 @@ export default function ReservationsScreen() {
   );
 
   const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <Calendar size={64} color={colors.textSecondary} />
-      <Text style={styles.emptyTitle}>
-        {filter === "upcoming" 
+    <EmptyState
+      iconName="Calendar"
+      title={
+        filter === "upcoming" 
           ? "No Upcoming Reservations" 
           : filter === "past" 
           ? "No Past Reservations"
           : "No Reservations"
-        }
-      </Text>
-      <Text style={styles.emptyDescription}>
-        {filter === "upcoming" 
+      }
+      message={
+        filter === "upcoming" 
           ? "You don't have any upcoming reservations. Explore venues to make a booking."
           : filter === "past"
           ? "You haven't made any reservations yet."
           : "You haven't made any reservations yet. Explore venues to make your first booking."
-        }
-      </Text>
-      {filter === "all" && (
-        <TouchableOpacity
-          style={styles.exploreButton}
-          onPress={() => router.push("/(tabs)/explore")}
-          activeOpacity={0.7}
-        >
-          <Text style={styles.exploreButtonText}>Explore Venues</Text>
-        </TouchableOpacity>
-      )}
-    </View>
+      }
+      action={
+        filter === "all" ? (
+          <Button
+            title="Explore Venues"
+            onPress={() => router.push("/(tabs)/explore")}
+            variant="primary"
+          />
+        ) : undefined
+      }
+    />
   );
 
   const renderFilterButton = (filterType: "all" | "upcoming" | "past", title: string) => (
@@ -178,6 +195,7 @@ export default function ReservationsScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
+        <Stack.Screen options={{ title: "My Reservations" }} />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.loadingText}>Loading reservations...</Text>
@@ -188,6 +206,8 @@ export default function ReservationsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <Stack.Screen options={{ title: "My Reservations" }} />
+      
       <View style={styles.header}>
         <Text style={styles.title}>My Reservations</Text>
         <Text style={styles.subtitle}>
@@ -264,6 +284,7 @@ const styles = StyleSheet.create({
   listContainer: {
     padding: 24,
     paddingTop: 8,
+    flexGrow: 1,
   },
   reservationCard: {
     backgroundColor: colors.card,
@@ -366,38 +387,10 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontWeight: "500",
   },
-  emptyState: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 60,
-    paddingHorizontal: 32,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: colors.text,
-    marginTop: 16,
-    marginBottom: 8,
-    textAlign: "center",
-    fontFamily,
-  },
-  emptyDescription: {
+  errorText: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: colors.error,
     textAlign: "center",
-    lineHeight: 20,
-    marginBottom: 24,
-  },
-  exploreButton: {
-    backgroundColor: colors.accent,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  exploreButtonText: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: colors.background,
+    padding: 16,
   },
 });
