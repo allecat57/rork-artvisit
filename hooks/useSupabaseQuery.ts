@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { querySupabase, insertSupabase, updateSupabase, deleteSupabase } from '@/utils/api';
+import { supabase } from '@/config/supabase';
 import * as Analytics from '@/utils/analytics';
 
 interface UseSupabaseQueryOptions {
@@ -201,8 +202,7 @@ export const useSupabaseSubscription = <T = any>(
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const { querySupabase } = require('@/utils/api');
-    const { supabase } = require('@/config/supabase');
+    let subscription: any = null;
 
     // Initial data fetch
     const fetchInitialData = async () => {
@@ -220,48 +220,76 @@ export const useSupabaseSubscription = <T = any>(
 
     fetchInitialData();
 
-    // Set up real-time subscription
-    const subscription = supabase
-      .channel(`${table}_changes`)
-      .on(
-        'postgres_changes',
-        {
-          event: options.event || '*',
-          schema: options.schema || 'public',
-          table: table,
-          filter: options.filter
-        },
-        (payload: any) => {
-          Analytics.logEvent('realtime_update', {
-            table,
-            event_type: payload.eventType,
-            has_new: !!payload.new,
-            has_old: !!payload.old
-          });
+    // Set up real-time subscription with error handling
+    try {
+      subscription = supabase
+        .channel(`${table}_changes`)
+        .on(
+          'postgres_changes',
+          {
+            event: options.event || '*',
+            schema: options.schema || 'public',
+            table: table,
+            filter: options.filter
+          },
+          (payload: any) => {
+            try {
+              Analytics.logEvent('realtime_update', {
+                table,
+                event_type: payload.eventType,
+                has_new: !!payload.new,
+                has_old: !!payload.old
+              });
 
-          // Update local data based on the event
-          setData(currentData => {
-            switch (payload.eventType) {
-              case 'INSERT':
-                return [...currentData, payload.new as T];
-              case 'UPDATE':
-                return currentData.map(item => 
-                  (item as any).id === payload.new.id ? payload.new as T : item
-                );
-              case 'DELETE':
-                return currentData.filter(item => 
-                  (item as any).id !== payload.old.id
-                );
-              default:
-                return currentData;
+              // Update local data based on the event
+              setData(currentData => {
+                switch (payload.eventType) {
+                  case 'INSERT':
+                    return [...currentData, payload.new as T];
+                  case 'UPDATE':
+                    return currentData.map(item => 
+                      (item as any).id === payload.new.id ? payload.new as T : item
+                    );
+                  case 'DELETE':
+                    return currentData.filter(item => 
+                      (item as any).id !== payload.old.id
+                    );
+                  default:
+                    return currentData;
+                }
+              });
+            } catch (err) {
+              console.error('Error handling real-time update:', err);
+              setError(err instanceof Error ? err.message : 'Real-time update error');
             }
-          });
-        }
-      )
-      .subscribe();
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log(`Successfully subscribed to ${table} changes`);
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error(`Error subscribing to ${table} changes`);
+            setError('Failed to establish real-time connection');
+          } else if (status === 'TIMED_OUT') {
+            console.error(`Subscription to ${table} timed out`);
+            setError('Real-time connection timed out');
+          } else if (status === 'CLOSED') {
+            console.log(`Subscription to ${table} closed`);
+          }
+        });
+    } catch (err) {
+      console.error('Error setting up real-time subscription:', err);
+      setError(err instanceof Error ? err.message : 'Failed to set up real-time connection');
+    }
 
     return () => {
-      subscription.unsubscribe();
+      if (subscription) {
+        try {
+          subscription.unsubscribe();
+        } catch (err) {
+          console.error('Error unsubscribing from real-time updates:', err);
+        }
+      }
     };
   }, [table, options.event, options.schema, options.filter]);
 

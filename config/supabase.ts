@@ -175,8 +175,14 @@ export interface Database {
   };
 }
 
-// Create Supabase client
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Create Supabase client with proper configuration
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    },
+  },
+});
 
 // Helper function to check if Supabase is properly configured
 export const isSupabaseConfigured = (): boolean => {
