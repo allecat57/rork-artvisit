@@ -44,7 +44,7 @@ export default function ShopScreen() {
     if (searchQuery.trim()) {
       const filtered = products.filter(product =>
         product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (product.artist || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.category.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredProducts(filtered);
@@ -85,7 +85,7 @@ export default function ShopScreen() {
     <View style={styles.header}>
       <SearchBar
         placeholder="Search art, artists, categories..."
-        onSearch={handleSearch}
+        onChangeText={handleSearch}
         onClear={handleClearSearch}
         value={searchQuery}
       />

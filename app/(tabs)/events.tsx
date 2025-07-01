@@ -50,7 +50,7 @@ export default function EventsScreen() {
         event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         event.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
         event.type.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        event.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+        (event.tags || []).some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
       );
       setFilteredEvents(filtered);
       console.log("Filtered events count:", filtered.length);
@@ -90,7 +90,7 @@ export default function EventsScreen() {
     <View style={styles.header}>
       <SearchBar
         placeholder="Search events, venues, categories..."
-        onSearch={handleSearch}
+        onChangeText={handleSearch}
         onClear={handleClearSearch}
         value={searchQuery}
       />

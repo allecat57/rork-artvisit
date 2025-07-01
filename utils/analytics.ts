@@ -85,6 +85,7 @@ export const Events = {
   UPDATE_PAYMENT_METHOD: 'update_payment_method',
   LOGOUT: 'logout',
   OPEN_HELP_CENTER: 'open_help_center',
+  ADD_TO_CART: 'add_to_cart',
 } as const;
 
 // Default export for convenience
