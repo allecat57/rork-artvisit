@@ -25,7 +25,11 @@ function RootLayoutContent() {
 
   useEffect(() => {
     // Ensure test user exists on app startup
-    ensureTestUserExists();
+    try {
+      ensureTestUserExists();
+    } catch (error) {
+      console.warn("Error setting up test user:", error);
+    }
   }, [ensureTestUserExists]);
 
   useEffect(() => {
@@ -34,15 +38,19 @@ function RootLayoutContent() {
     const inAuthGroup = segments[0] === 'login';
     const inTabsGroup = segments[0] === '(tabs)';
 
-    if (!isAuthenticated && !inAuthGroup) {
-      // User is not authenticated and not in auth group, redirect to login
-      router.replace('/login');
-    } else if (isAuthenticated && inAuthGroup) {
-      // User is authenticated but in auth group, redirect to tabs
-      router.replace('/(tabs)');
-    } else if (isAuthenticated && segments.length === 0) {
-      // User is authenticated and at root, redirect to tabs
-      router.replace('/(tabs)');
+    try {
+      if (!isAuthenticated && !inAuthGroup) {
+        // User is not authenticated and not in auth group, redirect to login
+        router.replace('/login');
+      } else if (isAuthenticated && inAuthGroup) {
+        // User is authenticated but in auth group, redirect to tabs
+        router.replace('/(tabs)');
+      } else if (isAuthenticated && segments.length === 0) {
+        // User is authenticated and at root, redirect to tabs
+        router.replace('/(tabs)');
+      }
+    } catch (error) {
+      console.warn("Navigation error:", error);
     }
   }, [isAuthenticated, isHydrated, segments, router]);
 

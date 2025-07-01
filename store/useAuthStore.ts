@@ -74,22 +74,26 @@ export const useAuthStore = create<AuthState>()(
       isLoading: false,
       
       setUser: (user) => {
-        if (!user) {
-          set({ user: null, isAuthenticated: false });
-          return;
+        try {
+          if (!user) {
+            set({ user: null, isAuthenticated: false });
+            return;
+          }
+          
+          const newUser: User = {
+            id: user.id,
+            email: user.email || "",
+            name: user.user_metadata?.name || user.email?.split('@')[0] || "",
+            avatar: user.user_metadata?.avatar_url,
+          };
+          
+          set({ user: newUser, isAuthenticated: true });
+          
+          // Set user ID for analytics
+          Analytics.setUserId(newUser.id);
+        } catch (error) {
+          console.warn("Error setting user:", error);
         }
-        
-        const newUser: User = {
-          id: user.id,
-          email: user.email || "",
-          name: user.user_metadata?.name || user.email?.split('@')[0] || "",
-          avatar: user.user_metadata?.avatar_url,
-        };
-        
-        set({ user: newUser, isAuthenticated: true });
-        
-        // Set user ID for analytics
-        Analytics.setUserId(newUser.id);
       },
       
       login: async (email: string, password: string) => {
@@ -98,57 +102,61 @@ export const useAuthStore = create<AuthState>()(
           
           // Check if Supabase is configured
           if (isSupabaseConfigured()) {
-            // Use Supabase Auth
-            const { data, error } = await supabase.auth.signInWithPassword({
-              email,
-              password,
-            });
-            
-            if (error) throw error;
-            
-            if (data.user) {
-              // Get user profile from Supabase
-              const { data: profileData, error: profileError } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', data.user.id)
-                .single();
-              
-              if (profileError && profileError.code !== 'PGRST116') {
-                console.error("Error fetching profile:", profileError);
-              }
-              
-              const newUser: User = {
-                id: data.user.id,
-                email: data.user.email || email,
-                name: profileData?.name || email.split('@')[0],
-                avatar: profileData?.avatar_url,
-                subscription: profileData ? {
-                  id: profileData.subscription_id,
-                  name: profileData.subscription_name,
-                  price: profileData.subscription_price,
-                  renewalDate: profileData.subscription_renewal_date,
-                  level: profileData.subscription_id as AccessLevel
-                } : undefined
-              };
-              
-              set({ user: newUser, isAuthenticated: true, isLoading: false });
-              
-              // Log analytics event
-              Analytics.logEvent(Analytics.Events.USER_LOGIN, {
-                method: "supabase",
-                user_id: newUser.id,
-                email: newUser.email
+            try {
+              // Use Supabase Auth
+              const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
               });
               
-              // Set user ID for analytics
-              Analytics.setUserId(newUser.id);
+              if (error) throw error;
               
-              return true;
+              if (data.user) {
+                // Get user profile from Supabase
+                const { data: profileData, error: profileError } = await supabase
+                  .from('profiles')
+                  .select('*')
+                  .eq('id', data.user.id)
+                  .single();
+                
+                if (profileError && profileError.code !== 'PGRST116') {
+                  console.warn("Error fetching profile:", profileError);
+                }
+                
+                const newUser: User = {
+                  id: data.user.id,
+                  email: data.user.email || email,
+                  name: profileData?.name || email.split('@')[0],
+                  avatar: profileData?.avatar_url,
+                  subscription: profileData ? {
+                    id: profileData.subscription_id,
+                    name: profileData.subscription_name,
+                    price: profileData.subscription_price,
+                    renewalDate: profileData.subscription_renewal_date,
+                    level: profileData.subscription_id as AccessLevel
+                  } : undefined
+                };
+                
+                set({ user: newUser, isAuthenticated: true, isLoading: false });
+                
+                // Log analytics event
+                Analytics.logEvent(Analytics.Events.USER_LOGIN, {
+                  method: "supabase",
+                  user_id: newUser.id,
+                  email: newUser.email
+                });
+                
+                // Set user ID for analytics
+                Analytics.setUserId(newUser.id);
+                
+                return true;
+              }
+            } catch (supabaseError) {
+              console.warn("Supabase login failed, falling back to mock auth:", supabaseError);
             }
           }
           
-          // If Supabase is not configured or for test user, use mock auth
+          // If Supabase is not configured or failed, use mock auth
           if (email === TEST_USER.email && password === "password") {
             set({ user: TEST_USER, isAuthenticated: true, isLoading: false });
             
@@ -227,7 +235,11 @@ export const useAuthStore = create<AuthState>()(
           
           // If Supabase is configured, sign out
           if (isSupabaseConfigured()) {
-            await supabase.auth.signOut();
+            try {
+              await supabase.auth.signOut();
+            } catch (error) {
+              console.warn("Supabase logout error:", error);
+            }
           }
         } catch (error) {
           console.warn("Logout error:", error);
@@ -242,65 +254,69 @@ export const useAuthStore = create<AuthState>()(
           
           // Check if Supabase is configured
           if (isSupabaseConfigured()) {
-            // Use Supabase Auth
-            const { data, error } = await supabase.auth.signUp({
-              email,
-              password,
-              options: {
-                data: {
-                  name,
-                },
-              },
-            });
-            
-            if (error) throw error;
-            
-            if (data.user) {
-              // Create a profile in the profiles table
-              const { error: profileError } = await supabase
-                .from('profiles')
-                .insert([
-                  {
-                    id: data.user.id,
+            try {
+              // Use Supabase Auth
+              const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                  data: {
                     name,
-                    email,
-                    subscription_id: 'free',
-                    subscription_name: 'Free Access',
-                    subscription_price: 0,
-                    subscription_renewal_date: 'Never',
                   },
-                ]);
-              
-              if (profileError) {
-                console.error("Error creating profile:", profileError);
-              }
-              
-              const newUser: User = {
-                id: data.user.id,
-                email: data.user.email || email,
-                name,
-                subscription: {
-                  id: "free",
-                  name: "Free Access",
-                  price: 0,
-                  renewalDate: "Never",
-                  level: AccessLevel.FREE
-                }
-              };
-              
-              set({ user: newUser, isAuthenticated: true, isLoading: false });
-              
-              // Log analytics event
-              Analytics.logEvent(Analytics.Events.USER_SIGNUP, {
-                method: "supabase",
-                user_id: newUser.id,
-                email: newUser.email
+                },
               });
               
-              // Set user ID for analytics
-              Analytics.setUserId(newUser.id);
+              if (error) throw error;
               
-              return true;
+              if (data.user) {
+                // Create a profile in the profiles table
+                const { error: profileError } = await supabase
+                  .from('profiles')
+                  .insert([
+                    {
+                      id: data.user.id,
+                      name,
+                      email,
+                      subscription_id: 'free',
+                      subscription_name: 'Free Access',
+                      subscription_price: 0,
+                      subscription_renewal_date: 'Never',
+                    },
+                  ]);
+                
+                if (profileError) {
+                  console.warn("Error creating profile:", profileError);
+                }
+                
+                const newUser: User = {
+                  id: data.user.id,
+                  email: data.user.email || email,
+                  name,
+                  subscription: {
+                    id: "free",
+                    name: "Free Access",
+                    price: 0,
+                    renewalDate: "Never",
+                    level: AccessLevel.FREE
+                  }
+                };
+                
+                set({ user: newUser, isAuthenticated: true, isLoading: false });
+                
+                // Log analytics event
+                Analytics.logEvent(Analytics.Events.USER_SIGNUP, {
+                  method: "supabase",
+                  user_id: newUser.id,
+                  email: newUser.email
+                });
+                
+                // Set user ID for analytics
+                Analytics.setUserId(newUser.id);
+                
+                return true;
+              }
+            } catch (supabaseError) {
+              console.warn("Supabase signup failed, falling back to mock auth:", supabaseError);
             }
           }
           
@@ -355,32 +371,46 @@ export const useAuthStore = create<AuthState>()(
       },
       
       loginAsTestUser: () => {
-        set({ user: TEST_USER, isAuthenticated: true, error: null });
-        
-        // Log analytics event
-        Analytics.logEvent(Analytics.Events.USER_LOGIN, {
-          method: "test_user_direct",
-          user_id: TEST_USER.id,
-          email: TEST_USER.email
-        });
-        
-        // Set user ID for analytics
-        Analytics.setUserId(TEST_USER.id);
-        
-        // Ensure the test user has the proper profile setup
-        setTimeout(() => {
-          get().setupTestUserProfile();
-        }, 100);
+        try {
+          set({ user: TEST_USER, isAuthenticated: true, error: null });
+          
+          // Log analytics event
+          Analytics.logEvent(Analytics.Events.USER_LOGIN, {
+            method: "test_user_direct",
+            user_id: TEST_USER.id,
+            email: TEST_USER.email
+          });
+          
+          // Set user ID for analytics
+          Analytics.setUserId(TEST_USER.id);
+          
+          // Ensure the test user has the proper profile setup
+          setTimeout(() => {
+            try {
+              get().setupTestUserProfile();
+            } catch (error) {
+              console.warn("Error setting up test user profile:", error);
+            }
+          }, 100);
+        } catch (error) {
+          console.warn("Error logging in as test user:", error);
+        }
       },
       
       ensureTestUserExists: () => {
-        // This is called on app startup to make sure the test user
-        // is properly set up for demo purposes
-        const { setupTestUserProfile } = get();
-        setupTestUserProfile();
-        
-        // Mark the store as hydrated
-        set({ isHydrated: true });
+        try {
+          // This is called on app startup to make sure the test user
+          // is properly set up for demo purposes
+          const { setupTestUserProfile } = get();
+          setupTestUserProfile();
+          
+          // Mark the store as hydrated
+          set({ isHydrated: true });
+        } catch (error) {
+          console.warn("Error ensuring test user exists:", error);
+          // Still mark as hydrated even if setup fails
+          set({ isHydrated: true });
+        }
       },
       
       setupTestUserProfile: () => {
@@ -424,7 +454,7 @@ export const useAuthStore = create<AuthState>()(
             user_id: TEST_USER.id
           });
         } catch (error) {
-          console.error("Error setting up test user profile:", error);
+          console.warn("Error setting up test user profile:", error);
         }
       }
     }),
@@ -438,13 +468,17 @@ export const useAuthStore = create<AuthState>()(
       }),
       // When the store is hydrated from storage, mark it as hydrated
       onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.isHydrated = true;
-          
-          // If user is authenticated, set user ID for analytics
-          if (state.user) {
-            Analytics.setUserId(state.user.id);
+        try {
+          if (state) {
+            state.isHydrated = true;
+            
+            // If user is authenticated, set user ID for analytics
+            if (state.user) {
+              Analytics.setUserId(state.user.id);
+            }
           }
+        } catch (error) {
+          console.warn("Error during auth store rehydration:", error);
         }
       }
     }
