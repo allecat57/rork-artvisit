@@ -129,8 +129,8 @@ export interface Database {
 
 // Helper function to check if Supabase is properly configured
 export const isSupabaseConfigured = (): boolean => {
-  const hasValidUrl = SUPABASE_URL && SUPABASE_URL !== 'https://your-supabase-url.supabase.co';
-  const hasValidKey = SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== 'your-supabase-anon-key';
+  const hasValidUrl = SUPABASE_URL && SUPABASE_URL.startsWith('https://') && SUPABASE_URL.includes('.supabase.co');
+  const hasValidKey = SUPABASE_ANON_KEY && SUPABASE_ANON_KEY.length > 20;
   
   return hasValidUrl && hasValidKey;
 };
