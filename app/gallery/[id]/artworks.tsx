@@ -6,7 +6,34 @@ import { ArrowLeft, Filter, Search } from 'lucide-react-native';
 import colors from '../../../constants/colors';
 import { GalleryAnalytics } from '../../../utils/artvisit-integration';
 import * as Analytics from '../../../utils/analytics';
-import { useGalleryStore } from '../../../store/useGalleryStore';
+
+// Mock data - in a real app, fetch this from your API
+const galleries = [
+  {
+    id: '1',
+    name: 'Modern Art Gallery',
+    location: 'New York, NY',
+    artworks: [
+      { id: '101', title: 'Abstract Harmony', artist: 'Jane Smith', year: '2021', image: 'https://images.unsplash.com/photo-1549887552-cb1071d3e5ca?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
+      { id: '102', title: 'Urban Landscape', artist: 'Michael Johnson', year: '2019', image: 'https://images.unsplash.com/photo-1578926375605-eaf7559b1458?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
+      { id: '103', title: 'Geometric Patterns', artist: 'Sarah Williams', year: '2020', image: 'https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
+      { id: '104', title: 'Digital Dreams', artist: 'Alex Chen', year: '2022', image: 'https://images.unsplash.com/photo-1573221566340-81bdde00e00b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
+      { id: '105', title: 'Neon City', artist: 'David Park', year: '2021', image: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
+      { id: '106', title: 'Minimalist Composition', artist: 'Emma White', year: '2019', image: 'https://images.unsplash.com/photo-1557672172-298e090bd0f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
+    ]
+  },
+  {
+    id: '2',
+    name: 'Classical Art Museum',
+    location: 'London, UK',
+    artworks: [
+      { id: '201', title: 'Portrait of a Lady', artist: 'Leonardo da Vinci', year: '1503', image: 'https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
+      { id: '202', title: 'Sunset over the Sea', artist: 'Claude Monet', year: '1872', image: 'https://images.unsplash.com/photo-1578321272176-b7bbc0679853?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
+      { id: '203', title: 'The Starry Night', artist: 'Vincent van Gogh', year: '1889', image: 'https://images.unsplash.com/photo-1541680670548-88e8cd23c0f4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
+      { id: '204', title: 'The Birth of Venus', artist: 'Sandro Botticelli', year: '1485', image: 'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
+    ]
+  }
+];
 
 export default function GalleryArtworksScreen() {
   const { id } = useLocalSearchParams();
@@ -16,36 +43,23 @@ export default function GalleryArtworksScreen() {
   const textColor = isDark ? colors.light : colors.dark;
   const bgColor = isDark ? colors.dark : colors.light;
   
-  const {
-    selectedGallery,
-    artworks,
-    isLoading,
-    error,
-    fetchGalleryById,
-    fetchArtworksByGallery,
-    clearError
-  } = useGalleryStore();
-  
+  const [gallery, setGallery] = useState(null);
+  const [artworks, setArtworks] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   
   useEffect(() => {
-    if (id && typeof id === 'string') {
-      // Clear any previous errors
-      clearError();
+    // Find gallery from mock data
+    const foundGallery = galleries.find(g => g.id === id);
+    
+    if (foundGallery) {
+      setGallery(foundGallery);
+      setArtworks(foundGallery.artworks);
       
-      // Fetch gallery and its artworks
-      fetchGalleryById(id);
-      fetchArtworksByGallery(id);
-    }
-  }, [id]);
-  
-  useEffect(() => {
-    if (selectedGallery) {
       // Initialize analytics
       const galleryAnalytics = new GalleryAnalytics({
-        id: selectedGallery.id,
-        name: selectedGallery.name,
-        location: selectedGallery.location
+        id: foundGallery.id,
+        name: foundGallery.name,
+        location: foundGallery.location
       });
       
       setAnalytics(galleryAnalytics);
@@ -57,9 +71,9 @@ export default function GalleryArtworksScreen() {
       Analytics.sendToTimeFrameAnalytics('screen_view', {
         screen_name: 'Gallery Artworks',
         screen_class: 'GalleryArtworksScreen',
-        gallery_id: selectedGallery.id,
-        gallery_name: selectedGallery.name,
-        artwork_count: artworks.length
+        gallery_id: foundGallery.id,
+        gallery_name: foundGallery.name,
+        artwork_count: foundGallery.artworks.length
       });
     }
     
@@ -69,40 +83,12 @@ export default function GalleryArtworksScreen() {
         analytics.trackTimeSpent();
       }
     };
-  }, [selectedGallery, artworks]);
+  }, [id]);
   
-  if (isLoading) {
+  if (!gallery) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
         <Text style={[styles.loadingText, { color: textColor }]}>Loading artworks...</Text>
-      </SafeAreaView>
-    );
-  }
-  
-  if (error) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
-        <Text style={[styles.errorText, { color: colors.primary }]}>{error}</Text>
-        <TouchableOpacity 
-          style={[styles.retryButton, { backgroundColor: colors.primary }]}
-          onPress={() => {
-            clearError();
-            if (id && typeof id === 'string') {
-              fetchGalleryById(id);
-              fetchArtworksByGallery(id);
-            }
-          }}
-        >
-          <Text style={styles.retryButtonText}>Retry</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
-  }
-  
-  if (!selectedGallery) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
-        <Text style={[styles.loadingText, { color: textColor }]}>Gallery not found</Text>
       </SafeAreaView>
     );
   }
@@ -115,7 +101,7 @@ export default function GalleryArtworksScreen() {
     if (analytics) {
       analytics.trackArtworkView(artwork.id, artwork.title);
     }
-    router.push(`/gallery/${selectedGallery.id}/artwork/${artwork.id}`);
+    router.push(`/gallery/${gallery.id}/artwork/${artwork.id}`);
   };
   
   const handleFilter = () => {
@@ -153,45 +139,34 @@ export default function GalleryArtworksScreen() {
       </View>
       
       <View style={styles.galleryInfo}>
-        <Text style={[styles.galleryName, { color: textColor }]}>{selectedGallery.name}</Text>
+        <Text style={[styles.galleryName, { color: textColor }]}>{gallery.name}</Text>
         <Text style={[styles.artworkCount, { color: textColor }]}>
           {artworks.length} {artworks.length === 1 ? 'artwork' : 'artworks'}
         </Text>
       </View>
       
-      {artworks.length > 0 ? (
-        <FlatList
-          data={artworks}
-          keyExtractor={(item) => item.id}
-          numColumns={2}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <TouchableOpacity 
-              style={styles.artworkCard}
-              onPress={() => handleArtworkPress(item)}
-            >
-              <Image 
-                source={{ uri: item.image_url || 'https://images.unsplash.com/photo-1549887552-cb1071d3e5ca?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' }} 
-                style={styles.artworkImage} 
-              />
-              <View style={[styles.artworkInfo, { backgroundColor: isDark ? '#1e1e1e' : '#f5f5f5' }]}>
-                <Text style={[styles.artworkTitle, { color: textColor }]} numberOfLines={1}>
-                  {item.title}
-                </Text>
-                <Text style={[styles.artworkArtist, { color: textColor }]} numberOfLines={1}>
-                  {item.artist}{item.year ? `, ${item.year}` : ''}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          )}
-        />
-      ) : (
-        <View style={styles.emptyContainer}>
-          <Text style={[styles.emptyText, { color: textColor }]}>
-            No artworks available in this gallery.
-          </Text>
-        </View>
-      )}
+      <FlatList
+        data={artworks}
+        keyExtractor={(item) => item.id}
+        numColumns={2}
+        contentContainerStyle={styles.listContent}
+        renderItem={({ item }) => (
+          <TouchableOpacity 
+            style={styles.artworkCard}
+            onPress={() => handleArtworkPress(item)}
+          >
+            <Image source={{ uri: item.image }} style={styles.artworkImage} />
+            <View style={[styles.artworkInfo, { backgroundColor: isDark ? '#1e1e1e' : '#f5f5f5' }]}>
+              <Text style={[styles.artworkTitle, { color: textColor }]} numberOfLines={1}>
+                {item.title}
+              </Text>
+              <Text style={[styles.artworkArtist, { color: textColor }]} numberOfLines={1}>
+                {item.artist}, {item.year}
+              </Text>
+            </View>
+          </TouchableOpacity>
+        )}
+      />
     </SafeAreaView>
   );
 }
@@ -204,23 +179,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     marginTop: 20,
-  },
-  errorText: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 20,
-    marginHorizontal: 20,
-  },
-  retryButton: {
-    marginTop: 16,
-    marginHorizontal: 20,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  retryButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
   },
   header: {
     flexDirection: 'row',
@@ -284,17 +242,6 @@ const styles = StyleSheet.create({
   },
   artworkArtist: {
     fontSize: 12,
-    opacity: 0.7,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  emptyText: {
-    fontSize: 16,
-    textAlign: 'center',
     opacity: 0.7,
   },
 });

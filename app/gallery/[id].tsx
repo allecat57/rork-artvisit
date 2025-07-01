@@ -6,7 +6,34 @@ import { Heart, Share2, MapPin, Clock, ArrowRight } from 'lucide-react-native';
 import colors from '../../constants/colors';
 import { GalleryAnalytics } from '../../utils/artvisit-integration';
 import * as Analytics from '../../utils/analytics';
-import { useGalleryStore } from '../../store/useGalleryStore';
+
+// Mock data - in a real app, fetch this from your API
+const galleries = [
+  {
+    id: '1',
+    name: 'Modern Art Gallery',
+    description: 'A contemporary art gallery featuring works from emerging artists around the world.',
+    location: 'New York, NY',
+    image: 'https://images.unsplash.com/photo-1577720580479-7d839d829c73?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1024&q=80',
+    hours: '10:00 AM - 6:00 PM',
+    artworks: [
+      { id: '101', title: 'Abstract Harmony', artist: 'Jane Smith', image: 'https://images.unsplash.com/photo-1549887552-cb1071d3e5ca?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
+      { id: '102', title: 'Urban Landscape', artist: 'Michael Johnson', image: 'https://images.unsplash.com/photo-1578926375605-eaf7559b1458?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
+    ]
+  },
+  {
+    id: '2',
+    name: 'Classical Art Museum',
+    description: 'A prestigious museum housing classical art from the Renaissance to the 19th century.',
+    location: 'London, UK',
+    image: 'https://images.unsplash.com/photo-1574182245530-967d9b3831af?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1024&q=80',
+    hours: '9:00 AM - 5:00 PM',
+    artworks: [
+      { id: '201', title: 'Portrait of a Lady', artist: 'Leonardo da Vinci', image: 'https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
+      { id: '202', title: 'Sunset over the Sea', artist: 'Claude Monet', image: 'https://images.unsplash.com/photo-1578321272176-b7bbc0679853?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' },
+    ]
+  }
+];
 
 export default function GalleryScreen() {
   const { id } = useLocalSearchParams();
@@ -16,37 +43,21 @@ export default function GalleryScreen() {
   const textColor = isDark ? colors.light : colors.dark;
   const bgColor = isDark ? colors.dark : colors.light;
   
-  const {
-    selectedGallery,
-    artworks,
-    isLoading,
-    error,
-    fetchGalleryById,
-    fetchArtworksByGallery,
-    clearError
-  } = useGalleryStore();
-  
+  const [gallery, setGallery] = useState(null);
   const [analytics, setAnalytics] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
   
   useEffect(() => {
-    if (id && typeof id === 'string') {
-      // Clear any previous errors
-      clearError();
-      
-      // Fetch gallery and its artworks
-      fetchGalleryById(id);
-      fetchArtworksByGallery(id);
-    }
-  }, [id]);
-  
-  useEffect(() => {
-    if (selectedGallery) {
+    // Find gallery from mock data
+    const foundGallery = galleries.find(g => g.id === id);
+    setGallery(foundGallery);
+    
+    if (foundGallery) {
       // Initialize analytics
       const galleryAnalytics = new GalleryAnalytics({
-        id: selectedGallery.id,
-        name: selectedGallery.name,
-        location: selectedGallery.location
+        id: foundGallery.id,
+        name: foundGallery.name,
+        location: foundGallery.location
       });
       
       setAnalytics(galleryAnalytics);
@@ -58,8 +69,8 @@ export default function GalleryScreen() {
       Analytics.sendToTimeFrameAnalytics('screen_view', {
         screen_name: 'Gallery Detail',
         screen_class: 'GalleryScreen',
-        gallery_id: selectedGallery.id,
-        gallery_name: selectedGallery.name
+        gallery_id: foundGallery.id,
+        gallery_name: foundGallery.name
       });
     }
     
@@ -69,40 +80,12 @@ export default function GalleryScreen() {
         analytics.trackTimeSpent();
       }
     };
-  }, [selectedGallery]);
+  }, [id]);
   
-  if (isLoading) {
+  if (!gallery) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
         <Text style={[styles.loadingText, { color: textColor }]}>Loading gallery...</Text>
-      </SafeAreaView>
-    );
-  }
-  
-  if (error) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
-        <Text style={[styles.errorText, { color: colors.primary }]}>{error}</Text>
-        <TouchableOpacity 
-          style={[styles.retryButton, { backgroundColor: colors.primary }]}
-          onPress={() => {
-            clearError();
-            if (id && typeof id === 'string') {
-              fetchGalleryById(id);
-              fetchArtworksByGallery(id);
-            }
-          }}
-        >
-          <Text style={styles.retryButtonText}>Retry</Text>
-        </TouchableOpacity>
-      </SafeAreaView>
-    );
-  }
-  
-  if (!selectedGallery) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
-        <Text style={[styles.loadingText, { color: textColor }]}>Gallery not found</Text>
       </SafeAreaView>
     );
   }
@@ -116,7 +99,7 @@ export default function GalleryScreen() {
   
   const handleShare = () => {
     if (analytics) {
-      analytics.trackInteraction('share', null, { gallery_name: selectedGallery.name });
+      analytics.trackInteraction('share', null, { gallery_name: gallery.name });
     }
     // Implement share functionality
   };
@@ -125,30 +108,24 @@ export default function GalleryScreen() {
     if (analytics) {
       analytics.trackArtworkView(artwork.id, artwork.title);
     }
-    router.push(`/gallery/${selectedGallery.id}/artwork/${artwork.id}`);
+    router.push(`/gallery/${gallery.id}/artwork/${artwork.id}`);
   };
   
   const handleViewAllArtworks = () => {
     if (analytics) {
       analytics.trackInteraction('view_all_artworks');
     }
-    router.push(`/gallery/${selectedGallery.id}/artworks`);
+    router.push(`/gallery/${gallery.id}/artworks`);
   };
-
-  // Get first few artworks for preview
-  const previewArtworks = artworks.slice(0, 2);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
       <ScrollView>
-        <Image 
-          source={{ uri: selectedGallery.image_url || 'https://images.unsplash.com/photo-1577720580479-7d839d829c73?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1024&q=80' }} 
-          style={styles.image} 
-        />
+        <Image source={{ uri: gallery.image }} style={styles.image} />
         
         <View style={styles.content}>
           <View style={styles.header}>
-            <Text style={[styles.title, { color: textColor }]}>{selectedGallery.name}</Text>
+            <Text style={[styles.title, { color: textColor }]}>{gallery.name}</Text>
             
             <View style={styles.actions}>
               <TouchableOpacity 
@@ -173,72 +150,53 @@ export default function GalleryScreen() {
           
           <View style={styles.infoRow}>
             <MapPin size={18} color={colors.primary} />
-            <Text style={[styles.infoText, { color: textColor }]}>{selectedGallery.location}</Text>
+            <Text style={[styles.infoText, { color: textColor }]}>{gallery.location}</Text>
           </View>
           
-          {selectedGallery.hours && (
-            <View style={styles.infoRow}>
-              <Clock size={18} color={colors.primary} />
-              <Text style={[styles.infoText, { color: textColor }]}>{selectedGallery.hours}</Text>
-            </View>
-          )}
+          <View style={styles.infoRow}>
+            <Clock size={18} color={colors.primary} />
+            <Text style={[styles.infoText, { color: textColor }]}>{gallery.hours}</Text>
+          </View>
           
-          {selectedGallery.description && (
-            <Text style={[styles.description, { color: textColor }]}>
-              {selectedGallery.description}
-            </Text>
-          )}
+          <Text style={[styles.description, { color: textColor }]}>
+            {gallery.description}
+          </Text>
           
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, { color: textColor }]}>Featured Artworks</Text>
-              {artworks.length > 2 && (
-                <TouchableOpacity onPress={handleViewAllArtworks}>
-                  <Text style={styles.viewAll}>View All</Text>
-                </TouchableOpacity>
-              )}
+              <TouchableOpacity onPress={handleViewAllArtworks}>
+                <Text style={styles.viewAll}>View All</Text>
+              </TouchableOpacity>
             </View>
             
-            {previewArtworks.length > 0 ? (
-              <>
-                <View style={styles.artworksGrid}>
-                  {previewArtworks.map(artwork => (
-                    <TouchableOpacity 
-                      key={artwork.id} 
-                      style={styles.artworkCard}
-                      onPress={() => handleArtworkPress(artwork)}
-                    >
-                      <Image 
-                        source={{ uri: artwork.image_url || 'https://images.unsplash.com/photo-1549887552-cb1071d3e5ca?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80' }} 
-                        style={styles.artworkImage} 
-                      />
-                      <View style={styles.artworkInfo}>
-                        <Text style={[styles.artworkTitle, { color: textColor }]} numberOfLines={1}>
-                          {artwork.title}
-                        </Text>
-                        <Text style={[styles.artworkArtist, { color: textColor }]} numberOfLines={1}>
-                          {artwork.artist}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-                
-                {artworks.length > 2 && (
-                  <TouchableOpacity 
-                    style={[styles.viewAllButton, { backgroundColor: colors.primary }]}
-                    onPress={handleViewAllArtworks}
-                  >
-                    <Text style={styles.viewAllButtonText}>View All Artworks</Text>
-                    <ArrowRight size={18} color="#fff" />
-                  </TouchableOpacity>
-                )}
-              </>
-            ) : (
-              <Text style={[styles.noArtworksText, { color: textColor }]}>
-                No artworks available in this gallery.
-              </Text>
-            )}
+            <View style={styles.artworksGrid}>
+              {gallery.artworks.map(artwork => (
+                <TouchableOpacity 
+                  key={artwork.id} 
+                  style={styles.artworkCard}
+                  onPress={() => handleArtworkPress(artwork)}
+                >
+                  <Image source={{ uri: artwork.image }} style={styles.artworkImage} />
+                  <View style={styles.artworkInfo}>
+                    <Text style={[styles.artworkTitle, { color: textColor }]} numberOfLines={1}>
+                      {artwork.title}
+                    </Text>
+                    <Text style={[styles.artworkArtist, { color: textColor }]} numberOfLines={1}>
+                      {artwork.artist}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+            
+            <TouchableOpacity 
+              style={[styles.viewAllButton, { backgroundColor: colors.primary }]}
+              onPress={handleViewAllArtworks}
+            >
+              <Text style={styles.viewAllButtonText}>View All Artworks</Text>
+              <ArrowRight size={18} color="#fff" />
+            </TouchableOpacity>
           </View>
         </View>
       </ScrollView>
@@ -254,23 +212,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     marginTop: 20,
-  },
-  errorText: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginTop: 20,
-    marginHorizontal: 20,
-  },
-  retryButton: {
-    marginTop: 16,
-    marginHorizontal: 20,
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  retryButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
   },
   image: {
     width: '100%',
@@ -370,11 +311,5 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: 'bold',
     marginRight: 8,
-  },
-  noArtworksText: {
-    fontSize: 16,
-    textAlign: 'center',
-    opacity: 0.7,
-    marginTop: 20,
   },
 });
