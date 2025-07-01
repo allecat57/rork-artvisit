@@ -145,6 +145,7 @@ export default function EventsScreen() {
         placeholder="Search museums, galleries, exhibitions..."
         value={searchQuery}
         onChangeText={handleSearch}
+        onClear={() => setSearchQuery("")}
       />
     </View>
   );
