@@ -31,7 +31,7 @@ interface ReservationCardProps {
 
 const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onPress }) => {
   const isPast = new Date(reservation.date) < new Date();
-  const isToday = formatDate(reservation.date) === formatDate(new Date().toISOString());
+  const isToday = formatDate(new Date(reservation.date)) === formatDate(new Date());
   
   return (
     <TouchableOpacity style={styles.reservationCard} onPress={onPress} activeOpacity={0.7}>
@@ -60,14 +60,14 @@ const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onPress 
         <View style={styles.detailRow}>
           <Calendar size={16} color={colors.accent} />
           <Text style={styles.detailText}>
-            {formatDate(reservation.date)}
+            {formatDate(new Date(reservation.date))}
           </Text>
         </View>
         
         <View style={styles.detailRow}>
           <Clock size={16} color={colors.accent} />
           <Text style={styles.detailText}>
-            {reservation.time}
+            {formatTime(new Date(`2000-01-01T${reservation.time}`))}
           </Text>
         </View>
         

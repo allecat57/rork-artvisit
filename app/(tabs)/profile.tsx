@@ -30,7 +30,7 @@ import typography from "@/constants/typography";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useProfileStore } from "@/store/useProfileStore";
 import Button from "@/components/Button";
-import PaymentMethodModal, { PaymentDetails } from "@/components/PaymentMethodModal";
+import PaymentMethodModal from "@/components/PaymentMethodModal";
 import SubscriptionModal from "@/components/SubscriptionModal";
 import PrivacySettingsModal from "@/components/PrivacySettingsModal";
 import NotificationsModal from "@/components/NotificationsModal";
@@ -88,8 +88,7 @@ export default function ProfileScreen() {
     getCurrentProfileImage, 
     getCurrentPaymentMethod, 
     getCurrentSubscription,
-    setProfileImage,
-    setPaymentMethod
+    setProfileImage 
   } = useProfileStore();
 
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
@@ -155,24 +154,6 @@ export default function ProfileScreen() {
         },
       ]
     );
-  };
-
-  const handleSavePaymentMethod = (paymentDetails: PaymentDetails) => {
-    // Extract last 4 digits and determine card type
-    const last4 = paymentDetails.cardNumber.replace(/\s/g, "").slice(-4);
-    const cardType = paymentDetails.cardNumber.replace(/\s/g, "").startsWith("3") ? "American Express" : "Visa";
-    
-    setPaymentMethod({
-      cardType,
-      last4,
-      expirationDate: paymentDetails.expirationDate,
-    });
-
-    Analytics.logEvent("payment_method_updated", {
-      card_type: cardType,
-    });
-
-    Alert.alert("Success", "Payment method updated successfully!");
   };
 
   if (!user) {
@@ -320,7 +301,6 @@ export default function ProfileScreen() {
       <PaymentMethodModal
         visible={paymentModalVisible}
         onClose={() => setPaymentModalVisible(false)}
-        onSave={handleSavePaymentMethod}
       />
       
       <SubscriptionModal
