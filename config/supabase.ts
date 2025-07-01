@@ -202,7 +202,7 @@ export const getCurrentUser = async () => {
 export const signOut = async () => {
   const { error } = await supabase.auth.signOut();
   if (error) {
-    console.error('Error signing out:', error);
+    console.error('Error signing out:', error.message || error);
     throw error;
   }
 };
@@ -216,7 +216,7 @@ export const getUserProfile = async (userId: string) => {
     .single();
   
   if (error) {
-    console.error('Error fetching user profile:', error);
+    console.error('Error fetching user profile:', error.message || error);
     throw error;
   }
   
@@ -236,7 +236,7 @@ export const updateUserProfile = async (userId: string, updates: Database['publi
     .single();
   
   if (error) {
-    console.error('Error updating user profile:', error);
+    console.error('Error updating user profile:', error.message || error);
     throw error;
   }
   
@@ -262,7 +262,7 @@ export const fetchGalleries = async (featured?: boolean) => {
         .order('created_at', { ascending: false });
       
       if (error) {
-        console.error('Error fetching featured galleries:', error);
+        console.error('Error fetching featured galleries:', error.message || error);
         throw error;
       }
       
@@ -275,7 +275,7 @@ export const fetchGalleries = async (featured?: boolean) => {
         .order('created_at', { ascending: false });
       
       if (error) {
-        console.error('Error fetching galleries:', error);
+        console.error('Error fetching galleries:', error.message || error);
         throw error;
       }
       
@@ -295,7 +295,7 @@ export const fetchGalleryById = async (id: string) => {
     .single();
   
   if (error) {
-    console.error('Error fetching gallery:', error);
+    console.error('Error fetching gallery:', error.message || error);
     throw error;
   }
   
@@ -314,7 +314,7 @@ export const createGallery = async (gallery: Database['public']['Tables']['galle
     .single();
   
   if (error) {
-    console.error('Error creating gallery:', error);
+    console.error('Error creating gallery:', error.message || error);
     throw error;
   }
   
@@ -333,7 +333,7 @@ export const updateGallery = async (id: string, updates: Database['public']['Tab
     .single();
   
   if (error) {
-    console.error('Error updating gallery:', error);
+    console.error('Error updating gallery:', error.message || error);
     throw error;
   }
   
@@ -347,7 +347,7 @@ export const deleteGallery = async (id: string) => {
     .eq('id', id);
   
   if (error) {
-    console.error('Error deleting gallery:', error);
+    console.error('Error deleting gallery:', error.message || error);
     throw error;
   }
 };
@@ -367,7 +367,7 @@ export const addFeaturedGallery = async (galleryId: string, expiresAt?: string) 
     .single();
   
   if (error) {
-    console.error('Error adding featured gallery:', error);
+    console.error('Error adding featured gallery:', error.message || error);
     throw error;
   }
   
@@ -384,7 +384,7 @@ export const removeFeaturedGallery = async (galleryId: string) => {
     .eq('gallery_id', galleryId);
   
   if (error) {
-    console.error('Error removing featured gallery:', error);
+    console.error('Error removing featured gallery:', error.message || error);
     throw error;
   }
 };
@@ -410,7 +410,7 @@ export const fetchEvents = async (accessLevel?: 'free' | 'essential' | 'collecto
     const { data, error } = await query;
     
     if (error) {
-      console.error('Error fetching events:', error);
+      console.error('Error fetching events:', error.message || error);
       throw error;
     }
     
@@ -429,7 +429,7 @@ export const fetchEventById = async (id: string) => {
     .single();
   
   if (error) {
-    console.error('Error fetching event:', error);
+    console.error('Error fetching event:', error.message || error);
     throw error;
   }
   
