@@ -11,6 +11,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 export const TABLES = {
   PROFILES: 'profiles',
   GALLERIES: 'galleries',
+  FEATURED_GALLERIES: 'featured_galleries',
   VENUES: 'venues',
   EVENTS: 'events',
   RESERVATIONS: 'reservations',
@@ -101,6 +102,27 @@ export interface Database {
           updated_at?: string;
         };
       };
+      featured_galleries: {
+        Row: {
+          id: string;
+          gallery_id: string;
+          is_active: boolean;
+          expires_at?: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          gallery_id: string;
+          is_active?: boolean;
+          expires_at?: string;
+        };
+        Update: {
+          gallery_id?: string;
+          is_active?: boolean;
+          expires_at?: string;
+          updated_at?: string;
+        };
+      };
     };
   };
 }
@@ -166,23 +188,41 @@ export const updateUserProfile = async (userId: string, updates: Database['publi
 
 // Gallery-specific helper functions
 export const fetchGalleries = async (featured?: boolean) => {
-  let query = supabase
-    .from(TABLES.GALLERIES)
-    .select('*')
-    .order('created_at', { ascending: false });
-  
-  if (featured !== undefined) {
-    query = query.eq('featured', featured);
+  if (featured) {
+    // Use the custom SQL query for featured galleries
+    const { data, error } = await supabase
+      .from(TABLES.GALLERIES)
+      .select(`
+        *,
+        featured_galleries!inner(
+          is_active,
+          expires_at
+        )
+      `)
+      .eq('featured_galleries.is_active', true)
+      .or('featured_galleries.expires_at.is.null,featured_galleries.expires_at.gt.now()')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching featured galleries:', error);
+      throw error;
+    }
+    
+    return data;
+  } else {
+    // Fetch all galleries
+    const { data, error } = await supabase
+      .from(TABLES.GALLERIES)
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching galleries:', error);
+      throw error;
+    }
+    
+    return data;
   }
-  
-  const { data, error } = await query;
-  
-  if (error) {
-    console.error('Error fetching galleries:', error);
-    throw error;
-  }
-  
-  return data;
 };
 
 export const fetchGalleryById = async (id: string) => {
@@ -246,6 +286,43 @@ export const deleteGallery = async (id: string) => {
   
   if (error) {
     console.error('Error deleting gallery:', error);
+    throw error;
+  }
+};
+
+// Featured galleries helper functions
+export const addFeaturedGallery = async (galleryId: string, expiresAt?: string) => {
+  const { data, error } = await supabase
+    .from(TABLES.FEATURED_GALLERIES)
+    .insert({
+      gallery_id: galleryId,
+      is_active: true,
+      expires_at: expiresAt,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error adding featured gallery:', error);
+    throw error;
+  }
+  
+  return data;
+};
+
+export const removeFeaturedGallery = async (galleryId: string) => {
+  const { error } = await supabase
+    .from(TABLES.FEATURED_GALLERIES)
+    .update({
+      is_active: false,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('gallery_id', galleryId);
+  
+  if (error) {
+    console.error('Error removing featured gallery:', error);
     throw error;
   }
 };

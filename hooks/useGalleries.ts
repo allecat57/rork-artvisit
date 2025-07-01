@@ -80,6 +80,11 @@ export const useGalleries = (featured?: boolean) => {
       // Only try to fetch from Supabase if it's properly configured
       if (!isSupabaseConfigured()) {
         console.log("Supabase not configured, using mock galleries");
+        // Filter mock data based on featured parameter
+        const filteredMockData = featured 
+          ? MOCK_GALLERIES.filter(gallery => gallery.featured)
+          : MOCK_GALLERIES;
+        setGalleries(filteredMockData);
         setLoading(false);
         return;
       }
@@ -88,13 +93,19 @@ export const useGalleries = (featured?: boolean) => {
         setLoading(true);
         setError(null);
         
+        console.log(`Fetching galleries from Supabase (featured: ${featured})`);
         const data = await fetchGalleries(featured);
 
         if (data && data.length > 0) {
+          console.log(`Successfully fetched ${data.length} galleries from Supabase`);
           setGalleries(data);
         } else {
-          // If no data returned from Supabase, keep using mock galleries
+          // If no data returned from Supabase, use filtered mock galleries
           console.log("No galleries found in Supabase, using mock data");
+          const filteredMockData = featured 
+            ? MOCK_GALLERIES.filter(gallery => gallery.featured)
+            : MOCK_GALLERIES;
+          setGalleries(filteredMockData);
         }
         
         setLoading(false);
@@ -102,7 +113,11 @@ export const useGalleries = (featured?: boolean) => {
         console.warn("Failed to fetch galleries from Supabase, using mock data:", err);
         setError(err instanceof Error ? err.message : "Failed to fetch galleries");
         setLoading(false);
-        // Keep using mock galleries on error
+        // Keep using filtered mock galleries on error
+        const filteredMockData = featured 
+          ? MOCK_GALLERIES.filter(gallery => gallery.featured)
+          : MOCK_GALLERIES;
+        setGalleries(filteredMockData);
       }
     };
 
@@ -118,9 +133,11 @@ export const useGalleries = (featured?: boolean) => {
       setLoading(true);
       setError(null);
       
+      console.log(`Refetching galleries from Supabase (featured: ${featured})`);
       const data = await fetchGalleries(featured);
       
       if (data && data.length > 0) {
+        console.log(`Successfully refetched ${data.length} galleries from Supabase`);
         setGalleries(data);
       }
       
