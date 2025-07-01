@@ -2,11 +2,12 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Reservation, ReservationStatus } from '@/types/reservation';
+import { getVenueById } from '@/mocks/venues';
 import * as Analytics from '@/utils/analytics';
 
 interface ReservationState {
   reservations: Reservation[];
-  isLoading: boolean;
+  loading: boolean;
   error: string | null;
   
   // Actions
@@ -20,13 +21,15 @@ interface ReservationState {
   clearReservations: () => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  fetchReservations: (userId: string) => Promise<void>;
+  generateMockReservations: (userId: string) => void;
 }
 
 export const useReservationStore = create<ReservationState>()(
   persist(
     (set, get) => ({
       reservations: [],
-      isLoading: false,
+      loading: false,
       error: null,
 
       addReservation: (reservation: Reservation) => {
@@ -113,11 +116,87 @@ export const useReservationStore = create<ReservationState>()(
       },
 
       setLoading: (loading: boolean) => {
-        set({ isLoading: loading });
+        set({ loading });
       },
 
       setError: (error: string | null) => {
         set({ error });
+      },
+
+      fetchReservations: async (userId: string) => {
+        set({ loading: true, error: null });
+        
+        try {
+          // Simulate API call delay
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // For now, generate mock reservations if none exist
+          const currentReservations = get().reservations.filter(r => r.userId === userId);
+          if (currentReservations.length === 0) {
+            get().generateMockReservations(userId);
+          }
+          
+          set({ loading: false });
+        } catch (error) {
+          set({ 
+            loading: false, 
+            error: error instanceof Error ? error.message : 'Failed to fetch reservations' 
+          });
+        }
+      },
+
+      generateMockReservations: (userId: string) => {
+        const mockReservations: Reservation[] = [
+          {
+            id: '1',
+            userId,
+            venueId: '1',
+            date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 1 week from now
+            time: '19:30',
+            partySize: 4,
+            guests: 4,
+            status: 'confirmed',
+            confirmationCode: 'ABC123',
+            venueName: 'The Modern Gallery',
+            venueLocation: 'Downtown Arts District',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+          {
+            id: '2',
+            userId,
+            venueId: '2',
+            date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(), // 3 days ago
+            time: '18:00',
+            partySize: 2,
+            guests: 2,
+            status: 'completed',
+            confirmationCode: 'DEF456',
+            venueName: 'Contemporary Art Space',
+            venueLocation: 'Midtown Cultural Center',
+            createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
+            updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+          },
+          {
+            id: '3',
+            userId,
+            venueId: '3',
+            date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 2 weeks from now
+            time: '20:00',
+            partySize: 6,
+            guests: 6,
+            status: 'pending',
+            confirmationCode: 'GHI789',
+            venueName: 'Sculpture Garden',
+            venueLocation: 'Riverside Park',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+        ];
+
+        set((state) => ({
+          reservations: [...state.reservations, ...mockReservations],
+        }));
       },
     }),
     {

@@ -189,6 +189,22 @@ function RootLayoutContent() {
           }} 
         />
         <Stack.Screen 
+          name="reservations" 
+          options={{ 
+            headerShown: true,
+            title: 'Reservations',
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
+            headerTintColor: colors.accent,
+            headerTitleStyle: {
+              fontSize: 18,
+              fontWeight: '600',
+              color: colors.accent,
+            },
+          }} 
+        />
+        <Stack.Screen 
           name="modal" 
           options={{ 
             presentation: 'modal',
