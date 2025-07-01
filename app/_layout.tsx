@@ -1,10 +1,11 @@
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
 import { Platform, StatusBar } from 'react-native';
-import { ThemeProvider } from '@/context/ThemeContext';
+import { ThemeProvider } from '@react-navigation/native';
 import { StripeProvider } from '@/context/StripeContext';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useRouter, useSegments } from 'expo-router';
+import { CustomTheme } from '@/constants/theme';
 import colors from '@/constants/colors';
 
 function RootLayoutContent() {
@@ -227,7 +228,7 @@ function RootLayoutContent() {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
+    <ThemeProvider value={CustomTheme}>
       <RootLayoutContent />
     </ThemeProvider>
   );
