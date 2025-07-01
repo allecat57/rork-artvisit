@@ -32,14 +32,13 @@ export default function ShopScreen() {
     let filtered = products;
     
     // Apply search filter
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
+    if (searchQuery) {
       filtered = filtered.filter((product: Product) => 
-        product.title.toLowerCase().includes(query) ||
-        product.description.toLowerCase().includes(query) ||
-        product.category.toLowerCase().includes(query) ||
+        product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (product.tags && product.tags.some(tag => 
-          tag.toLowerCase().includes(query)
+          tag.toLowerCase().includes(searchQuery.toLowerCase())
         ))
       );
     }
@@ -59,18 +58,6 @@ export default function ShopScreen() {
     // Log analytics event
     Analytics.logEvent("select_product", {
       product_id: productId
-    });
-  };
-
-  // Handle search
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    
-    // Log search event
-    Analytics.logEvent("search_performed", {
-      query,
-      results_count: filteredProducts.length,
-      screen: "shop"
     });
   };
   
@@ -96,9 +83,9 @@ export default function ShopScreen() {
   const renderSearchBar = () => (
     <View style={styles.searchContainer}>
       <SearchBar
-        placeholder="Search museums, galleries, exhibitions..."
+        placeholder="Search products..."
         value={searchQuery}
-        onChangeText={handleSearch}
+        onChangeText={setSearchQuery}
         onClear={() => setSearchQuery("")}
       />
     </View>
@@ -147,7 +134,6 @@ export default function ShopScreen() {
     <View style={styles.productsContainer}>
       <Text style={styles.sectionTitle}>
         {selectedCategory ? selectedCategory : "All Products"}
-        {searchQuery.trim() && ` (${filteredProducts.length} results)`}
       </Text>
       
       {filteredProducts.length === 0 ? (
@@ -163,7 +149,7 @@ export default function ShopScreen() {
               key={product.id} 
               style={[
                 styles.productGridItem,
-                index % 2 === 0 ? { marginRight: 4 } : { marginLeft: 4 }
+                index % 2 === 0 ? { marginRight: 8 } : { marginLeft: 8 }
               ]}
             >
               <ProductCard 
@@ -200,9 +186,10 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   screenTitle: {
     ...typography.heading1,
@@ -211,8 +198,8 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   searchContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   cartButton: {
     width: 44,
@@ -242,9 +229,9 @@ const styles = StyleSheet.create({
     fontSize: 10,
   },
   categoriesContainer: {
-    paddingLeft: 20,
-    paddingRight: 4,
-    paddingBottom: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    gap: 8,
   },
   categoryButton: {
     paddingHorizontal: 12,
@@ -256,7 +243,6 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 8,
   },
   categoryButtonActive: {
     backgroundColor: colors.accent,
@@ -277,18 +263,18 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...typography.heading4,
     color: colors.text,
-    marginBottom: 16,
   },
   productsContainer: {
-    paddingHorizontal: 20,
+    padding: 16,
   },
   productsGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    marginHorizontal: -4,
+    marginTop: 12,
+    marginBottom: 24,
   },
   productGridItem: {
     width: "48%",
-    marginBottom: 12,
+    marginBottom: 16,
   },
 });
