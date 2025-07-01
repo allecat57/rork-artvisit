@@ -7,10 +7,10 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Platform,
+  ScrollView,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { MapPin, Clock, Star } from "lucide-react-native";
+import { MapPin, Clock, Star, Search, ShoppingBag, Calendar, User } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import { useGalleries } from "@/hooks/useGalleries";
@@ -21,6 +21,21 @@ const fontFamily = Platform.select({
   default: "Georgia, serif",
 });
 
+interface QuickActionProps {
+  icon: React.ReactNode;
+  title: string;
+  onPress: () => void;
+}
+
+const QuickAction: React.FC<QuickActionProps> = ({ icon, title, onPress }) => (
+  <TouchableOpacity style={styles.quickActionButton} onPress={onPress} activeOpacity={0.7}>
+    <View style={styles.quickActionIcon}>
+      {icon}
+    </View>
+    <Text style={styles.quickActionTitle}>{title}</Text>
+  </TouchableOpacity>
+);
+
 export default function HomeScreen() {
   const router = useRouter();
   const { galleries, loading } = useGalleries();
@@ -30,6 +45,29 @@ export default function HomeScreen() {
       router.push(`/gallery/${galleryId}`);
     }
   };
+
+  const quickActions = [
+    {
+      icon: <Search size={24} color={colors.accent} />,
+      title: "Explore",
+      onPress: () => router.push("/(tabs)/explore"),
+    },
+    {
+      icon: <ShoppingBag size={24} color={colors.accent} />,
+      title: "Shop",
+      onPress: () => router.push("/(tabs)/shop"),
+    },
+    {
+      icon: <Calendar size={24} color={colors.accent} />,
+      title: "Events",
+      onPress: () => router.push("/(tabs)/events"),
+    },
+    {
+      icon: <User size={24} color={colors.accent} />,
+      title: "Profile",
+      onPress: () => router.push("/(tabs)/profile"),
+    },
+  ];
 
   const renderGalleryItem = ({ item }: { item: any }) => (
     <TouchableOpacity
@@ -88,15 +126,55 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <FlatList
-        data={galleries}
-        keyExtractor={(item) => item.id}
-        renderItem={renderGalleryItem}
-        contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={renderEmptyState}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Discover Art</Text>
+          <Text style={styles.headerSubtitle}>
+            Explore galleries, events, and art collections
+          </Text>
+        </View>
+
+        {/* Quick Actions */}
+        <View style={styles.quickActionsContainer}>
+          <View style={styles.quickActionsGrid}>
+            {quickActions.slice(0, 3).map((action, index) => (
+              <QuickAction
+                key={index}
+                icon={action.icon}
+                title={action.title}
+                onPress={action.onPress}
+              />
+            ))}
+          </View>
+          <View style={styles.quickActionsRow}>
+            {quickActions.slice(3).map((action, index) => (
+              <QuickAction
+                key={index + 3}
+                icon={action.icon}
+                title={action.title}
+                onPress={action.onPress}
+              />
+            ))}
+          </View>
+        </View>
+
+        {/* Featured Galleries */}
+        <View style={styles.galleriesSection}>
+          <Text style={styles.sectionTitle}>Featured Galleries</Text>
+          {galleries.length > 0 ? (
+            <FlatList
+              data={galleries.slice(0, 5)}
+              keyExtractor={(item) => item.id}
+              renderItem={renderGalleryItem}
+              scrollEnabled={false}
+              ItemSeparatorComponent={() => <View style={styles.separator} />}
+            />
+          ) : (
+            renderEmptyState()
+          )}
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -106,8 +184,66 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  listContainer: {
+  header: {
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 32,
+  },
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: "700",
+    color: colors.accent,
+    marginBottom: 8,
+    fontFamily,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    lineHeight: 24,
+  },
+  quickActionsContainer: {
+    paddingHorizontal: 24,
+    marginBottom: 32,
+  },
+  quickActionsGrid: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 16,
+  },
+  quickActionsRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  quickActionButton: {
+    alignItems: "center",
     padding: 16,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: colors.accent,
+    backgroundColor: "transparent",
+    minWidth: 100,
+    flex: 1,
+    marginHorizontal: 4,
+  },
+  quickActionIcon: {
+    marginBottom: 8,
+  },
+  quickActionTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.accent,
+    textAlign: "center",
+  },
+  galleriesSection: {
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+  },
+  sectionTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: colors.text,
+    marginBottom: 20,
+    fontFamily,
   },
   galleryCard: {
     backgroundColor: colors.card,

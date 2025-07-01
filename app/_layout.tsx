@@ -31,7 +31,7 @@ function RootLayoutContent() {
   useEffect(() => {
     if (!isHydrated) return; // Wait for auth state to be loaded from storage
 
-    const inAuthGroup = segments[0] === '(auth)';
+    const inAuthGroup = segments[0] === 'login';
     const inTabsGroup = segments[0] === '(tabs)';
 
     if (!isAuthenticated && !inAuthGroup) {
@@ -97,6 +97,86 @@ function RootLayoutContent() {
           options={{ 
             headerShown: true,
             title: 'Event Details',
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
+            headerTintColor: colors.accent,
+            headerTitleStyle: {
+              fontSize: 18,
+              fontWeight: '600',
+              color: colors.accent,
+            },
+          }} 
+        />
+        <Stack.Screen 
+          name="shop/product/[id]" 
+          options={{ 
+            headerShown: true,
+            title: 'Product Details',
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
+            headerTintColor: colors.accent,
+            headerTitleStyle: {
+              fontSize: 18,
+              fontWeight: '600',
+              color: colors.accent,
+            },
+          }} 
+        />
+        <Stack.Screen 
+          name="shop/cart" 
+          options={{ 
+            headerShown: true,
+            title: 'Shopping Cart',
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
+            headerTintColor: colors.accent,
+            headerTitleStyle: {
+              fontSize: 18,
+              fontWeight: '600',
+              color: colors.accent,
+            },
+          }} 
+        />
+        <Stack.Screen 
+          name="favorites" 
+          options={{ 
+            headerShown: true,
+            title: 'Favorites',
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
+            headerTintColor: colors.accent,
+            headerTitleStyle: {
+              fontSize: 18,
+              fontWeight: '600',
+              color: colors.accent,
+            },
+          }} 
+        />
+        <Stack.Screen 
+          name="visit-history" 
+          options={{ 
+            headerShown: true,
+            title: 'Visit History',
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
+            headerTintColor: colors.accent,
+            headerTitleStyle: {
+              fontSize: 18,
+              fontWeight: '600',
+              color: colors.accent,
+            },
+          }} 
+        />
+        <Stack.Screen 
+          name="purchase-history" 
+          options={{ 
+            headerShown: true,
+            title: 'Purchase History',
             headerStyle: {
               backgroundColor: colors.background,
             },

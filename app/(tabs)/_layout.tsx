@@ -44,7 +44,7 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Discover',
-          headerTitle: 'Art Galleries',
+          headerTitle: 'Discover Art',
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
         }}
       />
@@ -52,7 +52,7 @@ export default function TabLayout() {
         name="explore"
         options={{
           title: 'Explore',
-          headerTitle: 'Explore Venues',
+          headerTitle: 'Explore',
           tabBarIcon: ({ color, size }) => <Search size={size} color={color} />,
         }}
       />
@@ -60,7 +60,7 @@ export default function TabLayout() {
         name="shop"
         options={{
           title: 'Shop',
-          headerTitle: 'Art Shop',
+          headerTitle: 'Shop',
           tabBarIcon: ({ color, size }) => <ShoppingBag size={size} color={color} />,
         }}
       />
@@ -68,7 +68,7 @@ export default function TabLayout() {
         name="events"
         options={{
           title: 'Events',
-          headerTitle: 'Art Events',
+          headerTitle: 'Events',
           tabBarIcon: ({ color, size }) => <Calendar size={size} color={color} />,
         }}
       />
@@ -76,7 +76,7 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Profile',
-          headerTitle: 'My Profile',
+          headerTitle: 'Profile',
           tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
         }}
       />
