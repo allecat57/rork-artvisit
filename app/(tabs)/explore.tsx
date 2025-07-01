@@ -1,244 +1,226 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { MapPin } from 'lucide-react-native';
-import { useVenueStore } from '@/store/useVenueStore';
-import { useLocationStore } from '@/store/useLocationStore';
-import { calculateDistance } from '@/utils/calculateDistance';
-import CategoryCard from '@/components/CategoryCard';
-import VenueCard from '@/components/VenueCard';
-import FeaturedVenueCard from '@/components/FeaturedVenueCard';
-import SearchBar from '@/components/SearchBar';
-import colors from '@/constants/colors';
-import typography from '@/constants/typography';
-import * as Analytics from '@/utils/analytics';
+import React, { useState, useEffect } from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  ActivityIndicator,
+  Platform,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import colors from "@/constants/colors";
+import typography from "@/constants/typography";
+import SearchBar from "@/components/SearchBar";
+import CategoryCard from "@/components/CategoryCard";
+import VenueCard from "@/components/VenueCard";
+import FeaturedVenueCard from "@/components/FeaturedVenueCard";
+import { useVenueStore } from "@/store/useVenueStore";
+import { categories } from "@/mocks/categories";
+import { Venue } from "@/types/venue";
+
+const fontFamily = Platform.select({
+  ios: "Georgia",
+  android: "serif",
+  default: "Georgia, serif",
+});
 
 export default function ExploreScreen() {
-  const router = useRouter();
-  const { venues, categories, isLoading, fetchVenues } = useVenueStore();
-  const { currentLocation, locationName, openLocationPicker } = useLocationStore();
-  const [searchQuery, setSearchQuery] = useState('');
+  const { venues, loading, searchVenues, clearSearch } = useVenueStore();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredVenues, setFilteredVenues] = useState<Venue[]>([]);
 
   useEffect(() => {
-    fetchVenues();
-    
-    // Log screen view using the correct function from analytics.ts
-    Analytics.setCurrentScreen('explore', 'ExploreScreen');
-  }, []);
-
-  const featuredVenues = venues.filter(venue => venue.featured);
-  
-  const nearbyVenues = venues
-    .filter(venue => {
-      if (!currentLocation || !venue.coordinates) return false;
-      const distance = calculateDistance(
-        currentLocation.latitude,
-        currentLocation.longitude,
-        venue.coordinates.latitude,
-        venue.coordinates.longitude
+    if (searchQuery.trim()) {
+      const filtered = venues.filter(venue =>
+        venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        venue.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        venue.category.toLowerCase().includes(searchQuery.toLowerCase())
       );
-      return distance < 10; // Within 10 km
-    })
-    .sort((a, b) => {
-      if (!currentLocation || !a.coordinates || !b.coordinates) return 0;
-      const distanceA = calculateDistance(
-        currentLocation.latitude,
-        currentLocation.longitude,
-        a.coordinates.latitude,
-        a.coordinates.longitude
-      );
-      const distanceB = calculateDistance(
-        currentLocation.latitude,
-        currentLocation.longitude,
-        b.coordinates.latitude,
-        b.coordinates.longitude
-      );
-      return distanceA - distanceB;
-    })
-    .slice(0, 5);
-
-  const handleCategoryPress = (categoryId: string) => {
-    router.push(`/category/${categoryId}`);
-    
-    // Log category selection
-    Analytics.logEvent('select_category', {
-      category_id: categoryId
-    });
-  };
-
-  const handleVenuePress = (venueId: string) => {
-    router.push(`/venue/${venueId}`);
-    
-    // Log venue selection
-    Analytics.logEvent('select_venue', {
-      venue_id: venueId
-    });
-  };
-
-  const handleLocationPress = () => {
-    openLocationPicker();
-    
-    // Log location picker opened
-    Analytics.logEvent('open_location_picker', {
-      current_location: locationName
-    });
-  };
+      setFilteredVenues(filtered);
+    } else {
+      setFilteredVenues(venues);
+    }
+  }, [searchQuery, venues]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    
-    // Log search
-    if (query.trim()) {
-      Analytics.logEvent('search', {
-        search_term: query
-      });
-    }
   };
 
-  return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Explore</Text>
-          <TouchableOpacity style={styles.locationButton} onPress={handleLocationPress}>
-            <MapPin size={16} color={colors.accent} />
-            <Text style={styles.locationText} numberOfLines={1}>
-              {locationName || "Set location"}
-            </Text>
-          </TouchableOpacity>
-        </View>
+  const handleClearSearch = () => {
+    setSearchQuery("");
+    clearSearch();
+  };
 
-        <View style={styles.searchContainer}>
-          <SearchBar
-            placeholder="Search venues..."
-            value={searchQuery}
-            onChangeText={handleSearch}
+  const featuredVenues = filteredVenues.filter(venue => venue.featured);
+  const regularVenues = filteredVenues.filter(venue => !venue.featured);
+
+  const renderHeader = () => (
+    <View style={styles.header}>
+      <SearchBar
+        placeholder="Search venues, locations..."
+        onSearch={handleSearch}
+        onClear={handleClearSearch}
+        value={searchQuery}
+      />
+      
+      {!searchQuery && (
+        <>
+          <Text style={styles.sectionTitle}>Categories</Text>
+          <FlatList
+            data={categories}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => <CategoryCard category={item} />}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoriesContainer}
           />
-        </View>
+        </>
+      )}
 
-        <Text style={styles.sectionTitle}>Categories</Text>
-        <FlatList
-          data={categories}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <CategoryCard
-              category={{
-                id: item.id,
-                title: item.title,
-                imageUrl: item.imageUrl
-              }}
-              onPress={() => handleCategoryPress(item.id)}
-            />
-          )}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoriesContainer}
-        />
+      {featuredVenues.length > 0 && (
+        <Text style={styles.sectionTitle}>
+          {searchQuery ? "Featured Results" : "Featured Venues"}
+        </Text>
+      )}
+    </View>
+  );
 
-        <Text style={styles.sectionTitle}>Featured</Text>
-        <FlatList
-          data={featuredVenues}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <FeaturedVenueCard
-              venue={item}
-              onPress={() => handleVenuePress(item.id)}
-            />
-          )}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.featuredContainer}
-        />
+  const renderFeaturedVenue = ({ item }: { item: Venue }) => (
+    <FeaturedVenueCard venue={item} />
+  );
 
-        {currentLocation && nearbyVenues.length > 0 && (
-          <>
-            <Text style={styles.sectionTitle}>Nearby</Text>
-            <View style={styles.venuesContainer}>
-              {nearbyVenues.map((venue) => (
-                <VenueCard
-                  key={venue.id}
-                  venue={venue}
-                  onPress={() => handleVenuePress(venue.id)}
-                />
-              ))}
-            </View>
-          </>
-        )}
+  const renderVenue = ({ item }: { item: Venue }) => (
+    <VenueCard venue={item} />
+  );
 
-        <Text style={styles.sectionTitle}>Popular</Text>
-        <View style={styles.venuesContainer}>
-          {venues
-            .filter(venue => venue.rating >= 4.5)
-            .slice(0, 4)
-            .map((venue) => (
-              <VenueCard
-                key={venue.id}
-                venue={venue}
-                onPress={() => handleVenuePress(venue.id)}
+  const renderEmptyState = () => (
+    <View style={styles.emptyState}>
+      <Text style={styles.emptyTitle}>
+        {searchQuery ? "No venues found" : "No venues available"}
+      </Text>
+      <Text style={styles.emptyDescription}>
+        {searchQuery 
+          ? `No venues match "${searchQuery}". Try a different search term.`
+          : "Check back later for new venue listings."
+        }
+      </Text>
+    </View>
+  );
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.accent} />
+        <Text style={styles.loadingText}>Loading venues...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <FlatList
+        data={[]}
+        ListHeaderComponent={renderHeader}
+        ListFooterComponent={
+          <View>
+            {featuredVenues.length > 0 && (
+              <FlatList
+                data={featuredVenues}
+                keyExtractor={(item) => `featured-${item.id}`}
+                renderItem={renderFeaturedVenue}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.featuredContainer}
               />
-            ))}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+            )}
+            
+            {regularVenues.length > 0 && (
+              <>
+                <Text style={styles.sectionTitle}>
+                  {searchQuery ? "Other Results" : "All Venues"}
+                </Text>
+                <FlatList
+                  data={regularVenues}
+                  keyExtractor={(item) => item.id}
+                  renderItem={renderVenue}
+                  scrollEnabled={false}
+                  ItemSeparatorComponent={() => <View style={styles.separator} />}
+                />
+              </>
+            )}
+            
+            {filteredVenues.length === 0 && renderEmptyState()}
+          </View>
+        }
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContainer}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.background,
+  },
+  scrollContainer: {
+    flexGrow: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(172, 137, 1, 0.2)",
-  },
-  title: {
-    ...typography.heading1,
-    color: colors.text,
-  },
-  locationButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.card,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    maxWidth: 150,
-  },
-  locationText: {
-    ...typography.bodySmall,
-    color: colors.accent,
-    marginLeft: 4,
-  },
-  searchContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingTop: 16,
   },
   sectionTitle: {
-    ...typography.heading3,
+    fontSize: 20,
+    fontWeight: "700",
     color: colors.text,
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 15,
+    marginTop: 24,
+    marginBottom: 16,
+    paddingHorizontal: 4,
+    fontFamily,
   },
   categoriesContainer: {
-    paddingHorizontal: 20,
-    gap: 12,
+    paddingRight: 16,
   },
   featuredContainer: {
-    paddingHorizontal: 20,
-    gap: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 8,
   },
-  venuesContainer: {
-    paddingHorizontal: 20,
+  separator: {
+    height: 16,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
     gap: 16,
-    marginBottom: 10,
+    backgroundColor: colors.background,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    fontWeight: "500",
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 60,
+    paddingHorizontal: 32,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: colors.text,
+    marginBottom: 8,
+    textAlign: "center",
+    fontFamily,
+  },
+  emptyDescription: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: "center",
+    lineHeight: 20,
   },
 });

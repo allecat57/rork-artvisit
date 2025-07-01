@@ -1,92 +1,111 @@
 import { Stack } from 'expo-router';
 import { useEffect } from 'react';
-import { useColorScheme, Platform, StatusBar } from 'react-native';
-import { ThemeProvider, useTheme } from '@/context/ThemeContext';
+import { Platform, StatusBar } from 'react-native';
+import { ThemeProvider } from '@/context/ThemeContext';
 import { StripeProvider } from '@/context/StripeContext';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useRouter, useSegments } from 'expo-router';
 import colors from '@/constants/colors';
 
 function RootLayoutContent() {
-  const { isDark } = useTheme();
+  const { isAuthenticated, isHydrated, ensureTestUserExists } = useAuthStore();
+  const segments = useSegments();
+  const router = useRouter();
 
   useEffect(() => {
-    // Set status bar style based on theme
+    // Set status bar style
     if (Platform.OS === 'ios') {
       StatusBar.setBarStyle('light-content', true);
-      StatusBar.setBackgroundColor(colors.primary, true);
+      StatusBar.setBackgroundColor(colors.background, true);
     } else {
-      StatusBar.setBackgroundColor(colors.primary, true);
+      StatusBar.setBackgroundColor(colors.background, true);
       StatusBar.setBarStyle('light-content', true);
     }
-  }, [isDark]);
+  }, []);
+
+  useEffect(() => {
+    // Ensure test user exists on app startup
+    ensureTestUserExists();
+  }, [ensureTestUserExists]);
+
+  useEffect(() => {
+    if (!isHydrated) return; // Wait for auth state to be loaded from storage
+
+    const inAuthGroup = segments[0] === '(auth)';
+    const inTabsGroup = segments[0] === '(tabs)';
+
+    if (!isAuthenticated && !inAuthGroup) {
+      // User is not authenticated and not in auth group, redirect to login
+      router.replace('/login');
+    } else if (isAuthenticated && inAuthGroup) {
+      // User is authenticated but in auth group, redirect to tabs
+      router.replace('/(tabs)');
+    } else if (isAuthenticated && segments.length === 0) {
+      // User is authenticated and at root, redirect to tabs
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated, isHydrated, segments, router]);
 
   return (
     <StripeProvider>
       <Stack
         screenOptions={{
-          headerShown: true,
+          headerShown: false,
           gestureEnabled: true,
           animation: 'slide_from_right',
           contentStyle: {
             backgroundColor: colors.background,
           },
-          headerStyle: {
-            backgroundColor: colors.background,
-          },
-          headerTintColor: colors.accent,
-          headerTitleStyle: {
-            fontSize: 18,
-            fontWeight: '600',
-            color: colors.accent,
-          },
         }}
       >
+        <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen 
-          name="index" 
+          name="gallery/[id]" 
           options={{ 
-            title: 'Discover Art',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
-          name="explore" 
-          options={{ 
-            title: 'Explore',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
-          name="shop" 
-          options={{ 
-            title: 'Shop',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
-          name="events" 
-          options={{ 
-            title: 'Events',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
-          name="reservations" 
-          options={{ 
-            title: 'Reservations',
-            headerShown: true
-          }} 
-        />
-        <Stack.Screen 
-          name="profile" 
-          options={{ 
-            title: 'Profile',
-            headerShown: true
+            headerShown: true,
+            title: 'Gallery Details',
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
+            headerTintColor: colors.accent,
+            headerTitleStyle: {
+              fontSize: 18,
+              fontWeight: '600',
+              color: colors.accent,
+            },
           }} 
         />
         <Stack.Screen 
           name="venue/[id]" 
           options={{ 
+            headerShown: true,
             title: 'Venue Details',
-            headerShown: true
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
+            headerTintColor: colors.accent,
+            headerTitleStyle: {
+              fontSize: 18,
+              fontWeight: '600',
+              color: colors.accent,
+            },
+          }} 
+        />
+        <Stack.Screen 
+          name="event/[id]" 
+          options={{ 
+            headerShown: true,
+            title: 'Event Details',
+            headerStyle: {
+              backgroundColor: colors.background,
+            },
+            headerTintColor: colors.accent,
+            headerTitleStyle: {
+              fontSize: 18,
+              fontWeight: '600',
+              color: colors.accent,
+            },
           }} 
         />
         <Stack.Screen 

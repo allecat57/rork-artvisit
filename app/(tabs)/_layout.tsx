@@ -1,122 +1,83 @@
 import { Tabs } from 'expo-router';
-import { useColorScheme, Platform, StatusBar } from 'react-native';
-import { Home, Search, Calendar, User, ShoppingBag, CalendarDays } from 'lucide-react-native';
-import { useTheme } from '@/context/ThemeContext';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Platform } from 'react-native';
+import { Home, Search, ShoppingBag, Calendar, User } from 'lucide-react-native';
+import colors from '@/constants/colors';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const { isDark, colors } = useTheme();
-  const insets = useSafeAreaInsets();
-  
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: '#B0B0B0',
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarStyle: {
-          backgroundColor: '#013025',
-          borderTopWidth: 0,
-          elevation: 0,
-          shadowOpacity: 0.1,
-          shadowRadius: 10,
-          shadowOffset: { width: 0, height: -2 },
-          shadowColor: '#000000',
-          height: Platform.OS === 'ios' ? 88 : 70,
-          paddingBottom: Platform.OS === 'ios' ? 28 : 10,
+          backgroundColor: colors.background,
+          borderTopColor: colors.border,
+          borderTopWidth: 1,
+          paddingBottom: Platform.OS === 'ios' ? 20 : 10,
           paddingTop: 10,
-          paddingHorizontal: 20,
-        },
-        tabBarItemStyle: {
-          paddingVertical: 5,
+          height: Platform.OS === 'ios' ? 90 : 70,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '500',
-          marginTop: 2,
+          fontSize: 12,
+          fontWeight: '600',
+          marginTop: 4,
         },
-        tabBarIconStyle: {
-          marginBottom: 2,
+        headerStyle: {
+          backgroundColor: colors.background,
+          borderBottomColor: colors.border,
+          borderBottomWidth: 1,
         },
-        headerShown: false, // Hide individual tab headers
+        headerTintColor: colors.accent,
+        headerTitleStyle: {
+          fontSize: 18,
+          fontWeight: '600',
+          color: colors.accent,
+          fontFamily: Platform.select({
+            ios: 'Georgia',
+            android: 'serif',
+            default: 'Georgia, serif',
+          }),
+        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color, size, focused }) => (
-            <Home 
-              color={color} 
-              size={focused ? 24 : 22} 
-              strokeWidth={focused ? 2.5 : 2}
-            />
-          ),
+          title: 'Discover',
+          headerTitle: 'Art Galleries',
+          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
           title: 'Explore',
-          tabBarIcon: ({ color, size, focused }) => (
-            <Search 
-              color={color} 
-              size={focused ? 24 : 22} 
-              strokeWidth={focused ? 2.5 : 2}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="reservations"
-        options={{
-          title: 'Reservations',
-          tabBarIcon: ({ color, size, focused }) => (
-            <Calendar 
-              color={color} 
-              size={focused ? 24 : 22} 
-              strokeWidth={focused ? 2.5 : 2}
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="events"
-        options={{
-          title: 'Events',
-          tabBarIcon: ({ color, size, focused }) => (
-            <CalendarDays 
-              color={color} 
-              size={focused ? 24 : 22} 
-              strokeWidth={focused ? 2.5 : 2}
-            />
-          ),
+          headerTitle: 'Explore Venues',
+          tabBarIcon: ({ color, size }) => <Search size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="shop"
         options={{
           title: 'Shop',
-          tabBarIcon: ({ color, size, focused }) => (
-            <ShoppingBag 
-              color={color} 
-              size={focused ? 24 : 22} 
-              strokeWidth={focused ? 2.5 : 2}
-            />
-          ),
+          headerTitle: 'Art Shop',
+          tabBarIcon: ({ color, size }) => <ShoppingBag size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="events"
+        options={{
+          title: 'Events',
+          headerTitle: 'Art Events',
+          tabBarIcon: ({ color, size }) => <Calendar size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color, size, focused }) => (
-            <User 
-              color={color} 
-              size={focused ? 24 : 22} 
-              strokeWidth={focused ? 2.5 : 2}
-            />
-          ),
+          headerTitle: 'My Profile',
+          tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
         }}
       />
     </Tabs>

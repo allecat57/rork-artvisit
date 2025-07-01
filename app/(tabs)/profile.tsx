@@ -1,688 +1,493 @@
-import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert, Platform, Image } from "react-native";
+import React, { useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  Alert,
+  Platform,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { 
-  User, 
-  Bell, 
-  HelpCircle, 
-  LogOut, 
-  Heart, 
-  Camera,
-  CreditCard,
-  Shield,
-  Ticket,
-  ShoppingBag,
-  CheckCircle,
-  Crown,
-  ChevronRight,
-  Star,
-  Zap
-} from "lucide-react-native";
-import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
+import {
+  User,
+  Settings,
+  CreditCard,
+  Heart,
+  Clock,
+  ShoppingBag,
+  Calendar,
+  Bell,
+  Shield,
+  HelpCircle,
+  LogOut,
+  Camera,
+  Crown,
+} from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
-import { useProfileStore } from "@/store/useProfileStore";
-import { useFavoritesStore } from "@/store/useFavoritesStore";
-import { useVisitHistoryStore } from "@/store/useVisitHistoryStore";
 import { useAuthStore } from "@/store/useAuthStore";
-import { usePurchaseHistoryStore } from "@/store/usePurchaseHistoryStore";
-import PaymentMethodModal, { PaymentDetails } from "@/components/PaymentMethodModal";
+import { useProfileStore } from "@/store/useProfileStore";
+import Button from "@/components/Button";
+import PaymentMethodModal from "@/components/PaymentMethodModal";
 import SubscriptionModal from "@/components/SubscriptionModal";
 import PrivacySettingsModal from "@/components/PrivacySettingsModal";
 import NotificationsModal from "@/components/NotificationsModal";
 import HelpCenterModal from "@/components/HelpCenterModal";
 import * as Analytics from "@/utils/analytics";
 
-interface ProfileOptionProps {
+const fontFamily = Platform.select({
+  ios: "Georgia",
+  android: "serif",
+  default: "Georgia, serif",
+});
+
+interface ProfileMenuItemProps {
   icon: React.ReactNode;
   title: string;
+  subtitle?: string;
   onPress: () => void;
-  badge?: number;
-  rightContent?: React.ReactNode;
-  analyticsEventName?: string;
-  analyticsParams?: Record<string, any>;
+  showChevron?: boolean;
+  badge?: string;
 }
 
-const ProfileOption = ({ 
-  icon, 
-  title, 
-  onPress, 
-  badge, 
-  rightContent,
-  analyticsEventName,
-  analyticsParams
-}: ProfileOptionProps) => {
-  const handlePress = () => {
-    // Log analytics event if provided
-    if (analyticsEventName) {
-      Analytics.logEvent(analyticsEventName, {
-        option_title: title,
-        ...analyticsParams
-      });
-    }
-    
-    onPress();
-  };
-
-  return (
-    <TouchableOpacity style={styles.optionContainer} onPress={handlePress}>
-      <View style={styles.optionIconContainer}>{icon}</View>
-      <Text style={[typography.body, styles.optionTitle]}>{title}</Text>
-      {badge !== undefined && badge > 0 ? (
-        <View style={styles.badgeContainer}>
+const ProfileMenuItem: React.FC<ProfileMenuItemProps> = ({
+  icon,
+  title,
+  subtitle,
+  onPress,
+  showChevron = true,
+  badge,
+}) => (
+  <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
+    <View style={styles.menuItemLeft}>
+      <View style={styles.menuItemIcon}>{icon}</View>
+      <View style={styles.menuItemText}>
+        <Text style={styles.menuItemTitle}>{title}</Text>
+        {subtitle && <Text style={styles.menuItemSubtitle}>{subtitle}</Text>}
+      </View>
+    </View>
+    <View style={styles.menuItemRight}>
+      {badge && (
+        <View style={styles.badge}>
           <Text style={styles.badgeText}>{badge}</Text>
         </View>
-      ) : rightContent ? (
-        rightContent
-      ) : (
-        <ChevronRight size={20} color={colors.accent} />
       )}
-    </TouchableOpacity>
-  );
-};
+      {showChevron && (
+        <Text style={styles.chevron}>›</Text>
+      )}
+    </View>
+  </TouchableOpacity>
+);
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { getCurrentProfileImage, getCurrentPaymentMethod, getCurrentSubscription, setProfileImage, setPaymentMethod } = useProfileStore();
-  const { getCurrentUserFavorites } = useFavoritesStore();
-  const { getCurrentUserVisits } = useVisitHistoryStore();
-  const { getCurrentUserPurchases } = usePurchaseHistoryStore();
-  const { user, logout, isAuthenticated, isHydrated, loginAsTestUser } = useAuthStore();
-  
+  const { user, logout } = useAuthStore();
+  const { 
+    getCurrentProfileImage, 
+    getCurrentPaymentMethod, 
+    getCurrentSubscription,
+    setProfileImage 
+  } = useProfileStore();
+
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   const [subscriptionModalVisible, setSubscriptionModalVisible] = useState(false);
   const [privacyModalVisible, setPrivacyModalVisible] = useState(false);
   const [notificationsModalVisible, setNotificationsModalVisible] = useState(false);
-  const [helpCenterModalVisible, setHelpCenterModalVisible] = useState(false);
-  
+  const [helpModalVisible, setHelpModalVisible] = useState(false);
+
   const profileImage = getCurrentProfileImage();
   const paymentMethod = getCurrentPaymentMethod();
   const subscription = getCurrentSubscription();
-  const favorites = getCurrentUserFavorites();
-  const visits = getCurrentUserVisits();
-  const purchases = getCurrentUserPurchases();
-  
-  // Check authentication status - but don't redirect immediately, give user option to login
-  useEffect(() => {
-    if (isHydrated && !isAuthenticated) {
-      // Instead of redirecting immediately, we'll show a login prompt
-      console.log("User not authenticated, but staying on profile page");
-    }
-  }, [isAuthenticated, isHydrated]);
-  
-  // If not authenticated, show login prompt instead of redirecting
-  if (isHydrated && !isAuthenticated) {
-    return (
-      <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-        <View style={styles.header}>
-          <Text style={styles.screenTitle}>Profile</Text>
-        </View>
-        <View style={styles.loginPromptContainer}>
-          <User size={60} color={colors.accent} />
-          <Text style={[typography.heading2, styles.loginPromptTitle]}>Welcome to Your Profile</Text>
-          <Text style={[typography.body, styles.loginPromptMessage]}>
-            Please log in to access your profile, favorites, and purchase history.
-          </Text>
-          <TouchableOpacity 
-            style={styles.loginButton}
-            onPress={() => router.push("/login")}
-          >
-            <Text style={styles.loginButtonText}>Log In</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.testUserButton}
-            onPress={loginAsTestUser}
-          >
-            <Text style={styles.testUserButtonText}>Continue as Test User</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-  
-  const handleNotImplemented = () => {
-    // Log not implemented event
-    Analytics.logEvent("feature_not_implemented", {
-      screen: "profile"
-    });
-    
-    Alert.alert(
-      "Not Implemented",
-      "This feature is not implemented in the demo.",
-      [{ text: "OK" }]
-    );
-  };
-  
-  const handleChangeProfilePhoto = async () => {
-    try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
-      if (permissionResult.granted === false) {
-        // Log permission denied
-        Analytics.logEvent("permission_denied", {
-          permission: "photo_library",
-          screen: "profile"
-        });
-        
-        Alert.alert("Permission Required", "You need to grant permission to access your photos");
-        return;
-      }
-      
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-      
-      if (!result.canceled) {
-        // Log profile photo change
-        Analytics.logEvent(Analytics.Events.UPDATE_PROFILE, {
-          update_type: "profile_photo"
-        });
-        
-        setProfileImage(result.assets[0].uri);
-      }
-    } catch (error) {
-      // Log error
-      Analytics.logEvent("profile_photo_error", {
-        error_message: error instanceof Error ? error.message : "Unknown error"
-      });
-      
-      console.error("Error picking image:", error);
-      Alert.alert("Error", "There was an error selecting your image");
-    }
-  };
-  
-  const handleSavePaymentMethod = (paymentDetails: PaymentDetails) => {
-    // In a real app, you would securely send this to your backend
-    // For this demo, we'll just store the last 4 digits of the card
-    const cardNumber = paymentDetails.cardNumber.replace(/\s/g, "");
-    const last4 = cardNumber.substring(cardNumber.length - 4);
-    
-    // Log payment method update
-    Analytics.logEvent(Analytics.Events.UPDATE_PAYMENT_METHOD, {
-      card_type: getCardType(cardNumber),
-      is_new_card: !paymentMethod
-    });
-    
-    setPaymentMethod({
-      cardType: getCardType(cardNumber),
-      last4: last4,
-      expirationDate: paymentDetails.expirationDate
-    });
-    
-    Alert.alert(
-      "Payment Method Updated",
-      "Your payment information has been saved successfully.",
-      [{ text: "OK" }]
-    );
-  };
-  
-  const getCardType = (cardNumber: string) => {
-    // Very basic card type detection based on first digit
-    const firstDigit = cardNumber.charAt(0);
-    
-    if (firstDigit === "4") return "Visa";
-    if (firstDigit === "5") return "Mastercard";
-    if (firstDigit === "3") return "American Express";
-    if (firstDigit === "6") return "Discover";
-    
-    return "Credit Card";
-  };
-  
+
   const handleLogout = () => {
     Alert.alert(
-      "Log Out",
-      "Are you sure you want to log out?",
+      "Sign Out",
+      "Are you sure you want to sign out?",
       [
+        { text: "Cancel", style: "cancel" },
         {
-          text: "Cancel",
-          style: "cancel"
-        },
-        {
-          text: "Log Out",
+          text: "Sign Out",
           style: "destructive",
           onPress: async () => {
-            try {
-              // Log logout event
-              Analytics.logEvent(Analytics.Events.LOGOUT);
-              
-              // Perform logout
-              await logout();
-              
-              // Stay on profile page instead of redirecting
-              console.log("Logout successful, staying on profile page");
-            } catch (error) {
-              console.error("Error during logout:", error);
-              Alert.alert(
-                "Logout Error",
-                "There was a problem logging out. Please try again."
-              );
-            }
-          }
-        }
+            // Log analytics event
+            Analytics.logEvent(Analytics.Events.USER_LOGOUT, {
+              user_id: user?.id
+            });
+            
+            await logout();
+            router.replace("/login");
+          },
+        },
       ]
     );
   };
 
-  const getSubscriptionBadge = () => {
-    if (!subscription) return null;
-    
-    let color = "#E0E0E0";
-    let icon = <Ticket size={16} color="#FFFFFF" />;
-    
-    if (subscription.id === "free") {
-      color = "#4CAF50";
-      icon = <Zap size={16} color="#FFFFFF" />;
-    } else if (subscription.id === "explorer") {
-      color = "#FFD700";
-      icon = <Star size={16} color="#FFFFFF" />;
-    } else if (subscription.id === "collector") {
-      color = "#9C27B0";
-      icon = <Crown size={16} color="#FFFFFF" />;
-    }
-    
-    return (
-      <View style={[styles.subscriptionBadge, { backgroundColor: color }]}>
-        {icon}
-        <Text style={styles.subscriptionBadgeText}>{subscription.name}</Text>
-      </View>
+  const handleChangeProfileImage = () => {
+    Alert.alert(
+      "Change Profile Photo",
+      "Choose an option",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Remove Photo",
+          style: "destructive",
+          onPress: () => {
+            setProfileImage(null);
+            Analytics.logEvent("profile_image_removed");
+          },
+        },
+        {
+          text: "Choose Photo",
+          onPress: () => {
+            // For demo purposes, set a random avatar
+            const avatars = [
+              "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxjb2xsZWN0aW9uLXBhZ2V8MXw3NjA4Mjc3NHx8ZW58MHx8fHx8",
+              "https://images.unsplash.com/photo-1494790108755-2616b612b786?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxjb2xsZWN0aW9uLXBhZ2V8Mnw3NjA4Mjc3NHx8ZW58MHx8fHx8",
+              "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1000&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxjb2xsZWN0aW9uLXBhZ2V8M3w3NjA4Mjc3NHx8ZW58MHx8fHx8",
+            ];
+            const randomAvatar = avatars[Math.floor(Math.random() * avatars.length)];
+            setProfileImage(randomAvatar);
+            Analytics.logEvent("profile_image_changed");
+          },
+        },
+      ]
     );
   };
 
-  return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
-      <View style={styles.header}>
-        <Text style={styles.screenTitle}>Profile</Text>
+  if (!user) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyTitle}>Not Signed In</Text>
+          <Text style={styles.emptyDescription}>
+            Please sign in to view your profile
+          </Text>
+          <Button
+            title="Sign In"
+            onPress={() => router.replace("/login")}
+            variant="primary"
+            style={styles.signInButton}
+          />
+        </View>
       </View>
-      
-      <ScrollView showsVerticalScrollIndicator={false}>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+        {/* Profile Header */}
         <View style={styles.profileHeader}>
           <TouchableOpacity 
-            style={styles.avatarContainer}
-            onPress={handleChangeProfilePhoto}
+            style={styles.profileImageContainer}
+            onPress={handleChangeProfileImage}
+            activeOpacity={0.7}
           >
-            {profileImage ? (
-              <Image source={{ uri: profileImage }} style={styles.avatar} />
+            {profileImage || user.avatar ? (
+              <Image 
+                source={{ uri: profileImage || user.avatar }} 
+                style={styles.profileImage}
+              />
             ) : (
-              <User size={40} color={colors.accent} />
+              <View style={styles.profileImagePlaceholder}>
+                <User size={40} color={colors.textSecondary} />
+              </View>
             )}
-            <View style={styles.cameraIconContainer}>
-              <Camera size={16} color={colors.primary} />
+            <View style={styles.cameraIcon}>
+              <Camera size={16} color={colors.background} />
             </View>
           </TouchableOpacity>
-          <Text style={[typography.heading2, styles.name]}>{user?.name || "Guest User"}</Text>
-          <Text style={[typography.body, styles.email]}>{user?.email || "guest@example.com"}</Text>
           
-          {subscription && getSubscriptionBadge()}
+          <Text style={styles.userName}>{user.name}</Text>
+          <Text style={styles.userEmail}>{user.email}</Text>
           
-          <TouchableOpacity 
-            style={styles.editButton}
-            onPress={handleNotImplemented}
-          >
-            <Text style={styles.editButtonText}>Edit Profile</Text>
-          </TouchableOpacity>
-        </View>
-        
-        <View style={styles.section}>
-          <Text style={[typography.heading3, styles.sectionTitle]}>Your Activity</Text>
-          <ProfileOption
-            icon={<CheckCircle size={22} color={colors.accent} />}
-            title="Visit History"
-            onPress={() => router.push("/visit-history")}
-            badge={visits.length}
-            analyticsEventName="view_visit_history"
-          />
-          <ProfileOption
-            icon={<Heart size={22} color={colors.accent} />}
-            title="Favorite Venues"
-            onPress={() => router.push("/favorites")}
-            badge={favorites.length}
-            analyticsEventName="view_favorites"
-          />
-          <ProfileOption
-            icon={<ShoppingBag size={22} color={colors.accent} />}
-            title="Purchase History"
-            onPress={() => router.push("/purchase-history")}
-            badge={purchases.length}
-            analyticsEventName="view_purchase_history"
-          />
-        </View>
-        
-        <View style={styles.section}>
-          <Text style={[typography.heading3, styles.sectionTitle]}>Settings</Text>
-          <ProfileOption
-            icon={<Camera size={22} color={colors.accent} />}
-            title="Change Profile Photo"
-            onPress={handleChangeProfilePhoto}
-            analyticsEventName="change_profile_photo_tap"
-          />
-          <ProfileOption
-            icon={<CreditCard size={22} color={colors.accent} />}
-            title="Update Payment Method"
-            onPress={() => {
-              Analytics.logEvent("open_payment_method_modal");
-              setPaymentModalVisible(true);
-            }}
-            analyticsEventName="update_payment_method_tap"
-          />
-          {paymentMethod && (
-            <View style={styles.paymentInfoContainer}>
-              <Text style={styles.paymentInfoText}>
-                {paymentMethod.cardType} •••• {paymentMethod.last4} | Expires: {paymentMethod.expirationDate}
-              </Text>
+          {subscription && (
+            <View style={styles.subscriptionBadge}>
+              <Crown size={14} color={colors.accent} />
+              <Text style={styles.subscriptionText}>{subscription.name}</Text>
             </View>
           )}
-          <ProfileOption
-            icon={<Ticket size={22} color={colors.accent} />}
-            title="Manage Subscription"
-            onPress={() => {
-              Analytics.logEvent("open_subscription_modal");
-              setSubscriptionModalVisible(true);
-            }}
-            analyticsEventName="manage_subscription_tap"
-            rightContent={
-              subscription ? (
-                <View style={styles.subscriptionInfo}>
-                  <Text style={styles.subscriptionPrice}>
-                    {subscription.id === "free" ? "Free" : `$${subscription.price.toFixed(2)}/mo`}
-                  </Text>
-                </View>
-              ) : (
-                <ChevronRight size={20} color={colors.muted} />
-              )
-            }
+        </View>
+
+        {/* Menu Items */}
+        <View style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>Account</Text>
+          
+          <ProfileMenuItem
+            icon={<CreditCard size={20} color={colors.accent} />}
+            title="Payment Method"
+            subtitle={paymentMethod ? `${paymentMethod.cardType} •••• ${paymentMethod.last4}` : "Add payment method"}
+            onPress={() => setPaymentModalVisible(true)}
           />
-          <ProfileOption
-            icon={<Shield size={22} color={colors.accent} />}
-            title="Privacy Settings"
-            onPress={() => {
-              Analytics.logEvent("open_privacy_settings_modal");
-              setPrivacyModalVisible(true);
-            }}
-            analyticsEventName="privacy_settings_tap"
+          
+          <ProfileMenuItem
+            icon={<Crown size={20} color={colors.accent} />}
+            title="Subscription"
+            subtitle={subscription ? `${subscription.name} - $${subscription.price}/month` : "Free Access"}
+            onPress={() => setSubscriptionModalVisible(true)}
           />
-          <ProfileOption
-            icon={<Bell size={22} color={colors.accent} />}
+        </View>
+
+        <View style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>Activity</Text>
+          
+          <ProfileMenuItem
+            icon={<Heart size={20} color={colors.accent} />}
+            title="Favorites"
+            subtitle="Your saved venues and events"
+            onPress={() => router.push("/favorites")}
+          />
+          
+          <ProfileMenuItem
+            icon={<Clock size={20} color={colors.accent} />}
+            title="Visit History"
+            subtitle="Places you have visited"
+            onPress={() => router.push("/visit-history")}
+          />
+          
+          <ProfileMenuItem
+            icon={<ShoppingBag size={20} color={colors.accent} />}
+            title="Purchase History"
+            subtitle="Your art purchases"
+            onPress={() => router.push("/purchase-history")}
+          />
+          
+          <ProfileMenuItem
+            icon={<Calendar size={20} color={colors.accent} />}
+            title="Reservations"
+            subtitle="Your bookings and events"
+            onPress={() => router.push("/reservations")}
+          />
+        </View>
+
+        <View style={styles.menuSection}>
+          <Text style={styles.sectionTitle}>Settings</Text>
+          
+          <ProfileMenuItem
+            icon={<Bell size={20} color={colors.accent} />}
             title="Notifications"
-            onPress={() => {
-              Analytics.logEvent("open_notifications_modal");
-              setNotificationsModalVisible(true);
-            }}
-            analyticsEventName="notifications_tap"
+            subtitle="Manage your notifications"
+            onPress={() => setNotificationsModalVisible(true)}
+          />
+          
+          <ProfileMenuItem
+            icon={<Shield size={20} color={colors.accent} />}
+            title="Privacy & Security"
+            subtitle="Control your privacy settings"
+            onPress={() => setPrivacyModalVisible(true)}
+          />
+          
+          <ProfileMenuItem
+            icon={<HelpCircle size={20} color={colors.accent} />}
+            title="Help & Support"
+            subtitle="Get help and contact support"
+            onPress={() => setHelpModalVisible(true)}
           />
         </View>
-        
-        <View style={styles.section}>
-          <Text style={[typography.heading3, styles.sectionTitle]}>Support</Text>
-          <ProfileOption
-            icon={<HelpCircle size={22} color={colors.accent} />}
-            title="Help Center"
-            onPress={() => {
-              Analytics.logEvent(Analytics.Events.OPEN_HELP_CENTER);
-              setHelpCenterModalVisible(true);
-            }}
-            analyticsEventName="help_center_tap"
+
+        <View style={styles.menuSection}>
+          <ProfileMenuItem
+            icon={<LogOut size={20} color={colors.status.error} />}
+            title="Sign Out"
+            onPress={handleLogout}
+            showChevron={false}
           />
         </View>
-        
-        <TouchableOpacity 
-          style={styles.logoutButton}
-          onPress={handleLogout}
-        >
-          <LogOut size={20} color={colors.status.error} />
-          <Text style={styles.logoutText}>Log Out</Text>
-        </TouchableOpacity>
-        
-        <Text style={styles.versionText}>Version 1.0.0</Text>
       </ScrollView>
-      
+
+      {/* Modals */}
       <PaymentMethodModal
         visible={paymentModalVisible}
         onClose={() => setPaymentModalVisible(false)}
-        onSave={handleSavePaymentMethod}
       />
       
       <SubscriptionModal
         visible={subscriptionModalVisible}
         onClose={() => setSubscriptionModalVisible(false)}
       />
-
+      
       <PrivacySettingsModal
         visible={privacyModalVisible}
         onClose={() => setPrivacyModalVisible(false)}
       />
-
+      
       <NotificationsModal
         visible={notificationsModalVisible}
         onClose={() => setNotificationsModalVisible(false)}
       />
-
+      
       <HelpCenterModal
-        visible={helpCenterModalVisible}
-        onClose={() => setHelpCenterModalVisible(false)}
+        visible={helpModalVisible}
+        onClose={() => setHelpModalVisible(false)}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.background,
   },
-  header: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(172, 137, 1, 0.2)",
-  },
-  screenTitle: {
-    ...typography.heading1,
-    color: colors.text,
-    fontSize: 28,
-    fontWeight: "600",
-  },
-  loginPromptContainer: {
+  scrollView: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-  },
-  loginPromptTitle: {
-    color: colors.text,
-    marginTop: 24,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  loginPromptMessage: {
-    color: colors.text,
-    textAlign: 'center',
-    marginBottom: 32,
-    opacity: 0.8,
-  },
-  loginButton: {
-    backgroundColor: colors.accent,
-    paddingHorizontal: 32,
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    minWidth: 200,
-  },
-  loginButtonText: {
-    ...typography.button,
-    color: colors.primary,
-    textAlign: 'center',
-  },
-  testUserButton: {
-    borderWidth: 1,
-    borderColor: colors.accent,
-    paddingHorizontal: 32,
-    paddingVertical: 12,
-    borderRadius: 8,
-    minWidth: 200,
-  },
-  testUserButtonText: {
-    ...typography.button,
-    color: colors.accent,
-    textAlign: 'center',
   },
   profileHeader: {
     alignItems: "center",
-    paddingVertical: 24,
-    paddingHorizontal: 16,
+    paddingVertical: 32,
+    paddingHorizontal: 24,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  avatarContainer: {
+  profileImageContainer: {
+    position: "relative",
+    marginBottom: 16,
+  },
+  profileImage: {
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.surface,
+  },
+  profileImagePlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.surface,
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 16,
-    position: "relative",
   },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-  },
-  cameraIconContainer: {
+  cameraIcon: {
     position: "absolute",
     bottom: 0,
     right: 0,
-    backgroundColor: colors.accent,
     width: 28,
     height: 28,
     borderRadius: 14,
+    backgroundColor: colors.accent,
     justifyContent: "center",
     alignItems: "center",
     borderWidth: 2,
-    borderColor: colors.primary,
+    borderColor: colors.background,
   },
-  name: {
+  userName: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: colors.text,
     marginBottom: 4,
-    color: colors.text,
+    fontFamily,
   },
-  email: {
-    color: colors.text,
-    marginBottom: 16,
+  userEmail: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginBottom: 12,
   },
   subscriptionBadge: {
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: colors.surface,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    marginBottom: 16,
+    gap: 6,
   },
-  subscriptionBadgeText: {
-    ...typography.bodySmall,
-    color: "#FFFFFF",
+  subscriptionText: {
+    fontSize: 12,
     fontWeight: "600",
-    marginLeft: 6,
-  },
-  editButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: colors.accent,
-  },
-  editButtonText: {
-    ...typography.bodySmall,
     color: colors.accent,
-    fontWeight: "600",
   },
-  section: {
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+  menuSection: {
+    paddingVertical: 8,
   },
   sectionTitle: {
-    marginBottom: 16,
+    fontSize: 16,
+    fontWeight: "600",
     color: colors.text,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    fontFamily,
   },
-  optionContainer: {
+  menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
+    justifyContent: "space-between",
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    backgroundColor: colors.background,
   },
-  optionIconContainer: {
+  menuItemLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  menuItemIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(172, 137, 1, 0.1)",
+    backgroundColor: colors.surface,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
   },
-  optionTitle: {
+  menuItemText: {
     flex: 1,
+  },
+  menuItemTitle: {
+    fontSize: 16,
+    fontWeight: "500",
     color: colors.text,
+    marginBottom: 2,
   },
-  badgeContainer: {
-    backgroundColor: colors.accent,
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    minWidth: 24,
-    alignItems: "center",
+  menuItemSubtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
   },
-  badgeText: {
-    ...typography.caption,
-    color: colors.primary,
-    fontWeight: "bold",
-  },
-  paymentInfoContainer: {
-    backgroundColor: colors.card,
-    borderRadius: 8,
-    padding: 12,
-    marginLeft: 56,
-    marginBottom: 16,
-    marginTop: -8,
-  },
-  paymentInfoText: {
-    ...typography.bodySmall,
-    color: colors.text,
-  },
-  subscriptionInfo: {
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-  },
-  subscriptionPrice: {
-    ...typography.bodySmall,
-    color: colors.accent,
-    fontWeight: "600",
-  },
-  logoutButton: {
+  menuItemRight: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 16,
-    marginTop: 24,
-    marginHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.status.error,
+    gap: 8,
   },
-  logoutText: {
-    ...typography.body,
-    color: colors.status.error,
+  badge: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  badgeText: {
+    fontSize: 12,
     fontWeight: "600",
-    marginLeft: 8,
+    color: colors.background,
   },
-  versionText: {
-    ...typography.caption,
+  chevron: {
+    fontSize: 20,
+    color: colors.textSecondary,
+    fontWeight: "300",
+  },
+  emptyState: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 32,
+  },
+  emptyTitle: {
+    fontSize: 24,
+    fontWeight: "700",
     color: colors.text,
+    marginBottom: 8,
     textAlign: "center",
-    marginTop: 16,
-    marginBottom: 24,
+    fontFamily,
+  },
+  emptyDescription: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    textAlign: "center",
+    marginBottom: 32,
+    lineHeight: 24,
+  },
+  signInButton: {
+    minWidth: 120,
   },
 });
