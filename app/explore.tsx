@@ -11,18 +11,23 @@ import FeaturedVenueCard from "@/components/FeaturedVenueCard";
 import { venues, featuredVenues } from "@/mocks/venues";
 import { categories } from "@/mocks/categories";
 import { useLocationStore } from "@/store/useLocationStore";
+import { fetchGalleries } from "@/hooks/useGalleries";
 import * as Analytics from "@/utils/analytics";
 
 export default function ExploreScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [filteredVenues, setFilteredVenues] = useState(venues);
+  const [galleries, setGalleries] = useState([]);
   
   const { location, requestLocation } = useLocationStore();
 
   useEffect(() => {
     // Request location when component mounts
     requestLocation();
+    
+    // Fetch galleries from Supabase
+    fetchGalleries().then(setGalleries);
     
     // Log screen view
     Analytics.logEvent("screen_view", { screen_name: "explore" });
@@ -149,6 +154,38 @@ export default function ExploreScreen() {
                 <FeaturedVenueCard
                   key={venue.id}
                   venue={venue}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* Galleries from Supabase */}
+        {galleries.length > 0 && !searchQuery && !selectedCategory && (
+          <View style={styles.section}>
+            <Text style={[typography.heading3, styles.sectionTitle]}>Latest Galleries</Text>
+            <ScrollView 
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.featuredContainer}
+            >
+              {galleries.slice(0, 5).map((gallery) => (
+                <FeaturedVenueCard
+                  key={gallery.id}
+                  venue={{
+                    id: gallery.id,
+                    name: gallery.name || 'Gallery',
+                    type: 'Gallery',
+                    imageUrl: gallery.image_url || 'https://images.unsplash.com/photo-1577720580479-7d839d829c73?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80',
+                    rating: 4.5,
+                    distance: '2.1 miles',
+                    openingHours: '10:00 AM - 6:00 PM',
+                    location: gallery.location || 'Gallery Location',
+                    admission: 'Free',
+                    featured: true,
+                    category: 'gallery',
+                    description: gallery.description || 'Art gallery'
+                  }}
                 />
               ))}
             </ScrollView>
