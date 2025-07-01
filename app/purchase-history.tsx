@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { StyleSheet, Text, View, FlatList, Alert } from "react-native";
+import { StyleSheet, Text, View, FlatList, Alert, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Stack, useRouter } from "expo-router";
 import { usePurchaseHistoryStore } from "@/store/usePurchaseHistoryStore";
@@ -20,9 +20,11 @@ export default function PurchaseHistoryScreen() {
   const purchases = user ? getCurrentUserPurchases() : [];
   
   // Sort purchases by date (newest first)
-  const sortedPurchases = [...purchases].sort((a, b) => 
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  const sortedPurchases = [...purchases].sort((a, b) => {
+    const dateA = new Date(a.date || 0).getTime();
+    const dateB = new Date(b.date || 0).getTime();
+    return dateB - dateA;
+  });
   
   // Log screen view
   useEffect(() => {
@@ -30,22 +32,32 @@ export default function PurchaseHistoryScreen() {
   }, []);
   
   const handlePurchasePress = (purchase: any) => {
-    // For now, just show purchase details in an alert
-    // In a real app, you'd navigate to a detailed purchase view
-    const itemsList = purchase.items.map((item: any) => 
-      `${item.name} (x${item.quantity}) - $${(item.price * item.quantity).toFixed(2)}`
-    ).join('\n');
-    
-    Alert.alert(
-      `Order #${purchase.id}`,
-      `Items:\n${itemsList}\n\nTotal: $${purchase.totalAmount.toFixed(2)}\nStatus: ${purchase.status}\nDate: ${new Date(purchase.date).toLocaleDateString()}`,
-      [{ text: "OK" }]
-    );
-    
-    Analytics.logEvent("purchase_history_item_press", {
-      purchase_id: purchase.id,
-      total_amount: purchase.totalAmount
-    });
+    try {
+      if (!purchase || !purchase.items || !Array.isArray(purchase.items)) {
+        Alert.alert("Error", "Invalid purchase data");
+        return;
+      }
+
+      // For now, just show purchase details in an alert
+      // In a real app, you'd navigate to a detailed purchase view
+      const itemsList = purchase.items.map((item: any) => 
+        `${item.name || 'Unknown Item'} (x${item.quantity || 1}) - $${((item.price || 0) * (item.quantity || 1)).toFixed(2)}`
+      ).join('\n');
+      
+      Alert.alert(
+        `Order #${purchase.id}`,
+        `Items:\n${itemsList}\n\nTotal: $${(purchase.totalAmount || 0).toFixed(2)}\nStatus: ${purchase.status || 'Unknown'}\nDate: ${new Date(purchase.date || Date.now()).toLocaleDateString()}`,
+        [{ text: "OK" }]
+      );
+      
+      Analytics.logEvent("purchase_history_item_press", {
+        purchase_id: purchase.id,
+        total_amount: purchase.totalAmount || 0
+      });
+    } catch (error) {
+      console.error("Error showing purchase details:", error);
+      Alert.alert("Error", "Unable to show purchase details");
+    }
   };
   
   const renderEmptyState = () => (
@@ -63,12 +75,22 @@ export default function PurchaseHistoryScreen() {
     />
   );
   
-  const renderPurchaseItem = ({ item }: { item: any }) => (
-    <PurchaseHistoryCard 
-      purchase={item} 
-      onPress={() => handlePurchasePress(item)}
-    />
-  );
+  const renderPurchaseItem = ({ item }: { item: any }) => {
+    if (!item) {
+      return (
+        <View style={styles.errorCard}>
+          <Text style={styles.errorText}>Invalid purchase record</Text>
+        </View>
+      );
+    }
+
+    return (
+      <PurchaseHistoryCard 
+        purchase={item} 
+        onPress={() => handlePurchasePress(item)}
+      />
+    );
+  };
   
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -76,16 +98,22 @@ export default function PurchaseHistoryScreen() {
       
       <FlatList
         data={sortedPurchases}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item, index) => item?.id || `purchase-${index}`}
         renderItem={renderPurchaseItem}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           purchases.length > 0 ? (
-            <Text style={[typography.heading1, styles.title]}>Your Purchases</Text>
+            <View style={styles.headerContainer}>
+              <Text style={[typography.heading1, styles.title]}>Your Purchases</Text>
+              <Text style={styles.subtitle}>
+                {purchases.length} {purchases.length === 1 ? "purchase" : "purchases"}
+              </Text>
+            </View>
           ) : null
         }
         ListEmptyComponent={renderEmptyState}
         showsVerticalScrollIndicator={false}
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
     </SafeAreaView>
   );
@@ -96,12 +124,35 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  title: {
+  headerContainer: {
     marginBottom: 20,
+  },
+  title: {
+    marginBottom: 4,
     color: colors.text,
+  },
+  subtitle: {
+    ...typography.body,
+    color: colors.textMuted,
   },
   listContent: {
     padding: 20,
     flexGrow: 1,
+  },
+  errorCard: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  errorText: {
+    ...typography.body,
+    color: colors.error,
+    textAlign: "center",
+    fontWeight: "600",
+  },
+  separator: {
+    height: 12,
   },
 });

@@ -48,6 +48,7 @@ const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onPress 
     return (
       <View style={styles.reservationCard}>
         <Text style={styles.errorText}>Venue not found</Text>
+        <Text style={styles.errorSubtext}>This venue may have been removed</Text>
       </View>
     );
   }
@@ -56,10 +57,10 @@ const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onPress 
     <TouchableOpacity style={styles.reservationCard} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.cardHeader}>
         <View style={styles.venueInfo}>
-          <Text style={styles.venueName}>{venue.name}</Text>
+          <Text style={styles.venueName} numberOfLines={2}>{venue.name}</Text>
           <View style={styles.locationContainer}>
             <MapPin size={14} color={colors.textSecondary} />
-            <Text style={styles.location}>{venue.location}</Text>
+            <Text style={styles.location} numberOfLines={1}>{venue.location}</Text>
           </View>
         </View>
         <View style={[
@@ -86,7 +87,7 @@ const ReservationCard: React.FC<ReservationCardProps> = ({ reservation, onPress 
         <View style={styles.detailRow}>
           <Clock size={16} color={colors.accent} />
           <Text style={styles.detailText}>
-            {reservation.time}
+            {reservation.time || "Time not specified"}
           </Text>
         </View>
         
@@ -121,6 +122,8 @@ export default function ReservationsScreen() {
   }, [user, fetchReservations]);
 
   const filteredReservations = reservations.filter(reservation => {
+    if (!reservation || !reservation.date) return false;
+    
     const reservationDate = new Date(reservation.date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -134,8 +137,23 @@ export default function ReservationsScreen() {
     return true;
   });
 
+  // Sort reservations by date (upcoming first for upcoming/all, newest first for past)
+  const sortedReservations = [...filteredReservations].sort((a, b) => {
+    const dateA = new Date(a.date).getTime();
+    const dateB = new Date(b.date).getTime();
+    
+    if (filter === "past") {
+      return dateB - dateA; // Newest first for past
+    }
+    return dateA - dateB; // Oldest first for upcoming/all
+  });
+
   const handleReservationPress = (reservation: Reservation) => {
-    router.push(`/venue/${reservation.venueId}`);
+    try {
+      router.push(`/venue/${reservation.venueId}`);
+    } catch (error) {
+      console.error("Error navigating to venue:", error);
+    }
   };
 
   const renderReservation = ({ item }: { item: Reservation }) => (
@@ -159,11 +177,11 @@ export default function ReservationsScreen() {
         filter === "upcoming" 
           ? "You don't have any upcoming reservations. Explore venues to make a booking."
           : filter === "past"
-          ? "You haven't made any reservations yet."
+          ? "You haven't completed any visits yet. Your past reservations will appear here."
           : "You haven't made any reservations yet. Explore venues to make your first booking."
       }
       action={
-        filter === "all" ? (
+        filter !== "past" ? (
           <Button
             title="Explore Venues"
             onPress={() => router.push("/(tabs)/explore")}
@@ -222,8 +240,8 @@ export default function ReservationsScreen() {
       </View>
 
       <FlatList
-        data={filteredReservations}
-        keyExtractor={(item) => item.id}
+        data={sortedReservations}
+        keyExtractor={(item, index) => item.id || `reservation-${index}`}
         renderItem={renderReservation}
         contentContainerStyle={styles.listContainer}
         showsVerticalScrollIndicator={false}
@@ -318,6 +336,7 @@ const styles = StyleSheet.create({
   location: {
     fontSize: 14,
     color: colors.textSecondary,
+    flex: 1,
   },
   statusBadge: {
     paddingHorizontal: 12,
@@ -392,5 +411,12 @@ const styles = StyleSheet.create({
     color: colors.error,
     textAlign: "center",
     padding: 16,
+    fontWeight: "600",
+  },
+  errorSubtext: {
+    fontSize: 12,
+    color: colors.textMuted,
+    textAlign: "center",
+    marginTop: 4,
   },
 });
