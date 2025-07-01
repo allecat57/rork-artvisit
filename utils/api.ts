@@ -112,11 +112,13 @@ export const querySupabase = async <T = any>(
       error: error instanceof Error ? error.message : 'Unknown error'
     });
 
-    // Show user-friendly error
-    Alert.alert(
-      "Connection Error", 
-      "Unable to fetch data. Please check your connection and try again."
-    );
+    // Show user-friendly error only in development
+    if (__DEV__) {
+      Alert.alert(
+        "Connection Error", 
+        "Unable to fetch data. Please check your connection and try again."
+      );
+    }
     
     return null;
   }
@@ -171,10 +173,12 @@ export const insertSupabase = async <T = any>(
       error: error instanceof Error ? error.message : 'Unknown error'
     });
 
-    Alert.alert(
-      "Save Error", 
-      "Unable to save data. Please try again."
-    );
+    if (__DEV__) {
+      Alert.alert(
+        "Save Error", 
+        "Unable to save data. Please try again."
+      );
+    }
     
     return null;
   }
@@ -245,10 +249,12 @@ export const updateSupabase = async <T = any>(
       error: error instanceof Error ? error.message : 'Unknown error'
     });
 
-    Alert.alert(
-      "Update Error", 
-      "Unable to update data. Please try again."
-    );
+    if (__DEV__) {
+      Alert.alert(
+        "Update Error", 
+        "Unable to update data. Please try again."
+      );
+    }
     
     return null;
   }
@@ -306,10 +312,12 @@ export const deleteSupabase = async (
       error: error instanceof Error ? error.message : 'Unknown error'
     });
 
-    Alert.alert(
-      "Delete Error", 
-      "Unable to delete data. Please try again."
-    );
+    if (__DEV__) {
+      Alert.alert(
+        "Delete Error", 
+        "Unable to delete data. Please try again."
+      );
+    }
     
     return false;
   }
@@ -351,25 +359,26 @@ export const executeSupabaseRPC = async <T = any>(
       error: error instanceof Error ? error.message : 'Unknown error'
     });
 
-    Alert.alert(
-      "Query Error", 
-      "Unable to execute query. Please try again."
-    );
+    if (__DEV__) {
+      Alert.alert(
+        "Query Error", 
+        "Unable to execute query. Please try again."
+      );
+    }
     
     return null;
   }
 };
 
 /**
- * Legacy function to replace sandbox API calls
- * @deprecated Use querySupabase instead
+ * Helper function to replace legacy sandbox API calls
  */
-export const replaceSandboxCall = async (
+export const migrateFromSandbox = async (
   sandboxId: string,
   queryType: string = 'query',
   params: any = {}
 ): Promise<any> => {
-  console.warn('replaceSandboxCall is deprecated. Use querySupabase instead.');
+  console.warn(`Migrating sandbox call: ${sandboxId} (${queryType})`);
   
   // Map common sandbox calls to Supabase queries
   switch (queryType) {

@@ -7,9 +7,7 @@ import {
   ActivityIndicator,
   Platform,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
-import typography from "@/constants/typography";
 import SearchBar from "@/components/SearchBar";
 import EventCard from "@/components/EventCard";
 import { useEventsStore } from "@/store/useEventsStore";
@@ -31,17 +29,17 @@ export default function EventsScreen() {
   } = useEventsStore();
   
   const { user } = useAuthStore();
-  const { getCurrentSubscription } = useProfileStore();
+  const { profile } = useProfileStore();
   
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Get current subscription to determine accessible events
-  const currentSubscription = getCurrentSubscription();
+  // Get subscription level from profile to prevent re-renders
+  const subscriptionLevel = useMemo(() => {
+    return profile?.subscription_name || 'free';
+  }, [profile?.subscription_name]);
   
   // Memoize accessible events to prevent infinite re-renders
   const accessibleEvents = useMemo(() => {
-    const subscriptionLevel = currentSubscription?.level || 'free';
-    
     // Filter events based on subscription level
     return allEvents.filter(event => {
       if (subscriptionLevel === 'collector') {
@@ -52,7 +50,7 @@ export default function EventsScreen() {
         return event.accessLevel === 'free';
       }
     });
-  }, [allEvents, currentSubscription?.level]);
+  }, [allEvents, subscriptionLevel]);
 
   // Memoize filtered events based on search query
   const filteredEvents = useMemo(() => {
@@ -68,10 +66,11 @@ export default function EventsScreen() {
     );
   }, [searchQuery, accessibleEvents]);
 
+  // Fetch events only once on mount
   useEffect(() => {
     console.log("EventsScreen: Component mounted, fetching events...");
     fetchEvents();
-  }, [fetchEvents]);
+  }, []); // Remove fetchEvents from dependencies to prevent loops
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);

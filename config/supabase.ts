@@ -4,9 +4,6 @@ import { createClient } from '@supabase/supabase-js';
 export const SUPABASE_URL = 'https://ypbenhervlquswwacmuj.supabase.co';
 export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlwYmVuaGVydmxxdXN3d2FjbXVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDc3NTE4MjUsImV4cCI6MjA2MzMyNzgyNX0.uTiKbj-Zj2_nUOOebKHDYSi5fb4T-x_V9ryr52r2UiA';
 
-// Create Supabase client
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
 // Database table names
 export const TABLES = {
   PROFILES: 'profiles',
@@ -123,9 +120,57 @@ export interface Database {
           updated_at?: string;
         };
       };
+      events: {
+        Row: {
+          id: string;
+          title: string;
+          description?: string;
+          date: string;
+          location: string;
+          price: number;
+          capacity: number;
+          remaining_spots: number;
+          image_url?: string;
+          type: string;
+          access_level: 'free' | 'essential' | 'collector';
+          tags?: string[];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          title: string;
+          description?: string;
+          date: string;
+          location: string;
+          price?: number;
+          capacity: number;
+          remaining_spots?: number;
+          image_url?: string;
+          type: string;
+          access_level?: 'free' | 'essential' | 'collector';
+          tags?: string[];
+        };
+        Update: {
+          title?: string;
+          description?: string;
+          date?: string;
+          location?: string;
+          price?: number;
+          capacity?: number;
+          remaining_spots?: number;
+          image_url?: string;
+          type?: string;
+          access_level?: 'free' | 'essential' | 'collector';
+          tags?: string[];
+          updated_at?: string;
+        };
+      };
     };
   };
 }
+
+// Create Supabase client
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Helper function to check if Supabase is properly configured
 export const isSupabaseConfigured = (): boolean => {
@@ -188,40 +233,45 @@ export const updateUserProfile = async (userId: string, updates: Database['publi
 
 // Gallery-specific helper functions
 export const fetchGalleries = async (featured?: boolean) => {
-  if (featured) {
-    // Use the custom SQL query for featured galleries
-    const { data, error } = await supabase
-      .from(TABLES.GALLERIES)
-      .select(`
-        *,
-        featured_galleries!inner(
-          is_active,
-          expires_at
-        )
-      `)
-      .eq('featured_galleries.is_active', true)
-      .or('featured_galleries.expires_at.is.null,featured_galleries.expires_at.gt.now()')
-      .order('created_at', { ascending: false });
-    
-    if (error) {
-      console.error('Error fetching featured galleries:', error);
-      throw error;
+  try {
+    if (featured) {
+      // Use the custom SQL query for featured galleries
+      const { data, error } = await supabase
+        .from(TABLES.GALLERIES)
+        .select(`
+          *,
+          featured_galleries!inner(
+            is_active,
+            expires_at
+          )
+        `)
+        .eq('featured_galleries.is_active', true)
+        .or('featured_galleries.expires_at.is.null,featured_galleries.expires_at.gt.now()')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching featured galleries:', error);
+        throw error;
+      }
+      
+      return data;
+    } else {
+      // Fetch all galleries
+      const { data, error } = await supabase
+        .from(TABLES.GALLERIES)
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching galleries:', error);
+        throw error;
+      }
+      
+      return data;
     }
-    
-    return data;
-  } else {
-    // Fetch all galleries
-    const { data, error } = await supabase
-      .from(TABLES.GALLERIES)
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (error) {
-      console.error('Error fetching galleries:', error);
-      throw error;
-    }
-    
-    return data;
+  } catch (error) {
+    console.error('Error in fetchGalleries:', error);
+    throw error;
   }
 };
 
@@ -325,6 +375,53 @@ export const removeFeaturedGallery = async (galleryId: string) => {
     console.error('Error removing featured gallery:', error);
     throw error;
   }
+};
+
+// Events helper functions
+export const fetchEvents = async (accessLevel?: 'free' | 'essential' | 'collector') => {
+  try {
+    let query = supabase
+      .from(TABLES.EVENTS)
+      .select('*')
+      .order('date', { ascending: true });
+
+    if (accessLevel) {
+      // Filter events based on access level
+      if (accessLevel === 'free') {
+        query = query.eq('access_level', 'free');
+      } else if (accessLevel === 'essential') {
+        query = query.in('access_level', ['free', 'essential']);
+      }
+      // collector can see all events, so no filter needed
+    }
+
+    const { data, error } = await query;
+    
+    if (error) {
+      console.error('Error fetching events:', error);
+      throw error;
+    }
+    
+    return data;
+  } catch (error) {
+    console.error('Error in fetchEvents:', error);
+    throw error;
+  }
+};
+
+export const fetchEventById = async (id: string) => {
+  const { data, error } = await supabase
+    .from(TABLES.EVENTS)
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching event:', error);
+    throw error;
+  }
+  
+  return data;
 };
 
 export default supabase;

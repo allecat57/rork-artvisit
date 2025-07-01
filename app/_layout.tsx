@@ -3,12 +3,11 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { StripeProvider } from "@/context/StripeContext";
-import { initializeMigrationDetection } from "@/utils/migrateSandboxCalls";
 
 function RootLayoutContent() {
   useEffect(() => {
-    // Initialize sandbox call detection in development
-    initializeMigrationDetection();
+    // Initialize any app-level setup here
+    console.log("App initialized");
   }, []);
 
   return (

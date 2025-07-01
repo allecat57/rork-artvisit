@@ -2,10 +2,10 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Event, EventRegistration, AccessLevel } from "@/types/event";
-import { events, getEventsByAccessLevel, getFeaturedEventsByAccessLevel, getUpcomingEventsByAccessLevel } from "@/mocks/events";
+import { events } from "@/mocks/events";
 import { generateConfirmationCode } from "@/utils/generateConfirmationCode";
 import * as Analytics from "@/utils/analytics";
-import { supabase, isSupabaseConfigured, TABLES } from "@/config/supabase";
+import { supabase, isSupabaseConfigured, fetchEvents as fetchEventsFromSupabase } from "@/config/supabase";
 
 interface EventsState {
   // Event data
@@ -27,7 +27,7 @@ interface EventsState {
 export const useEventsStore = create<EventsState>()(
   persist(
     (set, get) => ({
-      allEvents: events,
+      allEvents: [],
       registrations: [],
       loading: false,
       
@@ -48,19 +48,59 @@ export const useEventsStore = create<EventsState>()(
       },
       
       fetchEvents: async () => {
+        const currentState = get();
+        if (currentState.loading) {
+          console.log("Already loading events, skipping...");
+          return;
+        }
+
         set({ loading: true });
         
         try {
           console.log("Fetching events...");
           
-          // Simulate network delay
-          await new Promise(resolve => setTimeout(resolve, 500));
+          if (isSupabaseConfigured()) {
+            try {
+              console.log("Fetching events from Supabase...");
+              const supabaseEvents = await fetchEventsFromSupabase();
+              
+              if (supabaseEvents && supabaseEvents.length > 0) {
+                // Transform Supabase events to match our Event type
+                const transformedEvents: Event[] = supabaseEvents.map(event => ({
+                  id: event.id,
+                  title: event.title,
+                  description: event.description || '',
+                  date: event.date,
+                  location: event.location,
+                  price: event.price,
+                  capacity: event.capacity,
+                  remainingSpots: event.remaining_spots,
+                  imageUrl: event.image_url,
+                  type: event.type,
+                  accessLevel: event.access_level as AccessLevel,
+                  tags: event.tags || []
+                }));
+                
+                set({ allEvents: transformedEvents, loading: false });
+                console.log(`✅ Loaded ${transformedEvents.length} events from Supabase`);
+                
+                Analytics.logEvent("fetch_events", {
+                  count: transformedEvents.length,
+                  source: "supabase"
+                });
+                return;
+              }
+            } catch (supabaseError) {
+              console.warn("Failed to fetch from Supabase, falling back to mock data:", supabaseError);
+            }
+          }
           
+          // Fallback to mock data
+          console.log("Using mock events data");
           set({ allEvents: events, loading: false });
           
-          console.log(`✅ Loaded ${events.length} events successfully`);
+          console.log(`✅ Loaded ${events.length} events from mock data`);
           
-          // Log analytics event
           Analytics.logEvent("fetch_events", {
             count: events.length,
             source: "mock"
@@ -72,7 +112,6 @@ export const useEventsStore = create<EventsState>()(
           // Fall back to mock data on any error
           set({ allEvents: events, loading: false });
           
-          // Log analytics event
           Analytics.logEvent("fetch_events_error", {
             error: errorMessage,
             fallback_count: events.length
@@ -139,7 +178,6 @@ export const useEventsStore = create<EventsState>()(
             registrations: [...state.registrations, registration]
           }));
           
-          // Log analytics event
           Analytics.logEvent("register_for_event", {
             event_id: eventId,
             user_id: userId,
@@ -153,7 +191,6 @@ export const useEventsStore = create<EventsState>()(
           const errorMessage = error instanceof Error ? error.message : String(error);
           console.error("❌ Error in registerForEvent:", errorMessage);
           
-          // Log analytics event
           Analytics.logEvent("register_for_event_error", {
             event_id: eventId,
             error: errorMessage
@@ -199,7 +236,6 @@ export const useEventsStore = create<EventsState>()(
             )
           }));
           
-          // Log analytics event
           Analytics.logEvent("cancel_registration", {
             event_id: eventId,
             user_id: userId,
@@ -212,7 +248,6 @@ export const useEventsStore = create<EventsState>()(
           const errorMessage = error instanceof Error ? error.message : String(error);
           console.error("❌ Error in cancelRegistration:", errorMessage);
           
-          // Log analytics event
           Analytics.logEvent("cancel_registration_error", {
             event_id: eventId,
             error: errorMessage
@@ -224,7 +259,11 @@ export const useEventsStore = create<EventsState>()(
     }),
     {
       name: "events-storage",
-      storage: createJSONStorage(() => AsyncStorage)
+      storage: createJSONStorage(() => AsyncStorage),
+      partialize: (state) => ({
+        // Only persist registrations, not events or loading state
+        registrations: state.registrations
+      })
     }
   )
 );

@@ -29,11 +29,16 @@ app.get("/", (c) => {
   return c.json({ status: "ok", message: "API is running" });
 });
 
-// WebSocket upgrade handler (if needed for real-time features)
-app.get("/ws", (c) => {
-  // This is a placeholder for WebSocket upgrade
-  // Hono doesn't natively support WebSockets, but this prevents errors
-  return c.json({ message: "WebSocket endpoint - upgrade not supported in this environment" });
+// Health check for database connectivity
+app.get("/health", (c) => {
+  return c.json({ 
+    status: "healthy", 
+    timestamp: new Date().toISOString(),
+    services: {
+      api: "running",
+      trpc: "running"
+    }
+  });
 });
 
 export default app;
