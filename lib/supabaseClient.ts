@@ -1,5 +1,13 @@
 // Supabase client specifically for gallery operations
-import { supabase } from '@/config/supabase';
+import { supabase, fetchGalleries, fetchGalleryById, createGallery, updateGallery, deleteGallery } from '@/config/supabase';
 
-export { supabase };
+export { 
+  supabase,
+  fetchGalleries,
+  fetchGalleryById,
+  createGallery,
+  updateGallery,
+  deleteGallery
+};
+
 export default supabase;

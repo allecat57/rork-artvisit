@@ -10,6 +10,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // Database table names
 export const TABLES = {
   PROFILES: 'profiles',
+  GALLERIES: 'galleries',
   VENUES: 'venues',
   EVENTS: 'events',
   RESERVATIONS: 'reservations',
@@ -61,6 +62,42 @@ export interface Database {
           subscription_price?: number;
           subscription_renewal_date?: string;
           stripe_customer_id?: string;
+          updated_at?: string;
+        };
+      };
+      galleries: {
+        Row: {
+          id: string;
+          name: string;
+          location: string;
+          description?: string;
+          image_url?: string;
+          rating?: number;
+          hours?: string;
+          category?: string;
+          featured: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          name: string;
+          location: string;
+          description?: string;
+          image_url?: string;
+          rating?: number;
+          hours?: string;
+          category?: string;
+          featured?: boolean;
+        };
+        Update: {
+          name?: string;
+          location?: string;
+          description?: string;
+          image_url?: string;
+          rating?: number;
+          hours?: string;
+          category?: string;
+          featured?: boolean;
           updated_at?: string;
         };
       };
@@ -125,6 +162,92 @@ export const updateUserProfile = async (userId: string, updates: Database['publi
   }
   
   return data;
+};
+
+// Gallery-specific helper functions
+export const fetchGalleries = async (featured?: boolean) => {
+  let query = supabase
+    .from(TABLES.GALLERIES)
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if (featured !== undefined) {
+    query = query.eq('featured', featured);
+  }
+  
+  const { data, error } = await query;
+  
+  if (error) {
+    console.error('Error fetching galleries:', error);
+    throw error;
+  }
+  
+  return data;
+};
+
+export const fetchGalleryById = async (id: string) => {
+  const { data, error } = await supabase
+    .from(TABLES.GALLERIES)
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (error) {
+    console.error('Error fetching gallery:', error);
+    throw error;
+  }
+  
+  return data;
+};
+
+export const createGallery = async (gallery: Database['public']['Tables']['galleries']['Insert']) => {
+  const { data, error } = await supabase
+    .from(TABLES.GALLERIES)
+    .insert({
+      ...gallery,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error creating gallery:', error);
+    throw error;
+  }
+  
+  return data;
+};
+
+export const updateGallery = async (id: string, updates: Database['public']['Tables']['galleries']['Update']) => {
+  const { data, error } = await supabase
+    .from(TABLES.GALLERIES)
+    .update({
+      ...updates,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error('Error updating gallery:', error);
+    throw error;
+  }
+  
+  return data;
+};
+
+export const deleteGallery = async (id: string) => {
+  const { error } = await supabase
+    .from(TABLES.GALLERIES)
+    .delete()
+    .eq('id', id);
+  
+  if (error) {
+    console.error('Error deleting gallery:', error);
+    throw error;
+  }
 };
 
 export default supabase;

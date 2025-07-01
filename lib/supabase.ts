@@ -1,12 +1,30 @@
 // Re-export supabase client and utilities from config
-import { supabase, TABLES, isSupabaseConfigured, fetchTodos, createTodo, updateTodo, deleteTodo } from '@/config/supabase';
+import { 
+  supabase, 
+  TABLES, 
+  isSupabaseConfigured,
+  fetchGalleries,
+  fetchGalleryById,
+  createGallery,
+  updateGallery,
+  deleteGallery,
+  getCurrentUser,
+  signOut,
+  getUserProfile,
+  updateUserProfile
+} from '@/config/supabase';
 
 export { 
   supabase, 
   TABLES, 
   isSupabaseConfigured,
-  fetchTodos,
-  createTodo,
-  updateTodo,
-  deleteTodo
+  fetchGalleries,
+  fetchGalleryById,
+  createGallery,
+  updateGallery,
+  deleteGallery,
+  getCurrentUser,
+  signOut,
+  getUserProfile,
+  updateUserProfile
 };

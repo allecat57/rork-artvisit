@@ -10,7 +10,7 @@ import {
   ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { MapPin, Clock, Star, Search, ShoppingBag, Calendar, User } from "lucide-react-native";
+import { MapPin, Clock, Star, Search, ShoppingBag, Calendar, User, RefreshCw } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import { useGalleries } from "@/hooks/useGalleries";
@@ -38,7 +38,7 @@ const QuickAction: React.FC<QuickActionProps> = ({ icon, title, onPress }) => (
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { galleries, loading } = useGalleries();
+  const { galleries, loading, error, refetch, isUsingMockData } = useGalleries(true); // Only fetch featured galleries
 
   const handleGalleryPress = (galleryId: string) => {
     if (galleryId) {
@@ -80,7 +80,7 @@ export default function HomeScreen() {
           <Text style={styles.galleryName}>{item.name}</Text>
           <View style={styles.ratingContainer}>
             <Star size={14} color={colors.accent} fill={colors.accent} />
-            <Text style={styles.rating}>4.8</Text>
+            <Text style={styles.rating}>{item.rating || 4.8}</Text>
           </View>
         </View>
         
@@ -98,9 +98,9 @@ export default function HomeScreen() {
         <View style={styles.metaContainer}>
           <View style={styles.hoursContainer}>
             <Clock size={12} color={colors.textSecondary} />
-            <Text style={styles.hours}>Open today 10AM - 6PM</Text>
+            <Text style={styles.hours}>{item.hours || "Open today 10AM - 6PM"}</Text>
           </View>
-          <Text style={styles.category}>Gallery</Text>
+          <Text style={styles.category}>{item.category || "Gallery"}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -110,8 +110,48 @@ export default function HomeScreen() {
     <View style={styles.emptyState}>
       <Text style={styles.emptyTitle}>No Galleries Found</Text>
       <Text style={styles.emptyDescription}>
-        Check back later for new gallery listings
+        {isUsingMockData 
+          ? "Using sample data. Connect to Supabase to see real galleries."
+          : "Check back later for new gallery listings"
+        }
       </Text>
+      {!isUsingMockData && (
+        <TouchableOpacity style={styles.retryButton} onPress={refetch}>
+          <RefreshCw size={16} color={colors.accent} />
+          <Text style={styles.retryText}>Try Again</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
+  const renderHeader = () => (
+    <View style={styles.headerContainer}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Discover Art</Text>
+        <Text style={styles.headerSubtitle}>
+          Explore galleries, events, and art collections
+        </Text>
+      </View>
+      
+      {isUsingMockData && (
+        <View style={styles.mockDataBanner}>
+          <Text style={styles.mockDataText}>
+            📱 Using sample data - Connect Supabase for live galleries
+          </Text>
+        </View>
+      )}
+
+      {error && (
+        <View style={styles.errorBanner}>
+          <Text style={styles.errorText}>
+            ⚠️ {error}
+          </Text>
+          <TouchableOpacity style={styles.retryButton} onPress={refetch}>
+            <RefreshCw size={14} color={colors.accent} />
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 
@@ -127,13 +167,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Discover Art</Text>
-          <Text style={styles.headerSubtitle}>
-            Explore galleries, events, and art collections
-          </Text>
-        </View>
+        {renderHeader()}
 
         {/* Quick Actions */}
         <View style={styles.quickActionsContainer}>
@@ -184,10 +218,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  header: {
+  headerContainer: {
     paddingHorizontal: 24,
     paddingTop: 20,
-    paddingBottom: 32,
+  },
+  header: {
+    paddingBottom: 16,
   },
   headerTitle: {
     fontSize: 32,
@@ -200,6 +236,50 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.textSecondary,
     lineHeight: 24,
+  },
+  mockDataBanner: {
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  mockDataText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: "center",
+  },
+  errorBanner: {
+    backgroundColor: "#FEF2F2",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#FECACA",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  errorText: {
+    fontSize: 14,
+    color: "#DC2626",
+    flex: 1,
+    marginRight: 12,
+  },
+  retryButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: colors.surface,
+  },
+  retryText: {
+    fontSize: 12,
+    color: colors.accent,
+    fontWeight: "600",
   },
   quickActionsContainer: {
     paddingHorizontal: 24,
@@ -356,5 +436,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     textAlign: "center",
+    marginBottom: 16,
   },
 });
