@@ -1,11 +1,11 @@
 /**
- * Format a date string to a human-readable date format
- * @param dateString ISO date string
+ * Format a date string or Date object to a human-readable date format
+ * @param date ISO date string or Date object
  * @returns Formatted date string (e.g., "Monday, January 1, 2023")
  */
-export const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString(undefined, { 
+export const formatDate = (date: string | Date): string => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  return dateObj.toLocaleDateString(undefined, { 
     weekday: "long", 
     month: "long", 
     day: "numeric",
@@ -14,26 +14,26 @@ export const formatDate = (dateString: string): string => {
 };
 
 /**
- * Format a date string to a human-readable time format
- * @param dateString ISO date string
+ * Format a date string or Date object to a human-readable time format
+ * @param date ISO date string or Date object
  * @returns Formatted time string (e.g., "7:30 PM")
  */
-export const formatTime = (dateString: string): string => {
-  const date = new Date(dateString);
-  return date.toLocaleTimeString(undefined, { 
+export const formatTime = (date: string | Date): string => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  return dateObj.toLocaleTimeString(undefined, { 
     hour: "numeric", 
     minute: "2-digit"
   });
 };
 
 /**
- * Format a date string to a short date format
- * @param dateString ISO date string
+ * Format a date string or Date object to a short date format
+ * @param date ISO date string or Date object
  * @returns Formatted date string (e.g., "Jan 1, 2023")
  */
-export const formatShortDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString(undefined, { 
+export const formatShortDate = (date: string | Date): string => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  return dateObj.toLocaleDateString(undefined, { 
     month: "short", 
     day: "numeric",
     year: "numeric"
@@ -42,14 +42,14 @@ export const formatShortDate = (dateString: string): string => {
 
 /**
  * Get relative time from now (e.g., "2 days ago", "in 3 hours")
- * @param dateString ISO date string
+ * @param date ISO date string or Date object
  * @returns Relative time string
  */
-export const getRelativeTime = (dateString: string): string => {
-  const date = new Date(dateString);
+export const getRelativeTime = (date: string | Date): string => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
   const now = new Date();
   
-  const diffMs = date.getTime() - now.getTime();
+  const diffMs = dateObj.getTime() - now.getTime();
   const diffSec = Math.round(diffMs / 1000);
   const diffMin = Math.round(diffSec / 60);
   const diffHour = Math.round(diffMin / 60);
@@ -74,24 +74,24 @@ export const getRelativeTime = (dateString: string): string => {
 
 /**
  * Check if a date is in the past
- * @param dateString ISO date string
+ * @param date ISO date string or Date object
  * @returns Boolean indicating if the date is in the past
  */
-export const isPastDate = (dateString: string): boolean => {
-  const date = new Date(dateString);
+export const isPastDate = (date: string | Date): boolean => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
   const now = new Date();
-  return date < now;
+  return dateObj < now;
 };
 
 /**
  * Check if a date is today
- * @param dateString ISO date string
+ * @param date ISO date string or Date object
  * @returns Boolean indicating if the date is today
  */
-export const isToday = (dateString: string): boolean => {
-  const date = new Date(dateString);
+export const isToday = (date: string | Date): boolean => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
   const now = new Date();
-  return date.getDate() === now.getDate() &&
-    date.getMonth() === now.getMonth() &&
-    date.getFullYear() === now.getFullYear();
+  return dateObj.getDate() === now.getDate() &&
+    dateObj.getMonth() === now.getMonth() &&
+    dateObj.getFullYear() === now.getFullYear();
 };

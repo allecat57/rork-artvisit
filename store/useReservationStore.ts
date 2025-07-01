@@ -7,6 +7,7 @@ import * as Analytics from '@/utils/analytics';
 interface ReservationState {
   reservations: Reservation[];
   isLoading: boolean;
+  loading: boolean; // Alias for isLoading for backward compatibility
   error: string | null;
   
   // Actions
@@ -17,6 +18,7 @@ interface ReservationState {
   getReservationsByStatus: (status: ReservationStatus) => Reservation[];
   getUpcomingReservations: () => Reservation[];
   getPastReservations: () => Reservation[];
+  fetchReservations: (userId: string) => Promise<void>;
   clearReservations: () => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -27,6 +29,9 @@ export const useReservationStore = create<ReservationState>()(
     (set, get) => ({
       reservations: [],
       isLoading: false,
+      get loading() {
+        return get().isLoading;
+      },
       error: null,
 
       addReservation: (reservation: Reservation) => {
@@ -101,6 +106,42 @@ export const useReservationStore = create<ReservationState>()(
           const reservationDate = new Date(reservation.date);
           return reservationDate < now;
         }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      },
+
+      fetchReservations: async (userId: string) => {
+        set({ isLoading: true, error: null });
+        
+        try {
+          // Simulate API call - replace with actual API call
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          // For now, we'll just use the existing reservations
+          // In a real app, this would fetch from an API
+          const existingReservations = get().reservations;
+          
+          set({ 
+            reservations: existingReservations,
+            isLoading: false,
+            error: null 
+          });
+          
+          // Log analytics
+          Analytics.logEvent('reservations_fetched', {
+            user_id: userId,
+            count: existingReservations.length,
+          });
+        } catch (error) {
+          set({ 
+            isLoading: false, 
+            error: error instanceof Error ? error.message : 'Failed to fetch reservations' 
+          });
+          
+          // Log analytics
+          Analytics.logEvent('reservations_fetch_error', {
+            user_id: userId,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          });
+        }
       },
 
       clearReservations: () => {
