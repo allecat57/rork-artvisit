@@ -110,7 +110,7 @@ export const useGalleries = (featured?: boolean) => {
         
         setLoading(false);
       } catch (err) {
-        console.warn("Failed to fetch galleries from Supabase, using mock data:", err instanceof Error ? err.message : err);
+        console.warn("Failed to fetch galleries from Supabase, using mock data:", err);
         setError(err instanceof Error ? err.message : "Failed to fetch galleries");
         setLoading(false);
         // Keep using filtered mock galleries on error
@@ -143,7 +143,7 @@ export const useGalleries = (featured?: boolean) => {
       
       setLoading(false);
     } catch (err) {
-      console.warn("Failed to refetch galleries:", err instanceof Error ? err.message : err);
+      console.warn("Failed to refetch galleries:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch galleries");
       setLoading(false);
     }

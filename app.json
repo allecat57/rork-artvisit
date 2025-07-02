@@ -16,17 +16,13 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "space.timeframe",
-      "googleServicesFile": "./ios/GoogleService-Info.plist",
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
-      }
+      "googleServicesFile": "./ios/GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#013025"
-      },
-      "package": "space.timeframe"
+      }
     },
     "plugins": [
       "expo-router"
@@ -36,12 +32,6 @@
     },
     "assetBundlePatterns": [
       "**/*"
-    ],
-    "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "8ecb629b-6dc0-450d-adc8-48f865e51bc3"
-      }
-    }
+    ]
   }
 }

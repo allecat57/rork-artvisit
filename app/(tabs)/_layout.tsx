@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
-import { Home, Search, ShoppingBag, Calendar, User, Image } from 'lucide-react-native';
+import { Home, Search, ShoppingBag, Calendar, User } from 'lucide-react-native';
 import colors from '@/constants/colors';
 
 export default function TabLayout() {
@@ -46,14 +46,6 @@ export default function TabLayout() {
           title: 'Discover',
           headerTitle: 'Discover Art',
           tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="galleries"
-        options={{
-          title: 'Galleries',
-          headerTitle: 'All Galleries',
-          tabBarIcon: ({ color, size }) => <Image size={size} color={color} />,
         }}
       />
       <Tabs.Screen
