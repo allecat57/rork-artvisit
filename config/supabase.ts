@@ -243,26 +243,26 @@ export const fetchGalleries = async (featured?: boolean) => {
     if (featured) {
       // Use the custom SQL query for featured galleries
       const now = new Date().toISOString();
-      const { data, error } = await supabase
+     const { data, error } = await supabase
         .from(TABLES.GALLERIES)
-        .select(`
-          *,
-          featured_galleries!inner(
-            is_active,
-            expires_at
-          )
+         .select(`
+                *,
+        featured_galleries!inner(
+          is_active,
+          expires_at
+        )
         `)
-       .eq('featured_galleries.is_active', true)
-.or(`featured_galleries.expires_at.is.null,featured_galleries.expires_at.gt.${now}`)
+        .eq('featured_galleries.is_active', true)
+        .or(`featured_galleries.expires_at.is.null,featured_galleries.expires_at.gt."${now}"`)
         .order('created_at', { ascending: false });
-      
-            if (error) {
+
+      if (error) {
         console.error('Error fetching featured galleries:', error);
         throw error;
       }
 
       return data;
-    } else {
+  } else {
       // Fetch all galleries
       const { data, error } = await supabase
         .from(TABLES.GALLERIES)
