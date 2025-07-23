@@ -277,8 +277,13 @@ export const fetchGalleries = async (featured?: boolean) => {
       return data;
     }
   } catch (error) {
-    console.error('Error in fetchGalleries:', error);
-    throw error;
+  if (error instanceof Error) {
+    console.error('Error in fetchGalleries:', error.message);
+  } else {
+    console.error('Error in fetchGalleries:', JSON.stringify(error, null, 2));
+  }
+  throw error;
+}
   }
 };
 
