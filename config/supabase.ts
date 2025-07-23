@@ -256,11 +256,11 @@ export const fetchGalleries = async (featured?: boolean) => {
 .or(`featured_galleries.expires_at.is.null,featured_galleries.expires_at.gt.${now}`)
         .order('created_at', { ascending: false });
       
-      if (error) {
+            if (error) {
         console.error('Error fetching featured galleries:', error);
         throw error;
       }
-      
+
       return data;
     } else {
       // Fetch all galleries
@@ -268,22 +268,23 @@ export const fetchGalleries = async (featured?: boolean) => {
         .from(TABLES.GALLERIES)
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) {
         console.error('Error fetching galleries:', error);
         throw error;
       }
-      
+
       return data;
     }
   } catch (error) {
-  if (error instanceof Error) {
-    console.error('Error in fetchGalleries:', error.message);
-  } else {
-    console.error('Error in fetchGalleries:', JSON.stringify(error, null, 2));
-  throw error;
+    if (error instanceof Error) {
+      console.error('Error in fetchGalleries:', error.message);
+    } else {
+      console.error('Error in fetchGalleries:', JSON.stringify(error, null, 2));
+    }
+    throw error; // ✅ This line was misplaced before
   }
-  };
+}; // ✅ Close the fetchGalleries function properly
 
 export const fetchGalleryById = async (id: string) => {
   const { data, error } = await supabase
