@@ -253,7 +253,7 @@ export const fetchGalleries = async (featured?: boolean) => {
         )
         `)
         .eq('featured_galleries.is_active', true)
-        .or(`featured_galleries.expires_at.is.null,featured_galleries.expires_at.gt."${now}"`)
+        .or(`featured_galleries.expires_at.is.null,featured_galleries.expires_at.gt.${now}`)
         .order('created_at', { ascending: false });
 
       if (error) {
