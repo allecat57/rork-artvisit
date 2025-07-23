@@ -1,115 +1,33 @@
-import React from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  FlatList,
-  ActivityIndicator,
-  TouchableOpacity,
-  Platform,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import React, { useEffect } from "react";
+import { View, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
-import { MapPin, Clock, Star } from "lucide-react-native";
+import { useAuthStore } from "@/store/useAuthStore";
 import colors from "@/constants/colors";
-import typography from "@/constants/typography";
-import { useGalleries } from "@/hooks/useGalleries";
 
-const fontFamily = Platform.select({
-  ios: "Georgia",
-  android: "serif",
-  default: "Georgia, serif",
-});
-
-export default function HomeScreen() {
+export default function LaunchScreen() {
   const router = useRouter();
-  const { galleries, loading } = useGalleries();
+  const { isAuthenticated, isHydrated } = useAuthStore();
 
-  const handleGalleryPress = (galleryId: string) => {
-    if (galleryId) {
-      router.push(`/gallery/${galleryId}`);
+  useEffect(() => {
+    if (isHydrated) {
+      if (isAuthenticated) {
+        router.replace("/(tabs)");
+      } else {
+        router.replace("/login");
+      }
     }
-  };
+  }, [isAuthenticated, isHydrated, router]);
 
-  const renderGalleryItem = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      style={styles.galleryCard}
-      onPress={() => handleGalleryPress(item.id)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.cardContent}>
-        <View style={styles.galleryHeader}>
-          <Text style={styles.galleryName}>{item.name}</Text>
-          <View style={styles.ratingContainer}>
-            <Star size={14} color={colors.accent} fill={colors.accent} />
-            <Text style={styles.rating}>4.8</Text>
-          </View>
-        </View>
-        
-        <View style={styles.locationContainer}>
-          <MapPin size={14} color={colors.textSecondary} />
-          <Text style={styles.location}>{item.location}</Text>
-        </View>
-        
-        {item.description && (
-          <Text style={styles.description} numberOfLines={2}>
-            {item.description}
-          </Text>
-        )}
-        
-        <View style={styles.metaContainer}>
-          <View style={styles.hoursContainer}>
-            <Clock size={12} color={colors.textSecondary} />
-            <Text style={styles.hours}>Open today 10AM - 6PM</Text>
-          </View>
-          <Text style={styles.category}>Gallery</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <Text style={styles.emptyTitle}>No Galleries Found</Text>
-      <Text style={styles.emptyDescription}>
-        Check back later for new gallery listings
-      </Text>
-    </View>
-  );
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.mainTitle}>Art Galleries</Text>
-        </View>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.accent} />
-          <Text style={styles.loadingText}>Loading galleries...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
+  // Show loading screen while checking auth status
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.mainTitle}>Art Galleries</Text>
-        <Text style={styles.subtitle}>
-          Discover {galleries.length} curated spaces
-        </Text>
-      </View>
-      
-      <FlatList
-        data={galleries}
-        keyExtractor={(item) => item.id}
-        renderItem={renderGalleryItem}
-        contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={renderEmptyState}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
-    </SafeAreaView>
+    <View style={{
+      flex: 1,
+      backgroundColor: colors.background,
+      justifyContent: "center",
+      alignItems: "center",
+    }}>
+      <ActivityIndicator size="large" color={colors.accent} />
+    </View>
   );
 }
 

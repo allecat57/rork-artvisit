@@ -394,9 +394,19 @@ export const useAuthStore = create<AuthState>()(
             if (state.user) {
               Analytics.setUserId(state.user.id);
             }
+          } else {
+            // Even if state is null, we need to mark as hydrated
+            // This will be handled by the store initialization
+            setTimeout(() => {
+              useAuthStore.setState({ isHydrated: true });
+            }, 0);
           }
         } catch (error) {
           console.warn("Error during auth store rehydration:", error);
+          // Ensure hydration is marked as complete even on error
+          setTimeout(() => {
+            useAuthStore.setState({ isHydrated: true });
+          }, 0);
         }
       }
     }
