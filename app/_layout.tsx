@@ -3,15 +3,22 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { ThemeProvider } from "@/context/ThemeContext";
 import { StripeProvider } from "@/context/StripeContext";
+import { useAuthStore } from "@/store/useAuthStore";
 
 function RootLayoutContent() {
+  const { ensureTestUserExists } = useAuthStore();
+
   useEffect(() => {
     // Initialize any app-level setup here
     console.log("App initialized");
-  }, []);
+    
+    // Ensure test user exists for demo purposes
+    ensureTestUserExists();
+  }, [ensureTestUserExists]);
 
   return (
     <Stack>
+      <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="modal" options={{ presentation: "modal" }} />
       <Stack.Screen name="login" options={{ headerShown: false }} />
