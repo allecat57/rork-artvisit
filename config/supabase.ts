@@ -362,9 +362,9 @@ export const addFeaturedGallery = async (galleryId: string, expiresAt?: string) 
     .single();
   
   if (error) {
-    console.error('Error adding featured gallery:', error);
-    throw error;
-  }
+  console.error('Error adding featured gallery:', JSON.stringify(error, null, 2));
+  throw error;
+}
   
   return data;
 };
