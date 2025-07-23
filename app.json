@@ -16,63 +16,16 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "space.timeframe",
-      "googleServicesFile": "./ios/GoogleService-Info.plist",
-      "infoPlist": {
-        "NSCalendarsUsageDescription": "Allow $(PRODUCT_NAME) to access your calendar",
-        "NSRemindersUsageDescription": "Allow $(PRODUCT_NAME) to access your reminders",
-        "NSPhotoLibraryUsageDescription": "Allow $(PRODUCT_NAME) to access your photos",
-        "NSCameraUsageDescription": "Allow $(PRODUCT_NAME) to access your camera",
-        "NSMicrophoneUsageDescription": "Allow $(PRODUCT_NAME) to access your microphone",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Allow $(PRODUCT_NAME) to use your location.",
-        "NSLocationAlwaysUsageDescription": "Allow $(PRODUCT_NAME) to use your location.",
-        "NSLocationWhenInUseUsageDescription": "Allow $(PRODUCT_NAME) to use your location.",
-        "UIBackgroundModes": [
-          "location"
-        ]
-      }
+      "googleServicesFile": "./ios/GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#013025"
-      },
-      "permissions": [
-        "READ_CALENDAR",
-        "WRITE_CALENDAR",
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE",
-        "android.permission.VIBRATE",
-        "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION",
-        "FOREGROUND_SERVICE",
-        "FOREGROUND_SERVICE_LOCATION",
-        "ACCESS_BACKGROUND_LOCATION"
-      ]
+      }
     },
     "plugins": [
-      "expo-router",
-      [
-        "expo-calendar",
-        {
-          "calendarPermission": "The app needs to access your calendar."
-        }
-      ],
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "The app accesses your photos to let you share them with your friends."
-        }
-      ],
-      [
-        "expo-location",
-        {
-          "isAndroidForegroundServiceEnabled": true,
-          "isAndroidBackgroundLocationEnabled": true,
-          "isIosBackgroundLocationEnabled": true,
-          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
-        }
-      ]
+      "expo-router"
     ],
     "experiments": {
       "typedRoutes": true

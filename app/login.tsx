@@ -207,11 +207,6 @@ export default function LoginScreen() {
         <View style={styles.logoContainer}>
           <Text style={styles.logoText}>TimeFrame</Text>
           <Text style={styles.tagline}>Art At Your Fingertips</Text>
-          <View style={styles.welcomeBadge}>
-            <Text style={styles.welcomeBadgeText}>
-              {isLogin ? "Welcome Back" : "Join Our Community"}
-            </Text>
-          </View>
         </View>
 
         {/* Form Section */}
@@ -321,14 +316,6 @@ export default function LoginScreen() {
             analyticsEventName={isLogin ? "login_attempt" : "signup_attempt"}
           />
 
-          {!isLogin && (
-            <View style={styles.signupNotice}>
-              <Text style={styles.signupNoticeText}>
-                By creating an account, you agree to our Terms of Service and Privacy Policy
-              </Text>
-            </View>
-          )}
-
           <View style={styles.dividerContainer}>
             <View style={styles.divider} />
             <Text style={styles.dividerText}>OR</Text>
@@ -343,18 +330,16 @@ export default function LoginScreen() {
             analyticsEventName="use_test_account"
           />
 
-          <TouchableOpacity 
-            style={styles.switchContainer}
-            onPress={() => setIsLogin(!isLogin)}
-            activeOpacity={0.7}
-          >
+          <View style={styles.switchContainer}>
             <Text style={styles.switchText}>
               {isLogin ? "Don't have an account?" : "Already have an account?"}
             </Text>
-            <Text style={styles.switchActionText}>
-              {isLogin ? "Sign Up" : "Sign In"}
-            </Text>
-          </TouchableOpacity>
+            <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
+              <Text style={styles.switchActionText}>
+                {isLogin ? "Sign Up" : "Sign In"}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -388,21 +373,6 @@ const styles = StyleSheet.create({
   tagline: {
     ...typography.body,
     color: "#AC8901",
-    marginBottom: 16,
-  },
-  welcomeBadge: {
-    backgroundColor: "rgba(172, 137, 1, 0.1)",
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: "rgba(172, 137, 1, 0.3)",
-  },
-  welcomeBadgeText: {
-    ...typography.bodySmall,
-    color: "#AC8901",
-    fontWeight: "600",
-    textAlign: "center",
   },
   formContainer: {
     paddingHorizontal: 24,
@@ -469,16 +439,6 @@ const styles = StyleSheet.create({
   submitButton: {
     marginBottom: 24,
   },
-  signupNotice: {
-    marginBottom: 24,
-    paddingHorizontal: 8,
-  },
-  signupNoticeText: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    textAlign: "center",
-    lineHeight: 16,
-  },
   dividerContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -502,11 +462,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     marginTop: 8,
-    padding: 16,
-    borderRadius: 12,
-    backgroundColor: "rgba(172, 137, 1, 0.05)",
-    borderWidth: 1,
-    borderColor: "rgba(172, 137, 1, 0.1)",
   },
   switchText: {
     ...typography.body,

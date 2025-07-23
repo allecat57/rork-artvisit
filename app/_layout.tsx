@@ -12,10 +12,9 @@ function RootLayoutContent() {
 
   return (
     <Stack>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="modal" options={{ presentation: "modal" }} />
+      <Stack.Screen name="login" options={{ headerShown: false }} />
       <Stack.Screen name="gallery/[id]" options={{ headerShown: false }} />
       <Stack.Screen name="gallery/[id]/artworks" options={{ title: "Artworks" }} />
       <Stack.Screen name="gallery/[id]/artwork/[artworkId]" options={{ title: "Artwork" }} />
