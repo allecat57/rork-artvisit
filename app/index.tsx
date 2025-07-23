@@ -1,8 +1,14 @@
 import React, { useEffect } from "react";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, StyleSheet, Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuthStore } from "@/store/useAuthStore";
 import colors from "@/constants/colors";
+
+const fontFamily = Platform.select({
+  ios: 'System',
+  android: 'Roboto',
+  web: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+});
 
 export default function LaunchScreen() {
   const router = useRouter();
