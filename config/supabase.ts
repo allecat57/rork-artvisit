@@ -285,6 +285,7 @@ export const fetchGalleries = async (featured?: boolean) => {
     throw error;
   }
 }
+};
 export const fetchGalleryById = async (id: string) => {
   const { data, error } = await supabase
     .from(TABLES.GALLERIES)
