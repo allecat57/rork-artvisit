@@ -289,7 +289,7 @@ export const fetchGalleries = async (featured?: boolean) => {
 export const fetchGalleryById = async (id: string) => {
   const { data, error } = await supabase
     .from(TABLES.GALLERIES)
-    .select('*')
+    .select('*, featured_galleries!inner(*)')
     .eq('id', id)
     .single();
   
