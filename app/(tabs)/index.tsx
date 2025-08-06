@@ -1,19 +1,19 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   StyleSheet,
   Text,
   View,
-  FlatList,
-  ActivityIndicator,
   TouchableOpacity,
   Platform,
   ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { MapPin, Clock, Star, Search, ShoppingBag, Calendar, User, RefreshCw } from "lucide-react-native";
+import { Calendar, Package, MapPin, Clock, ChevronRight, Plus } from "lucide-react-native";
 import colors from "@/constants/colors";
-import typography from "@/constants/typography";
-import { useGalleries } from "@/hooks/useGalleries";
+import { useReservationStore } from "@/store/useReservationStore";
+import { usePurchaseHistoryStore } from "@/store/usePurchaseHistoryStore";
+import { getUpcomingEventsByAccessLevel } from "@/mocks/events";
+import { AccessLevel } from "@/types/event";
 
 const fontFamily = Platform.select({
   ios: "Georgia",
@@ -21,191 +21,231 @@ const fontFamily = Platform.select({
   default: "Georgia, serif",
 });
 
-interface QuickActionProps {
-  icon: React.ReactNode;
+interface SectionHeaderProps {
   title: string;
-  onPress: () => void;
+  onViewAll?: () => void;
+  showViewAll?: boolean;
 }
 
-const QuickAction: React.FC<QuickActionProps> = ({ icon, title, onPress }) => (
-  <TouchableOpacity style={styles.quickActionButton} onPress={onPress} activeOpacity={0.7}>
-    <View style={styles.quickActionIcon}>
-      {icon}
-    </View>
-    <Text style={styles.quickActionTitle}>{title}</Text>
-  </TouchableOpacity>
+const SectionHeader: React.FC<SectionHeaderProps> = ({ title, onViewAll, showViewAll = true }) => (
+  <View style={styles.sectionHeader}>
+    <Text style={styles.sectionTitle}>{title}</Text>
+    {showViewAll && onViewAll && (
+      <TouchableOpacity onPress={onViewAll} style={styles.viewAllButton}>
+        <Text style={styles.viewAllText}>View All</Text>
+        <ChevronRight size={16} color={colors.accent} />
+      </TouchableOpacity>
+    )}
+  </View>
+);
+
+interface EmptyStateProps {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  actionText?: string;
+  onAction?: () => void;
+}
+
+const EmptyState: React.FC<EmptyStateProps> = ({ icon, title, description, actionText, onAction }) => (
+  <View style={styles.emptyState}>
+    <View style={styles.emptyIcon}>{icon}</View>
+    <Text style={styles.emptyTitle}>{title}</Text>
+    <Text style={styles.emptyDescription}>{description}</Text>
+    {actionText && onAction && (
+      <TouchableOpacity style={styles.emptyAction} onPress={onAction}>
+        <Plus size={16} color={colors.accent} />
+        <Text style={styles.emptyActionText}>{actionText}</Text>
+      </TouchableOpacity>
+    )}
+  </View>
 );
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { galleries, loading, error, refetch, isUsingMockData } = useGalleries(true); // Only fetch featured galleries
+  const { getUpcomingReservations } = useReservationStore();
+  const { getCurrentUserPurchases } = usePurchaseHistoryStore();
 
-  const handleGalleryPress = (galleryId: string) => {
-    if (galleryId) {
-      router.push(`/gallery/${galleryId}`);
-    }
+  const upcomingReservations = useMemo(() => {
+    return getUpcomingReservations().slice(0, 3);
+  }, [getUpcomingReservations]);
+
+  const recentOrders = useMemo(() => {
+    return getCurrentUserPurchases()
+      .filter(purchase => purchase.status === 'processing' || purchase.status === 'shipped')
+      .slice(0, 3);
+  }, [getCurrentUserPurchases]);
+
+  const nearbyEvents = useMemo(() => {
+    return getUpcomingEventsByAccessLevel(AccessLevel.ESSENTIAL).slice(0, 3);
+  }, []);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    });
   };
 
-  const quickActions = [
-    {
-      icon: <Search size={24} color={colors.accent} />,
-      title: "Explore",
-      onPress: () => router.push("/(tabs)/explore"),
-    },
-    {
-      icon: <ShoppingBag size={24} color={colors.accent} />,
-      title: "Shop",
-      onPress: () => router.push("/(tabs)/shop"),
-    },
-    {
-      icon: <Calendar size={24} color={colors.accent} />,
-      title: "Events",
-      onPress: () => router.push("/(tabs)/events"),
-    },
-    {
-      icon: <User size={24} color={colors.accent} />,
-      title: "Profile",
-      onPress: () => router.push("/(tabs)/profile"),
-    },
-  ];
-
-  const renderGalleryItem = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      style={styles.galleryCard}
-      onPress={() => handleGalleryPress(item.id)}
-      activeOpacity={0.7}
-    >
-      <View style={styles.cardContent}>
-        <View style={styles.galleryHeader}>
-          <Text style={styles.galleryName}>{item.name}</Text>
-          <View style={styles.ratingContainer}>
-            <Star size={14} color={colors.accent} fill={colors.accent} />
-            <Text style={styles.rating}>{item.rating || 4.8}</Text>
-          </View>
-        </View>
-        
-        <View style={styles.locationContainer}>
-          <MapPin size={14} color={colors.textSecondary} />
-          <Text style={styles.location}>{item.location}</Text>
-        </View>
-        
-        {item.description && (
-          <Text style={styles.description} numberOfLines={2}>
-            {item.description}
-          </Text>
-        )}
-        
-        <View style={styles.metaContainer}>
-          <View style={styles.hoursContainer}>
-            <Clock size={12} color={colors.textSecondary} />
-            <Text style={styles.hours}>{item.hours || "Open today 10AM - 6PM"}</Text>
-          </View>
-          <Text style={styles.category}>{item.category || "Gallery"}</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-
-  const renderEmptyState = () => (
-    <View style={styles.emptyState}>
-      <Text style={styles.emptyTitle}>No Galleries Found</Text>
-      <Text style={styles.emptyDescription}>
-        {isUsingMockData 
-          ? "Using sample data. Connect to Supabase to see real galleries."
-          : "Check back later for new gallery listings"
-        }
-      </Text>
-      {!isUsingMockData && (
-        <TouchableOpacity style={styles.retryButton} onPress={refetch}>
-          <RefreshCw size={16} color={colors.accent} />
-          <Text style={styles.retryText}>Try Again</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-
-  const renderHeader = () => (
-    <View style={styles.headerContainer}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Discover Art</Text>
-        <Text style={styles.headerSubtitle}>
-          Explore galleries, events, and art collections
-        </Text>
-      </View>
-      
-      {isUsingMockData && (
-        <View style={styles.mockDataBanner}>
-          <Text style={styles.mockDataText}>
-            📱 Using sample data - Connect Supabase for live galleries
-          </Text>
-        </View>
-      )}
-
-      {error && (
-        <View style={styles.errorBanner}>
-          <Text style={styles.errorText}>
-            ⚠️ {error}
-          </Text>
-          <TouchableOpacity style={styles.retryButton} onPress={refetch}>
-            <RefreshCw size={14} color={colors.accent} />
-            <Text style={styles.retryText}>Retry</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-    </View>
-  );
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.accent} />
-        <Text style={styles.loadingText}>Loading galleries...</Text>
-      </View>
-    );
-  }
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'confirmed': return colors.success;
+      case 'processing': return colors.warning;
+      case 'shipped': return colors.info;
+      case 'delivered': return colors.success;
+      default: return colors.textSecondary;
+    }
+  };
 
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        {renderHeader()}
-
-        {/* Quick Actions */}
-        <View style={styles.quickActionsContainer}>
-          <View style={styles.quickActionsGrid}>
-            {quickActions.slice(0, 3).map((action, index) => (
-              <QuickAction
-                key={index}
-                icon={action.icon}
-                title={action.title}
-                onPress={action.onPress}
-              />
-            ))}
-          </View>
-          <View style={styles.quickActionsRow}>
-            {quickActions.slice(3).map((action, index) => (
-              <QuickAction
-                key={index + 3}
-                icon={action.icon}
-                title={action.title}
-                onPress={action.onPress}
-              />
-            ))}
-          </View>
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Welcome Back</Text>
+          <Text style={styles.headerSubtitle}>Here&apos;s what&apos;s happening</Text>
         </View>
 
-        {/* Featured Galleries */}
-        <View style={styles.galleriesSection}>
-          <Text style={styles.sectionTitle}>Featured Galleries</Text>
-          {galleries.length > 0 ? (
-            <FlatList
-              data={galleries.slice(0, 5)}
-              keyExtractor={(item) => item.id}
-              renderItem={renderGalleryItem}
-              scrollEnabled={false}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
-            />
+        {/* Upcoming Reservations */}
+        <View style={styles.section}>
+          <SectionHeader 
+            title="Upcoming Reservations" 
+            onViewAll={() => router.push('/(tabs)/reservations')}
+            showViewAll={upcomingReservations.length > 0}
+          />
+          {upcomingReservations.length > 0 ? (
+            <View style={styles.cardContainer}>
+              {upcomingReservations.map((reservation) => (
+                <TouchableOpacity 
+                  key={reservation.id} 
+                  style={styles.card}
+                  onPress={() => router.push('/(tabs)/reservations')}
+                >
+                  <View style={styles.cardIcon}>
+                    <Calendar size={20} color={colors.accent} />
+                  </View>
+                  <View style={styles.cardContent}>
+                    <Text style={styles.cardTitle}>Gallery Reservation</Text>
+                    <Text style={styles.cardSubtitle}>
+                      {formatDate(reservation.date)} • {reservation.partySize} guests
+                    </Text>
+                    <View style={styles.cardMeta}>
+                      <View style={[styles.statusBadge, { backgroundColor: getStatusColor(reservation.status) + '20' }]}>
+                        <Text style={[styles.statusText, { color: getStatusColor(reservation.status) }]}>
+                          {reservation.status.charAt(0).toUpperCase() + reservation.status.slice(1)}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                  <ChevronRight size={16} color={colors.textSecondary} />
+                </TouchableOpacity>
+              ))}
+            </View>
           ) : (
-            renderEmptyState()
+            <EmptyState
+              icon={<Calendar size={32} color={colors.textSecondary} />}
+              title="No Upcoming Reservations"
+              description="Book a table at your favorite gallery or restaurant"
+              actionText="Make Reservation"
+              onAction={() => router.push('/(tabs)/explore')}
+            />
+          )}
+        </View>
+
+        {/* Artwork Delivery Orders */}
+        <View style={styles.section}>
+          <SectionHeader 
+            title="Artwork Orders" 
+            onViewAll={() => router.push('/purchase-history')}
+            showViewAll={recentOrders.length > 0}
+          />
+          {recentOrders.length > 0 ? (
+            <View style={styles.cardContainer}>
+              {recentOrders.map((order) => (
+                <TouchableOpacity 
+                  key={order.id} 
+                  style={styles.card}
+                  onPress={() => router.push('/purchase-history')}
+                >
+                  <View style={styles.cardIcon}>
+                    <Package size={20} color={colors.accent} />
+                  </View>
+                  <View style={styles.cardContent}>
+                    <Text style={styles.cardTitle}>Order #{order.id}</Text>
+                    <Text style={styles.cardSubtitle}>
+                      {order.items.length} item{order.items.length > 1 ? 's' : ''} • ${order.totalAmount}
+                    </Text>
+                    <View style={styles.cardMeta}>
+                      <View style={[styles.statusBadge, { backgroundColor: getStatusColor(order.status) + '20' }]}>
+                        <Text style={[styles.statusText, { color: getStatusColor(order.status) }]}>
+                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                  <ChevronRight size={16} color={colors.textSecondary} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <EmptyState
+              icon={<Package size={32} color={colors.textSecondary} />}
+              title="No Active Orders"
+              description="Browse our collection and find your next piece"
+              actionText="Shop Now"
+              onAction={() => router.push('/(tabs)/shop')}
+            />
+          )}
+        </View>
+
+        {/* Nearby Gallery Events */}
+        <View style={styles.section}>
+          <SectionHeader 
+            title="Events Near You" 
+            onViewAll={() => router.push('/(tabs)/events')}
+            showViewAll={nearbyEvents.length > 0}
+          />
+          {nearbyEvents.length > 0 ? (
+            <View style={styles.cardContainer}>
+              {nearbyEvents.map((event) => (
+                <TouchableOpacity 
+                  key={event.id} 
+                  style={styles.card}
+                  onPress={() => router.push(`/event/${event.id}`)}
+                >
+                  <View style={styles.cardIcon}>
+                    <MapPin size={20} color={colors.accent} />
+                  </View>
+                  <View style={styles.cardContent}>
+                    <Text style={styles.cardTitle}>{event.title}</Text>
+                    <Text style={styles.cardSubtitle}>
+                      {formatDate(event.date)} • {event.location}
+                    </Text>
+                    <View style={styles.cardMeta}>
+                      <View style={styles.priceContainer}>
+                        <Text style={styles.priceText}>${event.price}</Text>
+                      </View>
+                      <View style={styles.spotsContainer}>
+                        <Clock size={12} color={colors.textSecondary} />
+                        <Text style={styles.spotsText}>{event.remainingSpots} spots left</Text>
+                      </View>
+                    </View>
+                  </View>
+                  <ChevronRight size={16} color={colors.textSecondary} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : (
+            <EmptyState
+              icon={<MapPin size={32} color={colors.textSecondary} />}
+              title="No Upcoming Events"
+              description="Discover workshops, exhibitions, and talks near you"
+              actionText="Browse Events"
+              onAction={() => router.push('/(tabs)/events')}
+            />
           )}
         </View>
       </ScrollView>
@@ -218,18 +258,16 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  headerContainer: {
+  header: {
     paddingHorizontal: 24,
     paddingTop: 20,
-  },
-  header: {
-    paddingBottom: 16,
+    paddingBottom: 24,
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: "700",
-    color: colors.accent,
-    marginBottom: 8,
+    color: colors.text,
+    marginBottom: 4,
     fontFamily,
   },
   headerSubtitle: {
@@ -237,205 +275,142 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     lineHeight: 24,
   },
-  mockDataBanner: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: colors.border,
+  section: {
+    marginBottom: 32,
   },
-  mockDataText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: "center",
-  },
-  errorBanner: {
-    backgroundColor: "#FEF2F2",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#FECACA",
+  sectionHeader: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    marginBottom: 16,
   },
-  errorText: {
-    fontSize: 14,
-    color: "#DC2626",
-    flex: 1,
-    marginRight: 12,
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: colors.text,
+    fontFamily,
   },
-  retryButton: {
+  viewAllButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
-    backgroundColor: colors.surface,
   },
-  retryText: {
-    fontSize: 12,
-    color: colors.accent,
-    fontWeight: "600",
-  },
-  quickActionsContainer: {
-    paddingHorizontal: 24,
-    marginBottom: 32,
-  },
-  quickActionsGrid: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  quickActionsRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  quickActionButton: {
-    alignItems: "center",
-    padding: 16,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: colors.accent,
-    backgroundColor: "transparent",
-    minWidth: 100,
-    flex: 1,
-    marginHorizontal: 4,
-  },
-  quickActionIcon: {
-    marginBottom: 8,
-  },
-  quickActionTitle: {
+  viewAllText: {
     fontSize: 14,
-    fontWeight: "600",
     color: colors.accent,
-    textAlign: "center",
+    fontWeight: "600",
   },
-  galleriesSection: {
+  cardContainer: {
     paddingHorizontal: 24,
-    paddingBottom: 32,
+    gap: 12,
   },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: colors.text,
-    marginBottom: 20,
-    fontFamily,
-  },
-  galleryCard: {
+  card: {
     backgroundColor: colors.card,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    overflow: "hidden",
+    padding: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  cardIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.accent + '15',
+    justifyContent: "center",
+    alignItems: "center",
   },
   cardContent: {
-    padding: 20,
-  },
-  galleryHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 8,
-  },
-  galleryName: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: colors.text,
     flex: 1,
-    marginRight: 12,
-    fontFamily,
-  },
-  ratingContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.surface,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
     gap: 4,
   },
-  rating: {
-    fontSize: 12,
+  cardTitle: {
+    fontSize: 16,
     fontWeight: "600",
-    color: colors.accent,
+    color: colors.text,
   },
-  locationContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-    gap: 6,
-  },
-  location: {
+  cardSubtitle: {
     fontSize: 14,
     color: colors.textSecondary,
-    fontWeight: "500",
   },
-  description: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  metaContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  hoursContainer: {
+  cardMeta: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 8,
+    marginTop: 4,
   },
-  hours: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    fontWeight: "500",
-  },
-  category: {
-    fontSize: 12,
-    color: colors.accent,
-    fontWeight: "600",
-    backgroundColor: colors.surface,
+  statusBadge: {
     paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingVertical: 2,
     borderRadius: 8,
   },
-  separator: {
-    height: 16,
+  statusText: {
+    fontSize: 12,
+    fontWeight: "600",
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
+  priceContainer: {
+    backgroundColor: colors.accent + '15',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  priceText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: colors.accent,
+  },
+  spotsContainer: {
+    flexDirection: "row",
     alignItems: "center",
-    gap: 16,
-    backgroundColor: colors.background,
+    gap: 4,
   },
-  loadingText: {
-    fontSize: 16,
+  spotsText: {
+    fontSize: 12,
     color: colors.textSecondary,
-    fontWeight: "500",
   },
   emptyState: {
-    flex: 1,
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+  },
+  emptyIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: colors.surface,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 60,
+    marginBottom: 16,
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 18,
+    fontWeight: "600",
     color: colors.text,
     marginBottom: 8,
-    fontFamily,
+    textAlign: "center",
   },
   emptyDescription: {
     fontSize: 14,
     color: colors.textSecondary,
     textAlign: "center",
+    lineHeight: 20,
     marginBottom: 16,
+  },
+  emptyAction: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    backgroundColor: colors.accent + '15',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+  },
+  emptyActionText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: colors.accent,
   },
 });
