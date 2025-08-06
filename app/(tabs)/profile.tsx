@@ -105,11 +105,16 @@ export default function ProfileScreen() {
           text: "Sign Out",
           style: "destructive",
           onPress: async () => {
-            Analytics.logEvent(Analytics.Events.USER_LOGOUT, {
-              user_id: user?.id
-            });
-            await logout();
-            router.replace("/login");
+            try {
+              Analytics.logEvent(Analytics.Events.USER_LOGOUT, {
+                user_id: user?.id
+              });
+              await logout();
+              router.replace("/login");
+            } catch (error) {
+              console.error("Logout error:", error);
+              Alert.alert("Error", "Failed to sign out. Please try again.");
+            }
           },
         },
       ]
