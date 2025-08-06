@@ -1,9 +1,9 @@
 import React, { useEffect } from "react";
-import { StyleSheet, Text, View, FlatList } from "react-native";
+import { StyleSheet, Text, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, Stack } from "expo-router";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
-import { useVenueStore } from "@/store/useVenueStore";
+
 import VenueCard from "@/components/VenueCard";
 import EmptyState from "@/components/EmptyState";
 import colors from "@/constants/colors";
@@ -13,13 +13,10 @@ import * as Analytics from "@/utils/analytics";
 
 export default function FavoritesScreen() {
   const router = useRouter();
-  const { favoriteVenueIds, toggleFavorite } = useFavoritesStore();
-  const { getVenueById } = useVenueStore();
+  const { getCurrentUserFavorites, removeFavorite } = useFavoritesStore();
   
   // Get all favorite venues
-  const favoriteVenues = favoriteVenueIds
-    .map(id => getVenueById(id))
-    .filter(venue => venue !== null);
+  const favoriteVenues = getCurrentUserFavorites();
   
   // Log screen view
   useEffect(() => {
@@ -37,7 +34,7 @@ export default function FavoritesScreen() {
   };
   
   const handleToggleFavorite = (venueId: string) => {
-    toggleFavorite(venueId);
+    removeFavorite(venueId);
     
     // Log analytics event
     Analytics.logEvent("remove_favorite", {
