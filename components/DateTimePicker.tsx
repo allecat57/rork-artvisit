@@ -168,7 +168,7 @@ export default function DateTimePicker({
           horizontal={true}
           pagingEnabled={true}
           calendarWidth={320}
-          calendarHeight={350}
+          calendarHeight={380}
           hideArrows={false}
           hideExtraDays={true}
           disableMonthChange={false}
@@ -196,13 +196,69 @@ export default function DateTimePicker({
             textMonthFontFamily: 'System',
             textDayHeaderFontFamily: 'System',
             textDayFontWeight: '400',
-            textMonthFontWeight: '600',
+            textMonthFontWeight: '700',
             textDayHeaderFontWeight: '600',
             arrowColor: colors.accent,
             disabledArrowColor: colors.textMuted,
-            textMonthFontSize: 16,
-            textDayHeaderFontSize: 12,
-            textDayFontSize: 14,
+            textMonthFontSize: 18,
+            textDayHeaderFontSize: 13,
+            textDayFontSize: 16,
+            'stylesheet.calendar.header': {
+              monthText: {
+                fontSize: 18,
+                fontWeight: '700',
+                color: colors.text,
+                marginBottom: 8,
+                textAlign: 'center',
+              },
+              dayHeader: {
+                marginTop: 8,
+                marginBottom: 8,
+                width: 32,
+                textAlign: 'center',
+                fontSize: 13,
+                fontWeight: '600',
+                color: colors.textSecondary,
+              },
+            },
+            'stylesheet.day.basic': {
+              base: {
+                width: 32,
+                height: 32,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginVertical: 2,
+              },
+              text: {
+                marginTop: 0,
+                fontSize: 16,
+                fontFamily: 'System',
+                fontWeight: '400',
+                color: colors.text,
+                backgroundColor: 'transparent',
+              },
+              today: {
+                backgroundColor: 'transparent',
+              },
+              todayText: {
+                color: colors.accent,
+                fontWeight: '600',
+              },
+              selected: {
+                backgroundColor: colors.accent,
+                borderRadius: 16,
+              },
+              selectedText: {
+                color: colors.white,
+                fontWeight: '600',
+              },
+              disabled: {
+                backgroundColor: 'transparent',
+              },
+              disabledText: {
+                color: colors.textMuted,
+              },
+            },
           }}
         />
       </View>
@@ -283,9 +339,9 @@ const styles = StyleSheet.create({
   calendarContainer: {
     backgroundColor: colors.card,
     borderRadius: 12,
-    padding: 12,
+    padding: 16,
     marginBottom: 20,
-    height: 420,
+    minHeight: 450,
   },
   calendarHeader: {
     flexDirection: 'row',
