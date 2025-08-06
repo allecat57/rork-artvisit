@@ -10,6 +10,7 @@ import {
   Dimensions,
   Animated,
   PanResponder,
+  Platform,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { X, MapPin, Clock, Star, Heart, Share2, ArrowRight } from 'lucide-react-native';
@@ -19,7 +20,7 @@ import { Venue } from '@/types/venue';
 import { useFavoritesStore } from '@/store/useFavoritesStore';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { Platform } from 'react-native';
+
 
 const { height: screenHeight } = Dimensions.get('window');
 const MODAL_HEIGHT = screenHeight * 0.75;
@@ -56,15 +57,15 @@ export default function VenueModal({ visible, venue, onClose }: VenueModalProps)
   }, [visible]);
 
   const panResponder = PanResponder.create({
-    onMoveShouldSetPanResponder: (_, gestureState) => {
+    onMoveShouldSetPanResponder: (_: any, gestureState: any) => {
       return gestureState.dy > 0 && Math.abs(gestureState.dy) > Math.abs(gestureState.dx);
     },
-    onPanResponderMove: (_, gestureState) => {
+    onPanResponderMove: (_: any, gestureState: any) => {
       if (gestureState.dy > 0) {
         translateY.setValue(gestureState.dy);
       }
     },
-    onPanResponderRelease: (_, gestureState) => {
+    onPanResponderRelease: (_: any, gestureState: any) => {
       if (gestureState.dy > 100 || gestureState.vy > 0.5) {
         handleClose();
       } else {

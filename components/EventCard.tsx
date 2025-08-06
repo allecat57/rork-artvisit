@@ -17,7 +17,7 @@ interface EventCardProps {
 
 export default function EventCard({ event, compact = false, onPress, hasAccess = true }: EventCardProps) {
   const router = useRouter();
-  const isUserRegistered = useEventsStore(state => state.isUserRegisteredForEvent(event.id));
+  const isUserRegistered = useEventsStore((state: any) => state.isUserRegisteredForEvent(event.id));
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
     color: colors.muted,
   },
   priceContainer: {
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.surface,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,

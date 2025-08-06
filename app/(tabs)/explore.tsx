@@ -24,7 +24,7 @@ const fontFamily = Platform.select({
 });
 
 export default function ExploreScreen() {
-  const { venues, loading, clearSearch } = useVenueStore();
+  const { venues, isLoading, searchQuery: storeSearchQuery } = useVenueStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredVenues, setFilteredVenues] = useState<Venue[]>([]);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
@@ -35,7 +35,7 @@ export default function ExploreScreen() {
       const filtered = venues.filter(venue =>
         venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         venue.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        venue.category.toLowerCase().includes(searchQuery.toLowerCase())
+        venue.category?.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredVenues(filtered);
     } else {
@@ -49,7 +49,6 @@ export default function ExploreScreen() {
 
   const handleClearSearch = () => {
     setSearchQuery("");
-    clearSearch();
   };
 
   const featuredVenues = filteredVenues.filter(venue => venue.featured);
@@ -59,7 +58,7 @@ export default function ExploreScreen() {
     <View style={styles.header}>
       <SearchBar
         placeholder="Search venues, locations..."
-        onSearch={handleSearch}
+        onChangeText={handleSearch}
         onClear={handleClearSearch}
         value={searchQuery}
       />
@@ -70,7 +69,7 @@ export default function ExploreScreen() {
           <FlatList
             data={categories}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => <CategoryCard category={item} />}
+            renderItem={({ item }: { item: any }) => <CategoryCard category={item} onPress={() => {}} />}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.categoriesContainer}
@@ -118,7 +117,7 @@ export default function ExploreScreen() {
     </View>
   );
 
-  if (loading) {
+  if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.accent} />
@@ -137,7 +136,7 @@ export default function ExploreScreen() {
             {featuredVenues.length > 0 && (
               <FlatList
                 data={featuredVenues}
-                keyExtractor={(item) => `featured-${item.id}`}
+                keyExtractor={(item: Venue) => `featured-${item.id}`}
                 renderItem={renderFeaturedVenue}
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -152,7 +151,7 @@ export default function ExploreScreen() {
                 </Text>
                 <FlatList
                   data={regularVenues}
-                  keyExtractor={(item) => item.id}
+                  keyExtractor={(item: Venue) => item.id}
                   renderItem={renderVenue}
                   scrollEnabled={false}
                   ItemSeparatorComponent={() => <View style={styles.separator} />}
