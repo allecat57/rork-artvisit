@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider } from "@/context/ThemeContext";
 import { StripeProvider } from "@/context/StripeContext";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -41,11 +42,13 @@ function RootLayoutContent() {
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      <StripeProvider>
-        <RootLayoutContent />
-        <StatusBar style="auto" />
-      </StripeProvider>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider>
+        <StripeProvider>
+          <RootLayoutContent />
+          <StatusBar style="auto" />
+        </StripeProvider>
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }
