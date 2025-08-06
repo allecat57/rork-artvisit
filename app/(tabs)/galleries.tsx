@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -14,6 +14,7 @@ import { MapPin, Clock, Star, RefreshCw } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import { useGalleries } from "@/hooks/useGalleries";
+import GalleryModal from "@/components/GalleryModal";
 
 const fontFamily = Platform.select({
   ios: "Georgia",
@@ -24,17 +25,23 @@ const fontFamily = Platform.select({
 export default function GalleriesScreen() {
   const router = useRouter();
   const { galleries, loading, error, refetch, isUsingMockData } = useGalleries(); // Fetch all galleries, not just featured
+  const [selectedGallery, setSelectedGallery] = useState<any>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
-  const handleGalleryPress = (galleryId: string) => {
-    if (galleryId) {
-      router.push(`/gallery/${galleryId}`);
-    }
+  const handleGalleryPress = (gallery: any) => {
+    setSelectedGallery(gallery);
+    setModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+    setSelectedGallery(null);
   };
 
   const renderGalleryItem = ({ item }: { item: any }) => (
     <TouchableOpacity
       style={styles.galleryCard}
-      onPress={() => handleGalleryPress(item.id)}
+      onPress={() => handleGalleryPress(item)}
       activeOpacity={0.7}
     >
       <View style={styles.cardContent}>
@@ -128,6 +135,12 @@ export default function GalleriesScreen() {
           />
         </View>
       </ScrollView>
+      
+      <GalleryModal
+        visible={modalVisible}
+        gallery={selectedGallery}
+        onClose={handleCloseModal}
+      />
     </View>
   );
 }
