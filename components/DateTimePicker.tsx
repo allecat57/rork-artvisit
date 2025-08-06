@@ -203,62 +203,6 @@ export default function DateTimePicker({
             textMonthFontSize: 18,
             textDayHeaderFontSize: 13,
             textDayFontSize: 16,
-            'stylesheet.calendar.header': {
-              monthText: {
-                fontSize: 18,
-                fontWeight: '700',
-                color: colors.text,
-                marginBottom: 8,
-                textAlign: 'center',
-              },
-              dayHeader: {
-                marginTop: 8,
-                marginBottom: 8,
-                width: 32,
-                textAlign: 'center',
-                fontSize: 13,
-                fontWeight: '600',
-                color: colors.textSecondary,
-              },
-            },
-            'stylesheet.day.basic': {
-              base: {
-                width: 32,
-                height: 32,
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginVertical: 2,
-              },
-              text: {
-                marginTop: 0,
-                fontSize: 16,
-                fontFamily: 'System',
-                fontWeight: '400',
-                color: colors.text,
-                backgroundColor: 'transparent',
-              },
-              today: {
-                backgroundColor: 'transparent',
-              },
-              todayText: {
-                color: colors.accent,
-                fontWeight: '600',
-              },
-              selected: {
-                backgroundColor: colors.accent,
-                borderRadius: 16,
-              },
-              selectedText: {
-                color: colors.white,
-                fontWeight: '600',
-              },
-              disabled: {
-                backgroundColor: 'transparent',
-              },
-              disabledText: {
-                color: colors.textMuted,
-              },
-            },
           }}
         />
       </View>
