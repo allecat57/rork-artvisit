@@ -89,8 +89,19 @@ export default function DateTimePicker({
   const handleDateSelect = (day: any) => {
     // Parse the date string properly to avoid timezone issues
     const [year, month, dayNum] = day.dateString.split('-').map(Number);
-    const selectedDate = new Date(year, month - 1, dayNum); // month is 0-indexed
+    // Create date at noon to avoid timezone issues
+    const selectedDate = new Date(year, month - 1, dayNum, 12, 0, 0, 0); // month is 0-indexed, set to noon
     setSelectedDate(selectedDate);
+    
+    console.log('Selected date:', {
+      dateString: day.dateString,
+      parsedDate: selectedDate,
+      displayDate: selectedDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric'
+      })
+    });
     
     // Generate available time slots for the selected date
     const slots = generateTimeSlots(selectedDate);
@@ -154,6 +165,14 @@ export default function DateTimePicker({
           maxDate={maxDate}
           onDayPress={handleDateSelect}
           markedDates={markedDates}
+          hideArrows={false}
+          hideExtraDays={true}
+          disableMonthChange={false}
+          firstDay={1}
+          hideDayNames={false}
+          showWeekNumbers={false}
+          disableArrowLeft={false}
+          disableArrowRight={false}
           theme={{
             calendarBackground: Colors.card,
             textSectionTitleColor: Colors.text,
@@ -169,11 +188,13 @@ export default function DateTimePicker({
             textMonthFontFamily: 'System',
             textDayHeaderFontFamily: 'System',
             textDayFontWeight: '400',
-            textMonthFontWeight: 'bold',
+            textMonthFontWeight: '600',
             textDayHeaderFontWeight: '600',
             arrowColor: Colors.accent,
             disabledArrowColor: Colors.textMuted,
-            textMonthFontSize: 16,
+            textMonthFontSize: 14,
+            textDayHeaderFontSize: 12,
+            textDayFontSize: 14,
           }}
         />
       </View>
