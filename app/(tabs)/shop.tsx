@@ -45,7 +45,8 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({ title, onViewAll, showVie
 
 export default function ShopScreen() {
   const router = useRouter();
-  const { items } = useCartStore();
+  const { getCurrentUserCart } = useCartStore();
+  const items = getCurrentUserCart();
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
