@@ -79,6 +79,15 @@ export default function EventCard({ event, compact = false, onPress, hasAccess =
     }
   };
   
+  const formatPrice = (price: string | number) => {
+    if (typeof price === 'string') {
+      // If it's already a string, check if it starts with $
+      return price.startsWith('$') ? price : `$${price}`;
+    }
+    // If it's a number, add the $ sign
+    return `$${price}`;
+  };
+  
   if (compact) {
     return (
       <TouchableOpacity 
@@ -168,7 +177,7 @@ export default function EventCard({ event, compact = false, onPress, hasAccess =
           
           <View style={styles.priceContainer}>
             <Text style={styles.priceText}>
-              {typeof event.price === 'string' && event.price.startsWith('$') ? event.price : `$${event.price}`}
+              {formatPrice(event.price)}
             </Text>
           </View>
         </View>

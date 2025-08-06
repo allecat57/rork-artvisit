@@ -13,12 +13,12 @@ import {
   Platform,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
-import { X, MapPin, Clock, Star, Heart, Share2, ArrowRight } from 'lucide-react-native';
+import { X, MapPin, Clock, Star, Heart, Share2, Calendar } from 'lucide-react-native';
 import colors from '@/constants/colors';
 import typography from '@/constants/typography';
 import { Venue } from '@/types/venue';
 import { useFavoritesStore } from '@/store/useFavoritesStore';
-import { useRouter } from 'expo-router';
+import ReservationModal from './ReservationModal';
 import * as Haptics from 'expo-haptics';
 
 
@@ -32,9 +32,9 @@ interface VenueModalProps {
 }
 
 export default function VenueModal({ visible, venue, onClose }: VenueModalProps) {
-  const router = useRouter();
   const { isFavorite, addFavorite, removeFavorite } = useFavoritesStore();
   const [translateY] = useState(new Animated.Value(MODAL_HEIGHT));
+  const [showReservationModal, setShowReservationModal] = useState(false);
   
   const favorite = venue ? isFavorite(venue.id) : false;
 
@@ -102,12 +102,13 @@ export default function VenueModal({ visible, venue, onClose }: VenueModalProps)
     }
   };
 
-  const handleViewDetails = () => {
+  const handleMakeReservation = () => {
     if (!venue) return;
-    handleClose();
-    setTimeout(() => {
-      router.push(`/venue/${venue.id}`);
-    }, 300);
+    setShowReservationModal(true);
+  };
+
+  const handleReservationClose = () => {
+    setShowReservationModal(false);
   };
 
   if (!venue) return null;
@@ -206,16 +207,22 @@ export default function VenueModal({ visible, venue, onClose }: VenueModalProps)
               </Text>
               
               <TouchableOpacity 
-                style={styles.viewDetailsButton}
-                onPress={handleViewDetails}
+                style={styles.reserveButton}
+                onPress={handleMakeReservation}
               >
-                <Text style={styles.viewDetailsText}>View Full Details</Text>
-                <ArrowRight size={20} color={colors.white} />
+                <Calendar size={20} color={colors.white} />
+                <Text style={styles.reserveButtonText}>Make Reservation</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
         </Animated.View>
       </View>
+      
+      <ReservationModal
+        visible={showReservationModal}
+        venue={venue}
+        onClose={handleReservationClose}
+      />
     </Modal>
   );
 }
@@ -331,7 +338,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     marginBottom: 24,
   },
-  viewDetailsButton: {
+  reserveButton: {
     backgroundColor: colors.accent,
     flexDirection: 'row',
     alignItems: 'center',
@@ -340,7 +347,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     gap: 8,
   },
-  viewDetailsText: {
+  reserveButtonText: {
     ...typography.bodyMedium,
     color: colors.white,
     fontWeight: '600',
