@@ -7,13 +7,12 @@ import {
   ActivityIndicator,
   Platform,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import colors from "@/constants/colors";
-import typography from "@/constants/typography";
 import SearchBar from "@/components/SearchBar";
 import CategoryCard from "@/components/CategoryCard";
 import VenueCard from "@/components/VenueCard";
 import FeaturedVenueCard from "@/components/FeaturedVenueCard";
+import VenueModal from "@/components/VenueModal";
 import { useVenueStore } from "@/store/useVenueStore";
 import { categories } from "@/mocks/categories";
 import { Venue } from "@/types/venue";
@@ -25,9 +24,11 @@ const fontFamily = Platform.select({
 });
 
 export default function ExploreScreen() {
-  const { venues, loading, searchVenues, clearSearch } = useVenueStore();
+  const { venues, loading, clearSearch } = useVenueStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredVenues, setFilteredVenues] = useState<Venue[]>([]);
+  const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     if (searchQuery.trim()) {
@@ -85,12 +86,22 @@ export default function ExploreScreen() {
     </View>
   );
 
+  const handleVenuePress = (venue: Venue) => {
+    setSelectedVenue(venue);
+    setModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setModalVisible(false);
+    setSelectedVenue(null);
+  };
+
   const renderFeaturedVenue = ({ item }: { item: Venue }) => (
-    <FeaturedVenueCard venue={item} />
+    <FeaturedVenueCard venue={item} onPress={() => handleVenuePress(item)} />
   );
 
   const renderVenue = ({ item }: { item: Venue }) => (
-    <VenueCard venue={item} />
+    <VenueCard venue={item} onPress={() => handleVenuePress(item)} />
   );
 
   const renderEmptyState = () => (
@@ -154,6 +165,12 @@ export default function ExploreScreen() {
         }
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContainer}
+      />
+      
+      <VenueModal
+        visible={modalVisible}
+        venue={selectedVenue}
+        onClose={handleCloseModal}
       />
     </View>
   );
