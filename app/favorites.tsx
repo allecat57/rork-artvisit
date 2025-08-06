@@ -3,6 +3,7 @@ import { StyleSheet, Text, FlatList } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, Stack } from "expo-router";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 import VenueCard from "@/components/VenueCard";
 import EmptyState from "@/components/EmptyState";
@@ -14,9 +15,21 @@ import * as Analytics from "@/utils/analytics";
 export default function FavoritesScreen() {
   const router = useRouter();
   const { getCurrentUserFavorites, removeFavorite } = useFavoritesStore();
+  const { isAuthenticated, isHydrated } = useAuthStore();
   
   // Get all favorite venues with safety check
-  const favoriteVenues = getCurrentUserFavorites() || [];
+  const favoriteVenues = React.useMemo(() => {
+    if (!isHydrated || !isAuthenticated) {
+      return [];
+    }
+    try {
+      const venues = getCurrentUserFavorites();
+      return Array.isArray(venues) ? venues : [];
+    } catch (error) {
+      console.warn('Error getting favorite venues:', error);
+      return [];
+    }
+  }, [getCurrentUserFavorites, isHydrated, isAuthenticated]);
   
   // Log screen view
   useEffect(() => {
@@ -79,7 +92,7 @@ export default function FavoritesScreen() {
             <Text style={[typography.heading1, styles.title]}>Your Favorites</Text>
           ) : null
         }
-        ListEmptyComponent={renderEmptyState}
+        ListEmptyComponent={isHydrated ? renderEmptyState : null}
       />
     </SafeAreaView>
   );
