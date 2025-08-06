@@ -168,7 +168,7 @@ export default function EventCard({ event, compact = false, onPress, hasAccess =
           
           <View style={styles.priceContainer}>
             <Text style={styles.priceText}>
-              {event.price.toString().startsWith('$') ? event.price : `$${event.price}`}
+              {typeof event.price === 'string' && event.price.startsWith('$') ? event.price : `$${event.price}`}
             </Text>
           </View>
         </View>

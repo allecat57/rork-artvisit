@@ -32,6 +32,8 @@ export default function FeaturedVenueCard({
   useGoldText = false,
 }: FeaturedVenueCardProps) {
   const router = useRouter();
+  const { isFavorite, addFavorite, removeFavorite } = useFavoritesStore();
+  
   // Early return if venue is undefined or null
   if (!venue || !venue.id) {
     console.warn('FeaturedVenueCard: venue is undefined or missing id');
@@ -39,7 +41,6 @@ export default function FeaturedVenueCard({
   }
 
   const { id, name, imageUrl, location, featured = false, admission } = venue;
-  const { isFavorite, addFavorite, removeFavorite } = useFavoritesStore();
   const favorite = isFavorite(id);
 
   const handleFavoriteToggle = (e: any) => {
