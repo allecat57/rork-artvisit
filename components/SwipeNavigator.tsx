@@ -17,6 +17,14 @@ interface SwipeNavigatorProps {
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SWIPE_THRESHOLD = SCREEN_WIDTH * 0.25;
 
+const TAB_ROUTES = [
+  '/(tabs)',
+  '/(tabs)/explore',
+  '/(tabs)/shop',
+  '/(tabs)/events',
+  '/(tabs)/profile'
+] as const;
+
 const TAB_NAMES = [
   'index',
   'explore',
@@ -53,7 +61,7 @@ export default function SwipeNavigator({ children }: SwipeNavigatorProps) {
     
     if (newIndex !== currentIndex) {
       console.log(`Swiping from ${TAB_NAMES[currentIndex]} to ${TAB_NAMES[newIndex]}`);
-      router.push(`/(tabs)/${newIndex === 0 ? '' : TAB_NAMES[newIndex]}`);
+      router.push(TAB_ROUTES[newIndex]);
     }
   };
 
