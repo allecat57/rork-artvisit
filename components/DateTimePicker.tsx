@@ -87,7 +87,9 @@ export default function DateTimePicker({
   
   // Handle date selection
   const handleDateSelect = (day: any) => {
-    const selectedDate = new Date(day.dateString);
+    // Parse the date string properly to avoid timezone issues
+    const [year, month, dayNum] = day.dateString.split('-').map(Number);
+    const selectedDate = new Date(year, month - 1, dayNum); // month is 0-indexed
     setSelectedDate(selectedDate);
     
     // Generate available time slots for the selected date
