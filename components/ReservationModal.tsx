@@ -9,7 +9,7 @@ import {
   Dimensions,
   Alert
 } from "react-native";
-import { X, Check, Calendar, Users, CreditCard, ArrowLeft } from "lucide-react-native";
+import { X, Check, Calendar, Users, CreditCard, ArrowLeft, ChevronDown, Plus, Minus } from "lucide-react-native";
 import { Image } from "expo-image";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
@@ -56,6 +56,13 @@ export default function ReservationModal({
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(initialTimeSlot || null);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(venue || null);
   const [partySize, setPartySize] = useState<number>(initialPartySize);
+  const [ticketBreakdown, setTicketBreakdown] = useState<{
+    adult: number;
+    student: number;
+    child: number;
+    senior: number;
+  }>({ adult: initialPartySize, student: 0, child: 0, senior: 0 });
+  const [showTicketDropdown, setShowTicketDropdown] = useState(false);
   const [currentStep, setCurrentStep] = useState<ReservationStep>('datetime');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -72,15 +79,29 @@ export default function ReservationModal({
   const currentVenue = venue || selectedVenue;
   const currentPaymentMethod = getCurrentPaymentMethod();
   
-  // Calculate reservation total based on party size
+  // Calculate reservation total based on ticket breakdown
   useEffect(() => {
-    if (currentVenue && partySize) {
-      // Base price per person (you can adjust this logic)
-      const basePrice = 15; // $15 per person
-      const total = basePrice * partySize;
+    if (currentVenue) {
+      const ticketPrices = {
+        adult: 15,
+        student: 12,
+        child: 8,
+        senior: 10
+      };
+      
+      const total = 
+        (ticketBreakdown.adult * ticketPrices.adult) +
+        (ticketBreakdown.student * ticketPrices.student) +
+        (ticketBreakdown.child * ticketPrices.child) +
+        (ticketBreakdown.senior * ticketPrices.senior);
+      
       setReservationTotal(total);
+      
+      // Update total party size
+      const totalSize = ticketBreakdown.adult + ticketBreakdown.student + ticketBreakdown.child + ticketBreakdown.senior;
+      setPartySize(totalSize);
     }
-  }, [currentVenue, partySize]);
+  }, [currentVenue, ticketBreakdown]);
   
   useEffect(() => {
     if (visible) {
@@ -89,9 +110,11 @@ export default function ReservationModal({
       setSelectedTimeSlot(initialTimeSlot || null);
       setSelectedVenue(venue || null);
       setPartySize(initialPartySize);
+      setTicketBreakdown({ adult: initialPartySize, student: 0, child: 0, senior: 0 });
       setCurrentStep('datetime');
       setIsSubmitting(false);
       setConfirmationCode("");
+      setShowTicketDropdown(false);
       
       // Log modal open event
       if (currentVenue) {
@@ -118,16 +141,22 @@ export default function ReservationModal({
     }
   };
   
-  const handlePartySizeChange = (size: number) => {
-    setPartySize(size);
-    
-    // Log party size selection
-    if (currentVenue) {
-      Analytics.logEvent("reservation_party_size_selected", {
-        venue_id: currentVenue.id,
-        party_size: size
-      });
-    }
+  const handleTicketChange = (type: 'adult' | 'student' | 'child' | 'senior', change: number) => {
+    setTicketBreakdown(prev => {
+      const newValue = Math.max(0, prev[type] + change);
+      const newBreakdown = { ...prev, [type]: newValue };
+      
+      // Log ticket selection
+      if (currentVenue) {
+        Analytics.logEvent("reservation_ticket_selected", {
+          venue_id: currentVenue.id,
+          ticket_type: type,
+          quantity: newValue
+        });
+      }
+      
+      return newBreakdown;
+    });
   };
   
   const handleNextStep = () => {
@@ -270,7 +299,9 @@ export default function ReservationModal({
       setSelectedTimeSlot(null);
       setSelectedVenue(null);
       setPartySize(2);
+      setTicketBreakdown({ adult: 2, student: 0, child: 0, senior: 0 });
       setCurrentStep('datetime');
+      setShowTicketDropdown(false);
       setConfirmationCode("");
     }
     onClose();
@@ -308,42 +339,82 @@ export default function ReservationModal({
   };
 
   const renderPartySizeSelector = () => {
-    const sizes = [1, 2, 3, 4, 5, 6, 7, 8];
+    const ticketTypes = [
+      { key: 'adult' as const, label: 'Adult', price: 15, description: 'Ages 18+' },
+      { key: 'student' as const, label: 'Student', price: 12, description: 'Valid student ID required' },
+      { key: 'child' as const, label: 'Child', price: 8, description: 'Ages 5-17' },
+      { key: 'senior' as const, label: 'Senior', price: 10, description: 'Ages 65+' }
+    ];
     
     return (
       <View style={styles.partySizeContainer}>
-        <Text style={[typography.heading3, styles.sectionTitle]}>How many people?</Text>
+        <Text style={[typography.heading3, styles.sectionTitle]}>Select Tickets</Text>
         <Text style={[typography.body, styles.sectionSubtitle]}>
-          Select the number of people in your party
+          Choose ticket types and quantities for your party
         </Text>
         
-        <View style={styles.partySizeGrid}>
-          {sizes.map((size) => (
-            <TouchableOpacity
-              key={size}
-              style={[
-                styles.partySizeButton,
-                partySize === size && styles.partySizeButtonActive
-              ]}
-              onPress={() => handlePartySizeChange(size)}
-            >
-              <Users 
-                size={20} 
-                color={partySize === size ? colors.accent : colors.text} 
-              />
-              <Text style={[
-                styles.partySizeText,
-                partySize === size && styles.partySizeTextActive
-              ]}>
-                {size} {size === 1 ? 'Person' : 'People'}
+        <TouchableOpacity 
+          style={styles.partySizeDropdownButton}
+          onPress={() => setShowTicketDropdown(!showTicketDropdown)}
+        >
+          <View style={styles.dropdownButtonContent}>
+            <Users size={20} color={colors.accent} />
+            <Text style={styles.dropdownButtonText}>
+              {partySize} {partySize === 1 ? 'Ticket' : 'Tickets'} Selected
+            </Text>
+          </View>
+          <ChevronDown 
+            size={20} 
+            color={colors.text} 
+            style={[styles.chevron, showTicketDropdown && styles.chevronRotated]}
+          />
+        </TouchableOpacity>
+        
+        {showTicketDropdown && (
+          <View style={styles.ticketDropdown}>
+            {ticketTypes.map((ticket) => (
+              <View key={ticket.key} style={styles.ticketRow}>
+                <View style={styles.ticketInfo}>
+                  <Text style={styles.ticketLabel}>{ticket.label}</Text>
+                  <Text style={styles.ticketDescription}>{ticket.description}</Text>
+                  <Text style={styles.ticketPrice}>${ticket.price}</Text>
+                </View>
+                
+                <View style={styles.ticketControls}>
+                  <TouchableOpacity
+                    style={[
+                      styles.ticketControlButton,
+                      ticketBreakdown[ticket.key] === 0 && styles.ticketControlButtonDisabled
+                    ]}
+                    onPress={() => handleTicketChange(ticket.key, -1)}
+                    disabled={ticketBreakdown[ticket.key] === 0}
+                  >
+                    <Minus size={16} color={ticketBreakdown[ticket.key] === 0 ? colors.muted : colors.accent} />
+                  </TouchableOpacity>
+                  
+                  <Text style={styles.ticketQuantity}>{ticketBreakdown[ticket.key]}</Text>
+                  
+                  <TouchableOpacity
+                    style={styles.ticketControlButton}
+                    onPress={() => handleTicketChange(ticket.key, 1)}
+                  >
+                    <Plus size={16} color={colors.accent} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+            
+            <View style={styles.ticketSummary}>
+              <Text style={styles.ticketSummaryText}>
+                Total: {partySize} {partySize === 1 ? 'ticket' : 'tickets'} • ${reservationTotal.toFixed(2)}
               </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+            </View>
+          </View>
+        )}
         
         <View style={styles.partySizeNote}>
           <Text style={[typography.bodySmall, styles.noteText]}>
-            💡 Larger groups may require special arrangements. Contact the venue directly for parties over 8 people.
+            💡 Student and senior discounts require valid ID at entry. Children under 5 are free.
           </Text>
         </View>
       </View>
@@ -381,8 +452,21 @@ export default function ReservationModal({
           </View>
           
           <View style={styles.reviewRow}>
-            <Text style={styles.reviewLabel}>Party Size</Text>
-            <Text style={styles.reviewValue}>{partySize} {partySize === 1 ? 'Person' : 'People'}</Text>
+            <Text style={styles.reviewLabel}>Tickets</Text>
+            <View style={styles.reviewTicketBreakdown}>
+              {ticketBreakdown.adult > 0 && (
+                <Text style={styles.reviewTicketLine}>{ticketBreakdown.adult} Adult × $15</Text>
+              )}
+              {ticketBreakdown.student > 0 && (
+                <Text style={styles.reviewTicketLine}>{ticketBreakdown.student} Student × $12</Text>
+              )}
+              {ticketBreakdown.child > 0 && (
+                <Text style={styles.reviewTicketLine}>{ticketBreakdown.child} Child × $8</Text>
+              )}
+              {ticketBreakdown.senior > 0 && (
+                <Text style={styles.reviewTicketLine}>{ticketBreakdown.senior} Senior × $10</Text>
+              )}
+            </View>
           </View>
           
           <View style={[styles.reviewRow, styles.totalRow]}>
@@ -493,7 +577,7 @@ export default function ReservationModal({
       case 'datetime':
         return isModifying ? "Modify Date & Time" : "Select Date & Time";
       case 'party-size':
-        return "Party Size";
+        return "Select Tickets";
       case 'review':
         return "Review Reservation";
       case 'payment':
@@ -1079,5 +1163,116 @@ const styles = StyleSheet.create({
   venueOptionType: {
     color: colors.textMuted,
     fontSize: 14,
+  },
+  // New dropdown styles
+  partySizeDropdownButton: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: colors.border,
+    marginBottom: 16,
+  },
+  dropdownButtonContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  dropdownButtonText: {
+    ...typography.body,
+    color: colors.text,
+    marginLeft: 8,
+    fontWeight: "500",
+  },
+  chevron: {
+    transform: [{ rotate: "0deg" }],
+  },
+  chevronRotated: {
+    transform: [{ rotate: "180deg" }],
+  },
+  ticketDropdown: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  ticketRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  ticketInfo: {
+    flex: 1,
+  },
+  ticketLabel: {
+    ...typography.body,
+    color: colors.text,
+    fontWeight: "600",
+    marginBottom: 2,
+  },
+  ticketDescription: {
+    ...typography.bodySmall,
+    color: colors.textMuted,
+    marginBottom: 4,
+  },
+  ticketPrice: {
+    ...typography.body,
+    color: colors.accent,
+    fontWeight: "600",
+  },
+  ticketControls: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  ticketControlButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.surface,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: colors.accent,
+  },
+  ticketControlButtonDisabled: {
+    backgroundColor: colors.border,
+    borderColor: colors.border,
+  },
+  ticketQuantity: {
+    ...typography.body,
+    color: colors.text,
+    fontWeight: "600",
+    minWidth: 24,
+    textAlign: "center",
+  },
+  ticketSummary: {
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+    alignItems: "center",
+  },
+  ticketSummaryText: {
+    ...typography.body,
+    color: colors.accent,
+    fontWeight: "600",
+  },
+  reviewTicketBreakdown: {
+    flex: 1,
+    alignItems: "flex-end",
+  },
+  reviewTicketLine: {
+    ...typography.bodySmall,
+    color: colors.text,
+    textAlign: "right",
+    marginBottom: 2,
   },
 });
