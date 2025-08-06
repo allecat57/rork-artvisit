@@ -68,8 +68,6 @@ export default function FavoritesScreen() {
           <VenueCard
             venue={item}
             onPress={() => handleVenuePress(item.id)}
-            onFavoritePress={() => handleToggleFavorite(item.id)}
-            isFavorite={true}
           />
         )}
         contentContainerStyle={styles.listContent}
