@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { Calendar as CalendarIcon, Clock } from "lucide-react-native";
 import { Calendar } from "react-native-calendars";
-import colors from "@/constants/colors";
+import Colors from "@/constants/colors";
 import typography from "@/constants/typography";
 
 interface DateTimePickerProps {
@@ -79,7 +79,7 @@ export default function DateTimePicker({
     if (initialDate) {
       const formattedDate = formatCalendarDate(initialDate);
       setMarkedDates({
-        [formattedDate]: { selected: true, selectedColor: colors.accent }
+        [formattedDate]: { selected: true, selectedColor: Colors.accent }
       });
       setAvailableSlots(generateTimeSlots(initialDate));
     }
@@ -101,7 +101,7 @@ export default function DateTimePicker({
     
     // Update marked dates
     setMarkedDates({
-      [day.dateString]: { selected: true, selectedColor: colors.accent }
+      [day.dateString]: { selected: true, selectedColor: Colors.accent }
     });
     
     // Show feedback for date selection
@@ -145,7 +145,7 @@ export default function DateTimePicker({
     <View style={styles.container}>
       <View style={styles.calendarContainer}>
         <View style={styles.calendarHeader}>
-          <CalendarIcon size={20} color={colors.accent} />
+          <CalendarIcon size={20} color={Colors.accent} />
           <Text style={styles.calendarTitle}>Select Date</Text>
         </View>
         
@@ -155,24 +155,24 @@ export default function DateTimePicker({
           onDayPress={handleDateSelect}
           markedDates={markedDates}
           theme={{
-            calendarBackground: colors.card,
-            textSectionTitleColor: colors.text,
-            selectedDayBackgroundColor: colors.accent,
-            selectedDayTextColor: colors.white,
-            todayTextColor: colors.accent,
-            dayTextColor: colors.text,
-            textDisabledColor: colors.textMuted,
-            dotColor: colors.accent,
-            monthTextColor: colors.text,
-            indicatorColor: colors.accent,
+            calendarBackground: Colors.card,
+            textSectionTitleColor: Colors.text,
+            selectedDayBackgroundColor: Colors.accent,
+            selectedDayTextColor: Colors.white,
+            todayTextColor: Colors.accent,
+            dayTextColor: Colors.text,
+            textDisabledColor: Colors.textMuted,
+            dotColor: Colors.accent,
+            monthTextColor: Colors.text,
+            indicatorColor: Colors.accent,
             textDayFontFamily: 'System',
             textMonthFontFamily: 'System',
             textDayHeaderFontFamily: 'System',
             textDayFontWeight: '400',
             textMonthFontWeight: 'bold',
             textDayHeaderFontWeight: '600',
-            arrowColor: colors.accent,
-            disabledArrowColor: colors.textMuted,
+            arrowColor: Colors.accent,
+            disabledArrowColor: Colors.textMuted,
             textMonthFontSize: 16,
           }}
         />
@@ -181,7 +181,7 @@ export default function DateTimePicker({
       {selectedDate && (
         <View style={styles.timeSlotContainer}>
           <View style={styles.timeSlotHeader}>
-            <Clock size={20} color={colors.accent} />
+            <Clock size={20} color={Colors.accent} />
             <Text style={styles.timeSlotTitle}>Select Time</Text>
           </View>
           
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   calendarContainer: {
-    backgroundColor: colors.card,
+    backgroundColor: Colors.card,
     borderRadius: 12,
     padding: 12,
     marginBottom: 20,
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   calendarTitle: {
     ...typography.heading4,
     marginLeft: 8,
-    color: colors.text,
+    color: Colors.text,
   },
   timeSlotContainer: {
     marginBottom: 20,
@@ -278,50 +278,50 @@ const styles = StyleSheet.create({
   timeSlotTitle: {
     ...typography.heading4,
     marginLeft: 8,
-    color: colors.text,
+    color: Colors.text,
   },
   timeSlotScrollContent: {
     paddingBottom: 8,
   },
   timeSlotButton: {
-    backgroundColor: colors.card,
+    backgroundColor: Colors.card,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 8,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: Colors.border,
     minWidth: 80,
     alignItems: 'center',
   },
   selectedTimeSlot: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
+    backgroundColor: Colors.accent,
+    borderColor: Colors.accent,
   },
   timeSlotText: {
     ...typography.body,
-    color: colors.text,
+    color: Colors.text,
     fontSize: 14,
   },
   selectedTimeSlotText: {
-    color: colors.white,
+    color: Colors.white,
     fontWeight: '600',
   },
   noSlotsContainer: {
-    backgroundColor: colors.card,
+    backgroundColor: Colors.card,
     padding: 20,
     borderRadius: 8,
     alignItems: 'center',
   },
   noSlotsText: {
     ...typography.body,
-    color: colors.text,
+    color: Colors.text,
     textAlign: 'center',
     marginBottom: 4,
   },
   noSlotsSubtext: {
     ...typography.bodySmall,
-    color: colors.textMuted,
+    color: Colors.textMuted,
     textAlign: 'center',
   },
   selectionSummary: {
@@ -334,13 +334,13 @@ const styles = StyleSheet.create({
   },
   summaryTitle: {
     ...typography.bodySmall,
-    color: colors.accent,
+    color: Colors.accent,
     fontWeight: '600',
     marginBottom: 4,
   },
   summaryText: {
     ...typography.body,
-    color: colors.accent,
+    color: Colors.accent,
     fontWeight: '600',
     flex: 1,
   },
@@ -348,24 +348,24 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: colors.success,
+    backgroundColor: Colors.success,
     justifyContent: 'center',
     alignItems: 'center',
   },
   checkmarkText: {
-    color: colors.white,
+    color: Colors.white,
     fontSize: 14,
     fontWeight: 'bold',
   },
   instructionContainer: {
-    backgroundColor: colors.card,
+    backgroundColor: Colors.card,
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
   },
   instructionText: {
     ...typography.bodySmall,
-    color: colors.textMuted,
+    color: Colors.textMuted,
     textAlign: 'center',
   },
 });
