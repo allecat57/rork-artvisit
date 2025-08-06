@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from "react-native";
 import { Calendar as CalendarIcon, Clock } from "lucide-react-native";
-import { Calendar } from "react-native-calendars";
+import { Calendar, CalendarList } from "react-native-calendars";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 
@@ -160,11 +160,15 @@ export default function DateTimePicker({
           <Text style={styles.calendarTitle}>Select Date</Text>
         </View>
         
-        <Calendar
+        <CalendarList
           minDate={minDate}
           maxDate={maxDate}
           onDayPress={handleDateSelect}
           markedDates={markedDates}
+          horizontal={true}
+          pagingEnabled={true}
+          calendarWidth={320}
+          calendarHeight={350}
           hideArrows={false}
           hideExtraDays={true}
           disableMonthChange={false}
@@ -173,6 +177,10 @@ export default function DateTimePicker({
           showWeekNumbers={false}
           disableArrowLeft={false}
           disableArrowRight={false}
+          pastScrollRange={1}
+          futureScrollRange={3}
+          scrollEnabled={true}
+          showScrollIndicator={false}
           theme={{
             calendarBackground: colors.card,
             textSectionTitleColor: colors.text,
@@ -192,7 +200,7 @@ export default function DateTimePicker({
             textDayHeaderFontWeight: '600',
             arrowColor: colors.accent,
             disabledArrowColor: colors.textMuted,
-            textMonthFontSize: 14,
+            textMonthFontSize: 16,
             textDayHeaderFontSize: 12,
             textDayFontSize: 14,
           }}
@@ -277,6 +285,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     marginBottom: 20,
+    height: 420,
   },
   calendarHeader: {
     flexDirection: 'row',
