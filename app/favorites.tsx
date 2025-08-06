@@ -15,8 +15,8 @@ export default function FavoritesScreen() {
   const router = useRouter();
   const { getCurrentUserFavorites, removeFavorite } = useFavoritesStore();
   
-  // Get all favorite venues
-  const favoriteVenues = getCurrentUserFavorites();
+  // Get all favorite venues with safety check
+  const favoriteVenues = getCurrentUserFavorites() || [];
   
   // Log screen view
   useEffect(() => {
@@ -63,13 +63,16 @@ export default function FavoritesScreen() {
       
       <FlatList
         data={favoriteVenues}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <VenueCard
-            venue={item}
-            onPress={() => handleVenuePress(item.id)}
-          />
-        )}
+        keyExtractor={(item) => item?.id || Math.random().toString()}
+        renderItem={({ item }) => {
+          if (!item) return null;
+          return (
+            <VenueCard
+              venue={item}
+              onPress={() => handleVenuePress(item.id)}
+            />
+          );
+        }}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
           favoriteVenues.length > 0 ? (

@@ -45,7 +45,8 @@ export const useFavoritesStore = create<FavoritesState>()(
         if (!userId) return [];
         
         const userFavorites = get().userFavorites;
-        return userFavorites[userId]?.venues || [];
+        const favorites = userFavorites[userId]?.venues;
+        return Array.isArray(favorites) ? favorites : [];
       },
       
       addFavorite: (venue) => {
