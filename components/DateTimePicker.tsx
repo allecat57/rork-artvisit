@@ -158,7 +158,7 @@ export default function DateTimePicker({
             calendarBackground: colors.card,
             textSectionTitleColor: colors.text,
             selectedDayBackgroundColor: colors.accent,
-            selectedDayTextColor: colors.primary,
+            selectedDayTextColor: colors.white,
             todayTextColor: colors.accent,
             dayTextColor: colors.text,
             textDisabledColor: colors.textMuted,
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   selectedTimeSlotText: {
-    color: colors.primary,
+    color: colors.white,
     fontWeight: '600',
   },
   noSlotsContainer: {
