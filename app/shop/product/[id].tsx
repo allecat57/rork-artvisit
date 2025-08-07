@@ -12,7 +12,7 @@ import { Product } from "@/types/product";
 import { useCartStore } from "@/store/useCartStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import * as Analytics from "@/utils/analytics";
-import CartButton from "@/components/CartButton";
+
 
 export default function ProductDetailScreen() {
   const { id, galleryId } = useLocalSearchParams();
@@ -110,9 +110,7 @@ export default function ProductDetailScreen() {
               style={styles.backButton}
             />
           ),
-          headerRight: () => (
-            <CartButton />
-          )
+
         }} 
       />
       

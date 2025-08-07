@@ -14,7 +14,7 @@ import { ShoppingBag, Filter, Grid, List, ChevronRight } from "lucide-react-nati
 import colors from "@/constants/colors";
 import SearchBar from "@/components/SearchBar";
 import ProductCard from "@/components/ProductCard";
-import CartButton from "@/components/CartButton";
+
 import { products } from "@/mocks/products";
 import { Product } from "@/types/product";
 import { useCartStore } from "@/store/useCartStore";
@@ -252,10 +252,7 @@ export default function ShopScreen() {
           )}
         </View>
 
-        {/* Cart Button */}
-        <View style={styles.footer}>
-          <CartButton />
-        </View>
+
       </ScrollView>
     </View>
   );
@@ -416,11 +413,7 @@ const styles = StyleSheet.create({
   separator: {
     height: 16,
   },
-  footer: {
-    alignItems: "center",
-    paddingVertical: 20,
-    marginTop: 16,
-  },
+
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
