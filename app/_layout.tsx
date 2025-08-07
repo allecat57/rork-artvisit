@@ -5,6 +5,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ThemeProvider } from "@/context/ThemeContext";
 import { StripeProvider } from "@/context/StripeContext";
 import { useAuthStore } from "@/store/useAuthStore";
+import { ErrorBoundary } from "./error-boundary";
 
 function RootLayoutContent() {
   const { ensureTestUserExists } = useAuthStore();
@@ -13,8 +14,13 @@ function RootLayoutContent() {
     // Initialize any app-level setup here
     console.log("App initialized");
     
-    // Ensure test user exists for demo purposes
-    ensureTestUserExists();
+    try {
+      // Ensure test user exists for demo purposes
+      ensureTestUserExists();
+    } catch (error) {
+      console.warn("Error during app initialization:", error);
+      // Continue loading even if initialization fails
+    }
   }, [ensureTestUserExists]);
 
   return (
@@ -42,13 +48,15 @@ function RootLayoutContent() {
 
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider>
-        <StripeProvider>
-          <RootLayoutContent />
-          <StatusBar style="auto" />
-        </StripeProvider>
-      </ThemeProvider>
-    </GestureHandlerRootView>
+    <ErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ThemeProvider>
+          <StripeProvider>
+            <RootLayoutContent />
+            <StatusBar style="auto" />
+          </StripeProvider>
+        </ThemeProvider>
+      </GestureHandlerRootView>
+    </ErrorBoundary>
   );
 }

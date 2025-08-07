@@ -322,28 +322,33 @@ export const useAuthStore = create<AuthState>()(
       
       ensureTestUserExists: () => {
         try {
+          console.log('AuthStore: ensureTestUserExists called');
           // This is called on app startup to make sure the test user
           // is properly set up for demo purposes
           const { setupTestUserProfile } = get();
           setupTestUserProfile();
           
           // Mark the store as hydrated
+          console.log('AuthStore: Marking store as hydrated');
           set({ isHydrated: true });
         } catch (error) {
           console.warn("Error ensuring test user exists:", error);
           // Still mark as hydrated even if setup fails
+          console.log('AuthStore: Error occurred, but still marking as hydrated');
           set({ isHydrated: true });
         }
       },
       
       setupTestUserProfile: () => {
         try {
+          console.log('AuthStore: setupTestUserProfile called');
           // Import dynamically to avoid circular dependency
           const getProfileStore = () => {
             return require("./useProfileStore").useProfileStore.getState();
           };
           
           const profileStore = getProfileStore();
+          console.log('AuthStore: Got profile store instance');
           
           // Set up the test user's payment method (American Express)
           profileStore.setPaymentMethodForUser(TEST_USER.id, {
@@ -387,13 +392,20 @@ export const useAuthStore = create<AuthState>()(
       }),
       onRehydrateStorage: () => (state) => {
         try {
+          console.log('AuthStore: onRehydrateStorage called with state:', state);
           if (state) {
+            console.log('AuthStore: Setting isHydrated to true during rehydration');
             state.isHydrated = true;
             
             // If user is authenticated, set user ID for analytics
             if (state.user) {
+              console.log('AuthStore: User found during rehydration, setting analytics user ID');
               Analytics.setUserId(state.user.id);
+            } else {
+              console.log('AuthStore: No user found during rehydration');
             }
+          } else {
+            console.log('AuthStore: No state found during rehydration');
           }
         } catch (error) {
           console.warn("Error during auth store rehydration:", error);
