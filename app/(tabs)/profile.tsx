@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import {
   User,
   Settings,
@@ -25,6 +26,7 @@ import {
   ChevronRight,
   Star,
   Crown,
+  Camera,
 } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
@@ -80,7 +82,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user, logout, updateUser } = useAuthStore();
   const { getCurrentSubscription, getCurrentPaymentMethod } = useProfileStore();
   
   const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
@@ -94,6 +96,85 @@ export default function ProfileScreen() {
   useEffect(() => {
     Analytics.logScreenView("Profile");
   }, []);
+
+  const handleChangeProfilePhoto = async () => {
+    try {
+      // Request permission
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission Required',
+          'Please grant permission to access your photo library to change your profile photo.'
+        );
+        return;
+      }
+
+      // Show action sheet
+      Alert.alert(
+        'Change Profile Photo',
+        'Choose how you\'d like to update your profile photo',
+        [
+          {
+            text: 'Take Photo',
+            onPress: async () => {
+              const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+              if (cameraPermission.status !== 'granted') {
+                Alert.alert('Permission Required', 'Camera permission is required to take a photo.');
+                return;
+              }
+              
+              const result = await ImagePicker.launchCameraAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [1, 1],
+                quality: 0.8,
+              });
+              
+              if (!result.canceled && result.assets[0]) {
+                updateProfilePhoto(result.assets[0].uri);
+              }
+            }
+          },
+          {
+            text: 'Choose from Library',
+            onPress: async () => {
+              const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ImagePicker.MediaTypeOptions.Images,
+                allowsEditing: true,
+                aspect: [1, 1],
+                quality: 0.8,
+              });
+              
+              if (!result.canceled && result.assets[0]) {
+                updateProfilePhoto(result.assets[0].uri);
+              }
+            }
+          },
+          {
+            text: 'Cancel',
+            style: 'cancel'
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Error changing profile photo:', error);
+      Alert.alert('Error', 'Failed to change profile photo. Please try again.');
+    }
+  };
+
+  const updateProfilePhoto = (uri: string) => {
+    if (!user) return;
+    
+    try {
+      // Update the user with new avatar
+      updateUser({ avatar: uri });
+      
+      Alert.alert('Success', 'Profile photo updated successfully!');
+    } catch (error) {
+      console.error('Error updating profile photo:', error);
+      Alert.alert('Error', 'Failed to update profile photo. Please try again.');
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -139,7 +220,11 @@ export default function ProfileScreen() {
       {/* Profile Header */}
       <View style={styles.header}>
         <View style={styles.profileSection}>
-          <View style={styles.avatarContainer}>
+          <TouchableOpacity 
+            style={styles.avatarContainer}
+            onPress={handleChangeProfilePhoto}
+            activeOpacity={0.8}
+          >
             {user?.avatar ? (
               <Image
                 source={{ uri: user.avatar }}
@@ -151,12 +236,15 @@ export default function ProfileScreen() {
                 <User size={32} color={colors.accent} />
               </View>
             )}
+            <View style={styles.cameraOverlay}>
+              <Camera size={16} color={colors.background} />
+            </View>
             {subscription?.id === "collector" && (
               <View style={styles.crownBadge}>
                 <Crown size={16} color={colors.accent} />
               </View>
             )}
-          </View>
+          </TouchableOpacity>
           
           <View style={styles.profileInfo}>
             <Text style={styles.userName}>{user?.name || "Guest User"}</Text>
@@ -339,6 +427,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 2,
     borderColor: colors.accent,
+  },
+  cameraOverlay: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: colors.accent,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: colors.background,
   },
   crownBadge: {
     position: "absolute",

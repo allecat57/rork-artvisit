@@ -37,6 +37,7 @@ interface AuthState {
   signup: (email: string, name: string, password: string) => Promise<boolean>;
   clearError: () => void;
   setUser: (user: any) => void;
+  updateUser: (updates: Partial<User>) => void;
   
   // Test user helpers
   loginAsTestUser: () => void;
@@ -291,6 +292,24 @@ export const useAuthStore = create<AuthState>()(
       
       clearError: () => {
         set({ error: null });
+      },
+      
+      updateUser: (updates: Partial<User>) => {
+        const currentUser = get().user;
+        if (!currentUser) return;
+        
+        const updatedUser = {
+          ...currentUser,
+          ...updates
+        };
+        
+        set({ user: updatedUser });
+        
+        // Log analytics event
+        Analytics.logEvent('user_profile_updated', {
+          user_id: currentUser.id,
+          updated_fields: Object.keys(updates)
+        });
       },
       
       loginAsTestUser: () => {
