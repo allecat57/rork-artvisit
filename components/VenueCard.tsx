@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View, Platform } from "react-native";
 import { Image } from "expo-image";
-import { MapPin, Clock, Star, Navigation, AlertCircle, Heart, DollarSign } from "lucide-react-native";
+import { MapPin, Clock, Star, Navigation, AlertCircle, Heart } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import { useLocationStore } from "@/store/useLocationStore";
@@ -160,7 +160,6 @@ export default function VenueCard({
             </View>
             
             <View style={styles.admissionContainer}>
-              <DollarSign size={14} color={colors.accent} />
               <Text style={[typography.caption, styles.admissionText]}>{admission}</Text>
             </View>
           </View>
@@ -300,7 +299,6 @@ const styles = StyleSheet.create({
   admissionText: {
     fontFamily,
     color: colors.accent,
-    marginLeft: 4,
     fontWeight: "600",
   },
 });
