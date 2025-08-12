@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View, Dimensions, Platform } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { MapPin, Award, Heart, DollarSign } from "lucide-react-native";
+import { MapPin, Award, Heart } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
 import { useFavoritesStore } from "@/store/useFavoritesStore";
@@ -125,7 +125,6 @@ export default function FeaturedVenueCard({
             
             {admission && (
               <View style={styles.admissionContainer}>
-                <DollarSign size={14} color={useGoldText ? colors.accent : colors.white} />
                 <Text style={[
                   typography.bodySmall,
                   styles.admissionText,
@@ -206,7 +205,6 @@ const styles = StyleSheet.create({
   admissionText: {
     fontFamily,
     color: colors.white,
-    marginLeft: 4,
     fontWeight: "600",
   },
   goldAdmissionText: {
