@@ -27,6 +27,7 @@ import {
   Star,
   Crown,
   Camera,
+  Database,
 } from "lucide-react-native";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
@@ -358,6 +359,16 @@ export default function ProfileScreen() {
           onPress={() => {
             Analytics.logEvent("profile_help_press");
             setShowHelpModal(true);
+          }}
+        />
+        
+        <MenuItem
+          icon={<Database size={20} color={colors.accent} />}
+          title="Test Database"
+          subtitle="Test Supabase connection"
+          onPress={() => {
+            Analytics.logEvent("profile_database_test_press");
+            router.push("/supabase-test");
           }}
         />
       </View>
