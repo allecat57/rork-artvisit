@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -27,7 +27,7 @@ export default function SupabaseTestScreen() {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const testConnection = async () => {
+  const testConnection = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -47,8 +47,13 @@ export default function SupabaseTestScreen() {
         .limit(1);
       
       if (connectionError) {
-        console.error('❌ Connection test failed:', connectionError);
-        throw connectionError;
+        console.error('❌ Connection test failed:', {
+          message: connectionError.message,
+          details: connectionError.details,
+          hint: connectionError.hint,
+          code: connectionError.code
+        });
+        throw new Error(`Connection failed: ${connectionError.message || 'Unknown error'}`);
       }
       
       console.log('✅ Supabase connection successful!');
@@ -58,13 +63,19 @@ export default function SupabaseTestScreen() {
       await getAllTablesInfo();
       
     } catch (err: any) {
-      console.error('❌ Supabase test failed:', err);
+      console.error('❌ Supabase test failed:', {
+        message: err.message,
+        details: err.details,
+        hint: err.hint,
+        code: err.code,
+        stack: err.stack
+      });
       setError(err.message || 'Unknown error occurred');
       setConnectionStatus('error');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
   const getAllTablesInfo = async () => {
     try {
@@ -78,7 +89,13 @@ export default function SupabaseTestScreen() {
         .order('table_name');
       
       if (tablesError) {
-        throw tablesError;
+        console.error('❌ Tables query failed:', {
+          message: tablesError.message,
+          details: tablesError.details,
+          hint: tablesError.hint,
+          code: tablesError.code
+        });
+        throw new Error(`Tables query failed: ${tablesError.message || 'Unknown error'}`);
       }
       
       console.log('📋 Found tables:', tables?.map(t => t.table_name));
@@ -95,7 +112,12 @@ export default function SupabaseTestScreen() {
             .order('ordinal_position');
           
           if (columnsError) {
-            console.warn(`⚠️ Could not get columns for ${table.table_name}:`, columnsError);
+            console.warn(`⚠️ Could not get columns for ${table.table_name}:`, {
+              message: columnsError.message,
+              details: columnsError.details,
+              hint: columnsError.hint,
+              code: columnsError.code
+            });
             continue;
           }
           
@@ -105,7 +127,12 @@ export default function SupabaseTestScreen() {
             .select('*', { count: 'exact', head: true });
           
           if (countError) {
-            console.warn(`⚠️ Could not get count for ${table.table_name}:`, countError);
+            console.warn(`⚠️ Could not get count for ${table.table_name}:`, {
+              message: countError.message,
+              details: countError.details,
+              hint: countError.hint,
+              code: countError.code
+            });
           }
           
           // Get sample data (first 3 rows)
@@ -115,7 +142,12 @@ export default function SupabaseTestScreen() {
             .limit(3);
           
           if (sampleError) {
-            console.warn(`⚠️ Could not get sample data for ${table.table_name}:`, sampleError);
+            console.warn(`⚠️ Could not get sample data for ${table.table_name}:`, {
+              message: sampleError.message,
+              details: sampleError.details,
+              hint: sampleError.hint,
+              code: sampleError.code
+            });
           }
           
           tablesInfo.push({
@@ -127,15 +159,26 @@ export default function SupabaseTestScreen() {
           
           console.log(`📊 ${table.table_name}: ${count || 0} rows, ${columns?.length || 0} columns`);
           
-        } catch (tableError) {
-          console.warn(`⚠️ Error processing table ${table.table_name}:`, tableError);
+        } catch (tableError: any) {
+          console.warn(`⚠️ Error processing table ${table.table_name}:`, {
+            message: tableError.message,
+            details: tableError.details,
+            hint: tableError.hint,
+            code: tableError.code
+          });
         }
       }
       
       setTableInfo(tablesInfo);
       
     } catch (err: any) {
-      console.error('❌ Error getting tables info:', err);
+      console.error('❌ Error getting tables info:', {
+        message: err.message,
+        details: err.details,
+        hint: err.hint,
+        code: err.code,
+        stack: err.stack
+      });
       throw err;
     }
   };
@@ -154,7 +197,13 @@ export default function SupabaseTestScreen() {
         .limit(5);
       
       if (error) {
-        throw error;
+        console.error('❌ Table test error:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw new Error(`Table test failed: ${error.message || 'Unknown error'}`);
       }
       
       Alert.alert(
@@ -164,9 +213,15 @@ export default function SupabaseTestScreen() {
       );
       
     } catch (err: any) {
+      console.error(`❌ Table test failed for ${tableName}:`, {
+        message: err.message,
+        details: err.details,
+        hint: err.hint,
+        code: err.code
+      });
       Alert.alert(
         'Table Test Failed',
-        `❌ Error testing ${tableName}:\n\n${err.message}`,
+        `❌ Error testing ${tableName}:\n\n${err.message || 'Unknown error'}`,
         [{ text: 'OK' }]
       );
     }
@@ -219,10 +274,16 @@ export default function SupabaseTestScreen() {
       );
       
     } catch (err: any) {
-      console.error('❌ Gallery queries test failed:', err);
+      console.error('❌ Gallery queries test failed:', {
+        message: err.message,
+        details: err.details,
+        hint: err.hint,
+        code: err.code,
+        stack: err.stack
+      });
       Alert.alert(
         '❌ Gallery Queries Failed',
-        `Error: ${err.message}`,
+        `Error: ${err.message || 'Unknown error'}`,
         [{ text: 'OK' }]
       );
     } finally {
@@ -241,7 +302,7 @@ export default function SupabaseTestScreen() {
       await testConnection();
     };
     runTest();
-  }, []);
+  }, [testConnection]);
 
   const renderTableCard = (table: TableInfo) => (
     <TouchableOpacity
