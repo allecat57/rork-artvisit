@@ -80,6 +80,11 @@ export default function TabLayout() {
             tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
           }}
         />
+        
+        {/* Hide unregistered tab files */}
+        <Tabs.Screen name="galleries" options={{ href: null }} />
+        <Tabs.Screen name="reservations" options={{ href: null }} />
+        <Tabs.Screen name="todos" options={{ href: null }} />
     </Tabs>
   );
 }
