@@ -25,6 +25,16 @@ class TimeFrameWebSocketService {
       return;
     }
 
+    // Skip connection if we've exceeded max attempts
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.log('⚠️ Max reconnection attempts reached. Skipping WebSocket connection.');
+      this.notifyListeners('connection', { 
+        status: 'error', 
+        error: 'Max reconnection attempts reached' 
+      });
+      return;
+    }
+
     try {
       console.log('Connecting to TimeFrame WebSocket...');
       this.isManuallyDisconnected = false;
@@ -72,8 +82,14 @@ class TimeFrameWebSocketService {
       };
 
       this.ws.onerror = (error) => {
-        console.error('❌ TimeFrame WebSocket error:', error);
-        this.notifyListeners('connection', { status: 'error', error });
+        const errorMessage = error instanceof ErrorEvent ? error.message : 'WebSocket connection failed';
+        console.error('❌ TimeFrame WebSocket error:', errorMessage);
+        console.error('Error details:', {
+          type: error.type,
+          url: this.WS_URL,
+          readyState: this.ws?.readyState
+        });
+        this.notifyListeners('connection', { status: 'error', error: errorMessage });
       };
 
     } catch (error) {
@@ -209,6 +225,12 @@ class TimeFrameWebSocketService {
   // Ping server to keep connection alive
   ping(): void {
     this.send({ type: 'ping', timestamp: new Date().toISOString() });
+  }
+
+  // Reset reconnection attempts (useful for manual retry)
+  resetReconnectionAttempts(): void {
+    this.reconnectAttempts = 0;
+    console.log('🔄 Reconnection attempts reset');
   }
 }
 

@@ -265,7 +265,12 @@ export default function ShopScreen() {
           {filteredProducts.length > 0 ? (
             <FlatList
               data={searchQuery ? filteredProducts : regularProducts}
-              keyExtractor={(item, index) => `${item.id}-${index}`}
+              keyExtractor={(item, index) => {
+                // Ensure unique keys by combining item ID with index and type
+                const itemId = item.id || `unknown-${index}`;
+                const source = item.id?.toString().includes('timeframe') ? 'tf' : 'mock';
+                return `${source}-${itemId}-${index}`;
+              }}
               renderItem={renderProduct}
               numColumns={viewMode === 'grid' ? 2 : 1}
               key={viewMode}

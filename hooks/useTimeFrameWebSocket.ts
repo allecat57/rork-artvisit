@@ -115,6 +115,11 @@ export const useTimeFrameWebSocket = (options: UseTimeFrameWebSocketOptions = {}
     setLastMessage(null);
   }, []);
 
+  // Reset reconnection attempts
+  const resetReconnectionAttempts = useCallback(() => {
+    timeFrameWebSocket.resetReconnectionAttempts();
+  }, []);
+
   useEffect(() => {
     // Add event listeners
     timeFrameWebSocket.addEventListener('connection', handleConnectionChange);
@@ -166,6 +171,7 @@ export const useTimeFrameWebSocket = (options: UseTimeFrameWebSocketOptions = {}
     disconnect,
     sendMessage,
     ping,
+    resetReconnectionAttempts,
     
     // Gallery/Artwork subscriptions
     subscribeToGallery,
