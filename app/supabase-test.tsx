@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Stack } from 'expo-router';
 import { supabase, isSupabaseConfigured, SUPABASE_URL, SUPABASE_ANON_KEY } from '@/config/supabase';
+import TimeFrameAPI from '@/utils/timeframe-api';
 import colors from '@/constants/colors';
 
 interface TableInfo {
@@ -20,12 +21,21 @@ interface TableInfo {
   sample_data?: any[];
 }
 
+interface TimeFrameStatus {
+  status: 'checking' | 'connected' | 'error';
+  data?: any;
+  error?: string;
+  timestamp?: string;
+}
+
 export default function SupabaseTestScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'checking' | 'connected' | 'error'>('checking');
   const [tableInfo, setTableInfo] = useState<TableInfo[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [timeFrameStatus, setTimeFrameStatus] = useState<TimeFrameStatus>({ status: 'checking' });
+  const [timeFrameLoading, setTimeFrameLoading] = useState(false);
 
   const testConnection = useCallback(async () => {
     try {
@@ -288,15 +298,109 @@ export default function SupabaseTestScreen() {
     }
   };
 
+  const testTimeFrameAPI = async () => {
+    try {
+      setTimeFrameLoading(true);
+      setTimeFrameStatus({ status: 'checking' });
+      console.log('🌐 Testing TimeFrame API connection...');
+      
+      const result = await TimeFrameAPI.testConnection();
+      
+      console.log('✅ TimeFrame API connection successful:', result);
+      setTimeFrameStatus({
+        status: 'connected',
+        data: result.data,
+        timestamp: result.timestamp
+      });
+      
+      Alert.alert(
+        '🌐 TimeFrame API Test Results',
+        `✅ Connection successful!\n\n` +
+        `📊 Found ${result.data?.length || 0} galleries\n\n` +
+        `🕒 Timestamp: ${result.timestamp}\n\n` +
+        `📋 Sample Data:\n${result.data?.[0] ? JSON.stringify(result.data[0], null, 2) : 'No data'}`,
+        [{ text: 'OK' }]
+      );
+      
+    } catch (err: any) {
+      console.error('❌ TimeFrame API test failed:', err);
+      const errorMessage = err.response?.data?.message || err.message || 'Unknown error';
+      setTimeFrameStatus({
+        status: 'error',
+        error: errorMessage
+      });
+      
+      Alert.alert(
+        '❌ TimeFrame API Test Failed',
+        `Error: ${errorMessage}\n\nStatus: ${err.response?.status || 'No status'}\n\nURL: ${err.config?.url || 'No URL'}`,
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setTimeFrameLoading(false);
+    }
+  };
+
+  const testSpecificGalleryAPI = async () => {
+    try {
+      setTimeFrameLoading(true);
+      console.log('🎨 Testing specific gallery API calls...');
+      
+      // Test getting all galleries
+      const galleries = await TimeFrameAPI.getGalleries();
+      console.log('✅ Got galleries:', galleries);
+      
+      // Test getting specific gallery (if any exist)
+      let specificGallery = null;
+      if (galleries && galleries.length > 0) {
+        const firstGalleryId = galleries[0].id;
+        specificGallery = await TimeFrameAPI.getGallery(firstGalleryId);
+        console.log('✅ Got specific gallery:', specificGallery);
+        
+        // Test getting artworks for this gallery
+        try {
+          const artworks = await TimeFrameAPI.getGalleryArtworks(firstGalleryId);
+          console.log('✅ Got artworks:', artworks);
+        } catch (artworkError: any) {
+          console.warn('⚠️ Artworks endpoint might not exist:', artworkError.message);
+        }
+      }
+      
+      Alert.alert(
+        '🎨 Gallery API Test Results',
+        `✅ All tests completed!\n\n` +
+        `📊 Total Galleries: ${galleries?.length || 0}\n\n` +
+        `🏛️ First Gallery: ${specificGallery?.name || 'N/A'}\n\n` +
+        `📋 Sample Gallery Data:\n${galleries?.[0] ? JSON.stringify(galleries[0], null, 2) : 'No galleries'}`,
+        [{ text: 'OK' }]
+      );
+      
+    } catch (err: any) {
+      console.error('❌ Gallery API test failed:', err);
+      const errorMessage = err.response?.data?.message || err.message || 'Unknown error';
+      
+      Alert.alert(
+        '❌ Gallery API Test Failed',
+        `Error: ${errorMessage}\n\nStatus: ${err.response?.status || 'No status'}`,
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setTimeFrameLoading(false);
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
-    await testConnection();
+    await Promise.all([
+      testConnection(),
+      testTimeFrameAPI()
+    ]);
     setRefreshing(false);
   };
 
   useEffect(() => {
     const runTest = async () => {
       await testConnection();
+      await testTimeFrameAPI();
     };
     runTest();
   }, [testConnection]);
@@ -348,9 +452,9 @@ export default function SupabaseTestScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {/* Connection Status */}
+        {/* Supabase Connection Status */}
         <View style={styles.statusCard}>
-          <Text style={styles.statusTitle}>Connection Status</Text>
+          <Text style={styles.statusTitle}>Supabase Connection Status</Text>
           <View style={styles.statusRow}>
             <View style={[
               styles.statusIndicator,
@@ -370,6 +474,34 @@ export default function SupabaseTestScreen() {
           )}
         </View>
 
+        {/* TimeFrame API Connection Status */}
+        <View style={styles.statusCard}>
+          <Text style={styles.statusTitle}>TimeFrame API Connection Status</Text>
+          <View style={styles.statusRow}>
+            <View style={[
+              styles.statusIndicator,
+              timeFrameStatus.status === 'connected' ? styles.statusConnected :
+              timeFrameStatus.status === 'error' ? styles.statusError :
+              styles.statusChecking
+            ]} />
+            <Text style={styles.statusText}>
+              {timeFrameStatus.status === 'connected' ? '✅ Connected' :
+               timeFrameStatus.status === 'error' ? '❌ Connection Failed' :
+               '🔍 Checking...'}
+            </Text>
+          </View>
+          
+          {timeFrameStatus.error && (
+            <Text style={styles.errorText}>{timeFrameStatus.error}</Text>
+          )}
+          
+          {timeFrameStatus.status === 'connected' && timeFrameStatus.data && (
+            <Text style={styles.successText}>
+              ✅ Found {timeFrameStatus.data.length} galleries
+            </Text>
+          )}
+        </View>
+
         {/* Action Buttons */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity 
@@ -380,7 +512,7 @@ export default function SupabaseTestScreen() {
             {isLoading ? (
               <ActivityIndicator color={colors.background} size="small" />
             ) : (
-              <Text style={styles.buttonText}>🔄 Refresh Test</Text>
+              <Text style={styles.buttonText}>🔄 Test Supabase</Text>
             )}
           </TouchableOpacity>
           
@@ -390,6 +522,29 @@ export default function SupabaseTestScreen() {
             disabled={isLoading}
           >
             <Text style={styles.buttonText}>🎨 Test Gallery Queries</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* TimeFrame API Buttons */}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.timeframeButton]} 
+            onPress={testTimeFrameAPI}
+            disabled={timeFrameLoading}
+          >
+            {timeFrameLoading ? (
+              <ActivityIndicator color={colors.background} size="small" />
+            ) : (
+              <Text style={styles.buttonText}>🌐 Test TimeFrame API</Text>
+            )}
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.apiTestButton]} 
+            onPress={testSpecificGalleryAPI}
+            disabled={timeFrameLoading}
+          >
+            <Text style={styles.buttonText}>🏛️ Test Gallery APIs</Text>
           </TouchableOpacity>
         </View>
 
@@ -481,6 +636,12 @@ const styles = StyleSheet.create({
   },
   galleryButton: {
     backgroundColor: '#9C27B0',
+  },
+  timeframeButton: {
+    backgroundColor: '#2196F3',
+  },
+  apiTestButton: {
+    backgroundColor: '#FF5722',
   },
   buttonText: {
     color: colors.background,
@@ -574,5 +735,11 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     fontFamily: 'monospace',
     marginBottom: 4,
+  },
+  successText: {
+    color: '#4CAF50',
+    fontSize: 14,
+    marginTop: 8,
+    fontWeight: '500' as const,
   },
 });
