@@ -1,14 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, useColorScheme } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, useColorScheme, ActivityIndicator } from 'react-native';
+import { useLocalSearchParams, useRouter, Stack } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Heart, Share2, MapPin, Clock, ArrowRight } from 'lucide-react-native';
+import { Heart, Share2, MapPin, Clock, ArrowRight, ArrowLeft } from 'lucide-react-native';
 import colors from '../../constants/colors';
-import { GalleryAnalytics } from '../../utils/artvisit-integration';
 import * as Analytics from '../../utils/analytics';
+import TimeFrameAPI from '../../utils/timeframe-api';
+import { useVenueStore } from '../../store/useVenueStore';
 
-// Mock data - in a real app, fetch this from your API
-const galleries = [
+interface Gallery {
+  id: string;
+  name: string;
+  description: string;
+  location: string;
+  image: string;
+  hours: string;
+  admission?: string;
+  phone?: string;
+  website?: string;
+}
+
+interface Artwork {
+  id: string;
+  title: string;
+  artist: string;
+  image: string;
+  sold?: boolean;
+}
+
+// Mock data as fallback
+const mockGalleries = [
   {
     id: '1',
     name: 'Modern Art Gallery',
@@ -40,86 +61,171 @@ export default function GalleryScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const textColor = isDark ? colors.light : colors.dark;
-  const bgColor = isDark ? colors.dark : colors.light;
+  const textColor = isDark ? colors.text : colors.text;
+  const bgColor = isDark ? colors.background : colors.background;
   
-  const [gallery, setGallery] = useState(null);
-  const [analytics, setAnalytics] = useState(null);
+  const [gallery, setGallery] = useState<Gallery | null>(null);
+  const [artworks, setArtworks] = useState<Artwork[]>([]);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  const { getVenueById } = useVenueStore();
   
   useEffect(() => {
-    // Find gallery from mock data
-    const foundGallery = galleries.find(g => g.id === id);
-    setGallery(foundGallery);
-    
-    if (foundGallery) {
-      // Initialize analytics
-      const galleryAnalytics = new GalleryAnalytics({
-        id: foundGallery.id,
-        name: foundGallery.name,
-        location: foundGallery.location
-      });
+    const loadGalleryData = async () => {
+      setLoading(true);
+      setError(null);
       
-      setAnalytics(galleryAnalytics);
-      
-      // Track gallery view
-      galleryAnalytics.trackGalleryView();
-      
-      // Log screen view to TimeFrame Analytics
-      Analytics.sendToTimeFrameAnalytics('screen_view', {
-        screen_name: 'Gallery Detail',
-        screen_class: 'GalleryScreen',
-        gallery_id: foundGallery.id,
-        gallery_name: foundGallery.name
-      });
-    }
-    
-    return () => {
-      // Track time spent when leaving
-      if (analytics) {
-        analytics.trackTimeSpent();
+      try {
+        console.log('🏛️ Loading gallery data for ID:', id);
+        
+        // First, try to get gallery from venue store (for TimeFrame galleries)
+        const venue = getVenueById(`timeframe-${id}`);
+        if (venue) {
+          console.log('✅ Found TimeFrame gallery in venue store:', venue.name);
+          
+          // Convert venue to gallery format
+          const galleryData: Gallery = {
+            id: Array.isArray(id) ? id[0] : id,
+            name: venue.name,
+            description: venue.description,
+            location: venue.location,
+            image: venue.imageUrl,
+            hours: venue.openingHours,
+            admission: venue.admission,
+            phone: venue.phone,
+            website: venue.website
+          };
+          
+          setGallery(galleryData);
+          
+          // Try to load artworks from TimeFrame API
+          try {
+            const artworksResponse = await TimeFrameAPI.getGalleryArtworks(parseInt(id as string));
+            if (artworksResponse.success && artworksResponse.data) {
+              setArtworks(artworksResponse.data);
+              console.log(`✅ Loaded ${artworksResponse.data.length} artworks`);
+            }
+          } catch (artworkError) {
+            console.warn('⚠️ Could not load artworks:', artworkError);
+            // Use sample artworks as fallback
+            setArtworks([
+              { id: `${id}01`, title: 'Featured Artwork 1', artist: 'Contemporary Artist', image: 'https://images.unsplash.com/photo-1549887552-cb1071d3e5ca?w=800&h=600&fit=crop' },
+              { id: `${id}02`, title: 'Featured Artwork 2', artist: 'Modern Artist', image: 'https://images.unsplash.com/photo-1578926375605-eaf7559b1458?w=800&h=600&fit=crop' },
+            ]);
+          }
+          
+        } else {
+          // Fallback to mock data
+          console.log('⚠️ Gallery not found in venue store, using mock data');
+          const foundGallery = mockGalleries.find(g => g.id === id);
+          if (foundGallery) {
+            setGallery(foundGallery);
+            setArtworks(foundGallery.artworks || []);
+          } else {
+            throw new Error('Gallery not found');
+          }
+        }
+        
+      } catch (err: any) {
+        console.error('❌ Error loading gallery:', err);
+        setError(err?.message || 'Failed to load gallery');
+      } finally {
+        setLoading(false);
       }
     };
-  }, [id]);
+    
+    if (id) {
+      loadGalleryData();
+    }
+  }, [id, getVenueById]);
   
-  if (!gallery) {
+  useEffect(() => {
+    if (gallery) {
+      // Log screen view
+      Analytics.logEvent('gallery_view', {
+        gallery_id: gallery.id,
+        gallery_name: gallery.name,
+        gallery_location: gallery.location
+      });
+    }
+  }, [gallery]);
+  
+  if (loading) {
     return (
       <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
-        <Text style={[styles.loadingText, { color: textColor }]}>Loading gallery...</Text>
+        <Stack.Screen options={{ title: 'Loading...', headerShown: true }} />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.accent} />
+          <Text style={[styles.loadingText, { color: textColor }]}>Loading gallery...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+  
+  if (error || !gallery) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
+        <Stack.Screen options={{ title: 'Gallery Not Found', headerShown: true }} />
+        <View style={styles.errorContainer}>
+          <Text style={[styles.errorText, { color: textColor }]}>
+            {error || 'Gallery not found'}
+          </Text>
+          <TouchableOpacity 
+            style={[styles.backButton, { backgroundColor: colors.accent }]}
+            onPress={() => router.back()}
+          >
+            <ArrowLeft size={18} color="white" />
+            <Text style={styles.backButtonText}>Go Back</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
   }
   
   const handleFavoriteToggle = () => {
     setIsFavorite(!isFavorite);
-    if (analytics) {
-      analytics.trackInteraction('favorite_toggle', null, { is_favorite: !isFavorite });
-    }
+    Analytics.logEvent('gallery_favorite_toggle', {
+      gallery_id: gallery?.id,
+      gallery_name: gallery?.name,
+      is_favorite: !isFavorite
+    });
   };
   
   const handleShare = () => {
-    if (analytics) {
-      analytics.trackInteraction('share', null, { gallery_name: gallery.name });
-    }
+    Analytics.logEvent('gallery_share', {
+      gallery_id: gallery?.id,
+      gallery_name: gallery?.name
+    });
     // Implement share functionality
   };
   
-  const handleArtworkPress = (artwork) => {
-    if (analytics) {
-      analytics.trackArtworkView(artwork.id, artwork.title);
-    }
-    router.push(`/gallery/${gallery.id}/artwork/${artwork.id}`);
+  const handleArtworkPress = (artwork: Artwork) => {
+    Analytics.logEvent('artwork_view', {
+      artwork_id: artwork.id,
+      artwork_title: artwork.title,
+      gallery_id: gallery?.id
+    });
+    router.push(`/gallery/${gallery?.id}/artwork/${artwork.id}`);
   };
   
   const handleViewAllArtworks = () => {
-    if (analytics) {
-      analytics.trackInteraction('view_all_artworks');
-    }
-    router.push(`/gallery/${gallery.id}/artworks`);
+    Analytics.logEvent('view_all_artworks', {
+      gallery_id: gallery?.id,
+      gallery_name: gallery?.name
+    });
+    router.push(`/gallery/${gallery?.id}/artworks`);
   };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: bgColor }]}>
+      <Stack.Screen options={{ 
+        title: gallery.name,
+        headerShown: true,
+        headerStyle: { backgroundColor: bgColor },
+        headerTintColor: textColor
+      }} />
       <ScrollView>
         <Image source={{ uri: gallery.image }} style={styles.image} />
         
@@ -134,8 +240,8 @@ export default function GalleryScreen() {
               >
                 <Heart 
                   size={24} 
-                  color={isFavorite ? colors.primary : textColor} 
-                  fill={isFavorite ? colors.primary : 'transparent'} 
+                  color={isFavorite ? colors.accent : textColor} 
+                  fill={isFavorite ? colors.accent : 'transparent'} 
                 />
               </TouchableOpacity>
               
@@ -149,12 +255,12 @@ export default function GalleryScreen() {
           </View>
           
           <View style={styles.infoRow}>
-            <MapPin size={18} color={colors.primary} />
+            <MapPin size={18} color={colors.accent} />
             <Text style={[styles.infoText, { color: textColor }]}>{gallery.location}</Text>
           </View>
           
           <View style={styles.infoRow}>
-            <Clock size={18} color={colors.primary} />
+            <Clock size={18} color={colors.accent} />
             <Text style={[styles.infoText, { color: textColor }]}>{gallery.hours}</Text>
           </View>
           
@@ -171,7 +277,7 @@ export default function GalleryScreen() {
             </View>
             
             <View style={styles.artworksGrid}>
-              {gallery.artworks.map(artwork => (
+              {artworks.map(artwork => (
                 <TouchableOpacity 
                   key={artwork.id} 
                   style={styles.artworkCard}
@@ -190,8 +296,16 @@ export default function GalleryScreen() {
               ))}
             </View>
             
+            {artworks.length === 0 && (
+              <View style={styles.noArtworksContainer}>
+                <Text style={[styles.noArtworksText, { color: textColor }]}>
+                  No artworks available at the moment
+                </Text>
+              </View>
+            )}
+            
             <TouchableOpacity 
-              style={[styles.viewAllButton, { backgroundColor: colors.primary }]}
+              style={[styles.viewAllButton, { backgroundColor: colors.accent }]}
               onPress={handleViewAllArtworks}
             >
               <Text style={styles.viewAllButtonText}>View All Artworks</Text>
@@ -208,10 +322,49 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 16,
+  },
   loadingText: {
     fontSize: 16,
     textAlign: 'center',
-    marginTop: 20,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    gap: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+    gap: 8,
+  },
+  backButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  noArtworksContainer: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  noArtworksText: {
+    fontSize: 14,
+    textAlign: 'center',
+    opacity: 0.7,
   },
   image: {
     width: '100%',
@@ -267,7 +420,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   viewAll: {
-    color: colors.primary,
+    color: colors.accent,
     fontSize: 14,
   },
   artworksGrid: {

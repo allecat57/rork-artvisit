@@ -36,6 +36,7 @@ export default function VenueCard({
   const distanceValue = parseFloat(distance.split(" ")[0]);
   const isNearby = distanceValue <= 10; // Highlight venues within 10 miles
   const isWithinRadius = distanceValue <= 50; // Check if within 50 mile radius
+  const isTimeFrameGallery = id.startsWith('timeframe-');
 
   const favorite = isFavorite(id);
 
@@ -80,7 +81,14 @@ export default function VenueCard({
     if (onPress) {
       onPress();
     } else {
-      router.push(`/venue/${id}`);
+      // Check if this is a TimeFrame gallery and route accordingly
+      if (id.startsWith('timeframe-')) {
+        // Extract the original gallery ID from the timeframe ID
+        const galleryId = id.replace('timeframe-', '');
+        router.push(`/gallery/${galleryId}`);
+      } else {
+        router.push(`/venue/${id}`);
+      }
     }
   };
 
@@ -96,6 +104,11 @@ export default function VenueCard({
         contentFit="cover"
         transition={300}
       />
+      {isTimeFrameGallery && (
+        <View style={styles.timeFrameBadge}>
+          <Text style={styles.timeFrameBadgeText}>🏛️ TimeFrame</Text>
+        </View>
+      )}
       <View style={styles.content}>
         <View style={styles.header}>
           <View style={styles.titleContainer}>
@@ -300,5 +313,25 @@ const styles = StyleSheet.create({
     fontFamily,
     color: colors.accent,
     fontWeight: "600",
+  },
+  timeFrameBadge: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    backgroundColor: "rgba(172, 137, 1, 0.95)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  timeFrameBadgeText: {
+    color: colors.primary.background,
+    fontSize: 11,
+    fontWeight: "700",
+    textAlign: "center",
   },
 });
