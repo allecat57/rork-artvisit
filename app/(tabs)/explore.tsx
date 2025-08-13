@@ -26,11 +26,17 @@ const fontFamily = Platform.select({
 });
 
 export default function ExploreScreen() {
-  const { venues, isLoading, searchQuery: storeSearchQuery } = useVenueStore();
+  const { venues, isLoading, fetchVenues } = useVenueStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredVenues, setFilteredVenues] = useState<Venue[]>([]);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    // Load venues on component mount
+    fetchVenues();
+  }, [fetchVenues]);
 
   useEffect(() => {
     if (searchQuery.trim()) {
@@ -77,12 +83,36 @@ export default function ExploreScreen() {
             contentContainerStyle={styles.categoriesContainer}
           />
           
-          {/* Supabase Test Button */}
+          {/* Test Buttons */}
+          <View style={styles.testButtonsContainer}>
+            <TouchableOpacity 
+              style={styles.testButton}
+              onPress={() => router.push('/supabase-test')}
+            >
+              <Text style={styles.testButtonText}>🗄️ Test Supabase</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity 
+              style={[styles.testButton, styles.timeframeButton]}
+              onPress={() => router.push('/timeframe-test')}
+            >
+              <Text style={styles.testButtonText}>🏛️ Test TimeFrame</Text>
+            </TouchableOpacity>
+          </View>
+          
+          {/* Refresh TimeFrame Data Button */}
           <TouchableOpacity 
-            style={styles.testButton}
-            onPress={() => router.push('/supabase-test')}
+            style={[styles.testButton, styles.refreshButton]}
+            onPress={async () => {
+              setRefreshing(true);
+              await fetchVenues();
+              setRefreshing(false);
+            }}
+            disabled={refreshing}
           >
-            <Text style={styles.testButtonText}>🗄️ Test Supabase Database</Text>
+            <Text style={styles.testButtonText}>
+              {refreshing ? '🔄 Refreshing...' : '🔄 Refresh Galleries'}
+            </Text>
           </TouchableOpacity>
         </>
       )}
@@ -251,13 +281,26 @@ const styles = StyleSheet.create({
     textAlign: "center",
     lineHeight: 20,
   },
+  testButtonsContainer: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 16,
+  },
   testButton: {
     backgroundColor: colors.accent,
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
-    marginTop: 16,
     alignItems: "center",
+    flex: 1,
+  },
+  timeframeButton: {
+    backgroundColor: '#AC8901', // TimeFrame gold color
+  },
+  refreshButton: {
+    backgroundColor: '#2563eb', // Blue color for refresh
+    marginTop: 8,
+    flex: 0,
   },
   testButtonText: {
     color: colors.background,

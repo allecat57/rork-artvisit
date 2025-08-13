@@ -7,6 +7,7 @@ import { venues } from "@/mocks/venues";
 import { useAuthStore } from "./useAuthStore";
 import * as Analytics from "@/utils/analytics";
 import { categories } from "@/mocks/categories";
+import TimeFrameAPI from "@/utils/timeframe-api";
 
 interface VenueState {
   venues: Venue[];
@@ -24,7 +25,7 @@ interface VenueState {
   updateReservation: (id: string, updatedReservation: Reservation) => void;
   cancelReservation: (reservationId: string) => void;
   fetchUserReservations: (userId: string) => Promise<void>;
-  fetchVenues: () => void;
+  fetchVenues: () => Promise<void>;
   
   // Selectors
   getVenueById: (id: string) => Venue | undefined;
@@ -61,21 +62,81 @@ export const useVenueStore = create<VenueState>()(
       setSelectedVenue: (venue) => set({ selectedVenue: venue }),
       setSearchQuery: (query) => set({ searchQuery: query || "" }),
       
-      fetchVenues: () => {
+      fetchVenues: async () => {
         set({ isLoading: true });
         
         try {
-          // Simulate network delay
-          setTimeout(() => {
+          console.log('🏛️ Fetching galleries from TimeFrame API...');
+          
+          // Fetch from TimeFrame API
+          const response = await TimeFrameAPI.getGalleries();
+          
+          if (response.success && response.data) {
+            console.log(`✅ Loaded ${response.count} galleries from TimeFrame`);
+            
+            // Transform TimeFrame galleries to venue format
+            const timeFrameVenues: Venue[] = response.data.map((gallery: any, index: number) => ({
+              id: `timeframe-${gallery.id}`,
+              name: gallery.name || 'Unnamed Gallery',
+              type: 'Art Gallery',
+              description: gallery.description || 'A contemporary art gallery featuring curated exhibitions.',
+              imageUrl: gallery.image_url || 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&h=600&fit=crop',
+              location: gallery.location || 'Location TBD',
+              distance: `${Math.floor(Math.random() * 10) + 1} km away`,
+              rating: gallery.rating || (4.0 + Math.random() * 1.0),
+              openingHours: gallery.opening_hours || 'Mon-Sun: 10:00 AM - 6:00 PM',
+              admission: gallery.admission_fee ? `${gallery.admission_fee}` : 'Free',
+              featured: index < 2, // Make first 2 galleries featured
+              category: 'Art Galleries Near You',
+              tags: ['art', 'gallery', 'timeframe'],
+              phone: gallery.phone,
+              website: gallery.website,
+              coordinates: gallery.coordinates ? {
+                latitude: gallery.coordinates.lat,
+                longitude: gallery.coordinates.lng
+              } : undefined,
+              address: gallery.address,
+              cost: gallery.admission_fee ? `${gallery.admission_fee}` : 'Free'
+            }));
+            
+            // Combine with existing mock venues
+            const allVenues = [...timeFrameVenues, ...venues];
+            
+            set({ 
+              venues: allVenues,
+              categories: categories || [],
+              isLoading: false 
+            });
+            
+            // Log analytics
+            Analytics.logEvent('timeframe_venues_loaded', {
+              count: timeFrameVenues.length,
+              total_venues: allVenues.length
+            });
+            
+          } else {
+            console.warn('⚠️ TimeFrame API returned no data, using mock venues');
+            // Fallback to mock data
             set({ 
               venues: venues || [],
               categories: categories || [],
               isLoading: false 
             });
-          }, 500);
+          }
         } catch (error) {
-          console.error("Error fetching venues:", error);
-          set({ isLoading: false });
+          console.error('❌ Error fetching TimeFrame venues:', error);
+          
+          // Fallback to mock data on error
+          set({ 
+            venues: venues || [],
+            categories: categories || [],
+            isLoading: false 
+          });
+          
+          // Log analytics error
+          Analytics.logEvent('timeframe_venues_error', {
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
         }
       },
       
