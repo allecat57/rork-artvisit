@@ -82,13 +82,22 @@ class TimeFrameWebSocketService {
       };
 
       this.ws.onerror = (error) => {
-        const errorMessage = error instanceof ErrorEvent ? error.message : 'WebSocket connection failed';
+        let errorMessage = 'WebSocket connection failed';
+        
+        if (error instanceof ErrorEvent) {
+          errorMessage = error.message || errorMessage;
+        } else if (error && typeof error === 'object') {
+          errorMessage = error.toString();
+        }
+        
         console.error('❌ TimeFrame WebSocket error:', errorMessage);
         console.error('Error details:', {
-          type: error.type,
+          type: error?.type || 'unknown',
           url: this.WS_URL,
-          readyState: this.ws?.readyState
+          readyState: this.ws?.readyState,
+          timestamp: new Date().toISOString()
         });
+        
         this.notifyListeners('connection', { status: 'error', error: errorMessage });
       };
 

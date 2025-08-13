@@ -11,6 +11,7 @@ import { products } from "@/mocks/products";
 import { Product } from "@/types/product";
 import { useCartStore } from "@/store/useCartStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useTimeFrameArtwork } from "@/hooks/useTimeFrameArtwork";
 import * as Analytics from "@/utils/analytics";
 
 
@@ -20,11 +21,17 @@ export default function ProductDetailScreen() {
   const [product, setProduct] = useState<Product | null>(null);
   const { addToCart, getCartItemById } = useCartStore();
   const { user } = useAuthStore();
+  const { artworks: timeFrameArtworks, loading: timeFrameLoading } = useTimeFrameArtwork();
   const cartItem = id ? getCartItemById(id as string) : undefined;
+  
+  // Combine mock products with TimeFrame artworks
+  const allProducts = React.useMemo(() => {
+    return [...products, ...timeFrameArtworks];
+  }, [timeFrameArtworks]);
   
   useEffect(() => {
     if (id && typeof id === "string") {
-      const foundProduct = products.find(p => p.id === id);
+      const foundProduct = allProducts.find(p => p.id === id);
       if (foundProduct) {
         setProduct(foundProduct);
         
@@ -40,7 +47,7 @@ export default function ProductDetailScreen() {
         }
       }
     }
-  }, [id, user, galleryId]);
+  }, [id, user, galleryId, allProducts]);
   
   const handleAddToCart = async () => {
     if (product) {
@@ -88,10 +95,23 @@ export default function ProductDetailScreen() {
     });
   };
 
+  if (timeFrameLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text style={typography.body}>Loading TimeFrame galleries...</Text>
+      </View>
+    );
+  }
+
   if (!product) {
     return (
       <View style={styles.loadingContainer}>
-        <Text style={typography.body}>Loading product details...</Text>
+        <Text style={typography.body}>Product not found</Text>
+        <Button
+          title="Back to Shop"
+          onPress={() => router.push("/shop")}
+          style={{ marginTop: 16 }}
+        />
       </View>
     );
   }

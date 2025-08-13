@@ -18,7 +18,7 @@ interface UseTimeFrameWebSocketOptions {
 
 export const useTimeFrameWebSocket = (options: UseTimeFrameWebSocketOptions = {}) => {
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>({
-    status: timeFrameWebSocket.isConnected ? 'connected' : 'disconnected'
+    status: 'disconnected' // Start as disconnected to prevent auto-connection issues
   });
   const [lastMessage, setLastMessage] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -27,7 +27,7 @@ export const useTimeFrameWebSocket = (options: UseTimeFrameWebSocketOptions = {}
   optionsRef.current = options;
 
   const {
-    autoConnect = true,
+    autoConnect = false, // Disable auto-connect for now to prevent WebSocket errors
     onGalleryCreated,
     onGalleryUpdated,
     onArtworkAdded,
