@@ -173,8 +173,8 @@ export const useVenueStore = create<VenueState>()(
                 cost: gallery.admission_fee ? `${gallery.admission_fee}` : 'Free'
               }));
               
-              // Combine API data with existing mock venues
-              const allVenues = [...timeFrameVenues, ...venues];
+              // Use only TimeFrame venues
+              const allVenues = timeFrameVenues;
               
               set({ 
                 venues: allVenues,
@@ -197,7 +197,7 @@ export const useVenueStore = create<VenueState>()(
             console.warn('⚠️ TimeFrame API failed, using sample data:', apiError);
             
             // Use sample TimeFrame venues as fallback
-            const allVenues = [...sampleTimeFrameVenues, ...venues];
+            const allVenues = sampleTimeFrameVenues;
             
             set({ 
               venues: allVenues,
@@ -217,9 +217,9 @@ export const useVenueStore = create<VenueState>()(
         } catch (error) {
           console.error('❌ Error in fetchVenues:', error);
           
-          // Final fallback to just mock data
+          // Final fallback to empty array
           set({ 
-            venues: venues || [],
+            venues: [],
             categories: categories || [],
             isLoading: false 
           });

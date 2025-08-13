@@ -3,12 +3,9 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Analytics from "@/utils/analytics";
 import { 
-  getGalleries, 
-  getGalleryById, 
-  getArtworksByGallery, 
-  getArtworkById,
+  fetchGalleries, 
+  fetchGalleryById, 
   createGallery,
-  createArtwork,
   isSupabaseConfigured 
 } from "@/config/supabase";
 
@@ -42,92 +39,7 @@ export interface Artwork {
   updated_at: string;
 }
 
-// Mock data fallback
-const mockGalleries: Gallery[] = [
-  {
-    id: '1',
-    name: 'Modern Art Gallery',
-    description: 'A contemporary art gallery featuring works from emerging artists around the world.',
-    location: 'New York, NY',
-    image_url: 'https://images.unsplash.com/photo-1577720580479-7d839d829c73?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1024&q=80',
-    hours: '10:00 AM - 6:00 PM',
-    created_by: 'admin',
-    featured: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    name: 'Classical Art Museum',
-    description: 'A prestigious museum housing classical art from the Renaissance to the 19th century.',
-    location: 'London, UK',
-    image_url: 'https://images.unsplash.com/photo-1574182245530-967d9b3831af?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1024&q=80',
-    hours: '9:00 AM - 5:00 PM',
-    created_by: 'admin',
-    featured: false,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  }
-];
-
-const mockArtworks: Artwork[] = [
-  {
-    id: '101',
-    gallery_id: '1',
-    title: 'Abstract Harmony',
-    artist: 'Jane Smith',
-    year: '2021',
-    medium: 'Oil on canvas',
-    dimensions: '120 x 90 cm',
-    description: 'This abstract piece explores the harmony between color and form, creating a visual symphony that invites the viewer to interpret their own meaning.',
-    price: '$5,200',
-    image_url: 'https://images.unsplash.com/photo-1549887552-cb1071d3e5ca?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '102',
-    gallery_id: '1',
-    title: 'Urban Landscape',
-    artist: 'Michael Johnson',
-    year: '2019',
-    medium: 'Acrylic on canvas',
-    dimensions: '150 x 100 cm',
-    description: 'A vibrant depiction of city life, capturing the energy and chaos of urban environments through bold colors and dynamic brushstrokes.',
-    price: '$4,800',
-    image_url: 'https://images.unsplash.com/photo-1578926375605-eaf7559b1458?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '201',
-    gallery_id: '2',
-    title: 'Portrait of a Lady',
-    artist: 'Leonardo da Vinci',
-    year: '1503',
-    medium: 'Oil on poplar panel',
-    dimensions: '77 x 53 cm',
-    description: 'A masterpiece of Renaissance portraiture, showcasing the artist\'s unparalleled skill in capturing human expression and emotion.',
-    price: 'Not for sale',
-    image_url: 'https://images.unsplash.com/photo-1577083552431-6e5fd01aa342?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '202',
-    gallery_id: '2',
-    title: 'Sunset over the Sea',
-    artist: 'Claude Monet',
-    year: '1872',
-    medium: 'Oil on canvas',
-    dimensions: '50 x 65 cm',
-    description: 'A stunning Impressionist seascape that captures the fleeting effects of light and color at sunset, demonstrating Monet\'s revolutionary approach to painting.',
-    price: 'Not for sale',
-    image_url: 'https://images.unsplash.com/photo-1578321272176-b7bbc0679853?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  }
-];
+// No mock data - using only Supabase data
 
 interface GalleryState {
   galleries: Gallery[];
@@ -172,10 +84,10 @@ export const useGalleryStore = create<GalleryState>()(
           let galleries: Gallery[];
           
           if (isSupabaseConfigured()) {
-            galleries = await getGalleries();
+            galleries = await fetchGalleries();
           } else {
-            // Use mock data if Supabase is not configured
-            galleries = mockGalleries;
+            // No galleries available if Supabase is not configured
+            galleries = [];
           }
           
           set({ galleries, isLoading: false });
@@ -190,7 +102,7 @@ export const useGalleryStore = create<GalleryState>()(
           set({ 
             error: error.message || 'Failed to fetch galleries',
             isLoading: false,
-            galleries: mockGalleries // Fallback to mock data
+            galleries: [] // No fallback data
           });
           
           // Log analytics event
@@ -207,10 +119,10 @@ export const useGalleryStore = create<GalleryState>()(
           let gallery: Gallery | null = null;
           
           if (isSupabaseConfigured()) {
-            gallery = await getGalleryById(id);
+            gallery = await fetchGalleryById(id);
           } else {
-            // Use mock data if Supabase is not configured
-            gallery = mockGalleries.find(g => g.id === id) || null;
+            // No galleries available if Supabase is not configured
+            gallery = null;
           }
           
           if (gallery) {
@@ -244,10 +156,11 @@ export const useGalleryStore = create<GalleryState>()(
           let artworks: Artwork[];
           
           if (isSupabaseConfigured()) {
-            artworks = await getArtworksByGallery(galleryId);
+            // No artwork fetching available in current Supabase config
+            artworks = [];
           } else {
-            // Use mock data if Supabase is not configured
-            artworks = mockArtworks.filter(a => a.gallery_id === galleryId);
+            // No artworks available if Supabase is not configured
+            artworks = [];
           }
           
           set({ artworks, isLoading: false });
@@ -265,7 +178,7 @@ export const useGalleryStore = create<GalleryState>()(
           set({ 
             error: error.message || 'Failed to fetch artworks',
             isLoading: false,
-            artworks: mockArtworks.filter(a => a.gallery_id === galleryId) // Fallback to mock data
+            artworks: [] // No fallback data
           });
           return [];
         }
@@ -278,25 +191,14 @@ export const useGalleryStore = create<GalleryState>()(
           let artwork: Artwork | null = null;
           
           if (isSupabaseConfigured()) {
-            artwork = await getArtworkById(id);
+            // No artwork fetching available in current Supabase config
+            artwork = null;
           } else {
-            // Use mock data if Supabase is not configured
-            artwork = mockArtworks.find(a => a.id === id) || null;
+            // No artworks available if Supabase is not configured
+            artwork = null;
           }
           
-          if (artwork) {
-            set({ selectedArtwork: artwork, isLoading: false });
-            
-            // Log analytics event
-            Analytics.logEvent('artwork_viewed', {
-              artwork_id: artwork.id,
-              artwork_title: artwork.title,
-              gallery_id: artwork.gallery_id,
-              source: isSupabaseConfigured() ? 'supabase' : 'mock'
-            });
-          } else {
-            set({ error: 'Artwork not found', isLoading: false });
-          }
+          set({ error: 'Artwork not found', isLoading: false });
           
           return artwork;
         } catch (error: any) {
@@ -319,7 +221,7 @@ export const useGalleryStore = create<GalleryState>()(
             gallery = await createGallery(galleryData);
             
             // Refresh galleries list
-            const galleries = await getGalleries();
+            const galleries = await fetchGalleries();
             set({ galleries });
           } else {
             // Create mock gallery
@@ -362,11 +264,11 @@ export const useGalleryStore = create<GalleryState>()(
           let artwork: Artwork | null = null;
           
           if (isSupabaseConfigured()) {
-            artwork = await createArtwork(artworkData);
+            // No artwork creation available in current Supabase config
+            artwork = null;
             
-            // Refresh artworks list for the gallery
-            const artworks = await getArtworksByGallery(artworkData.gallery_id);
-            set({ artworks });
+            // No artwork refresh available
+            set({ artworks: [] });
           } else {
             // Create mock artwork
             artwork = {
@@ -384,12 +286,14 @@ export const useGalleryStore = create<GalleryState>()(
           set({ isLoading: false });
           
           // Log analytics event
-          Analytics.logEvent('artwork_created', {
-            artwork_id: artwork?.id,
-            artwork_title: artwork?.title,
-            gallery_id: artwork?.gallery_id,
-            source: isSupabaseConfigured() ? 'supabase' : 'mock'
-          });
+          if (artwork) {
+            Analytics.logEvent('artwork_created', {
+              artwork_id: artwork.id,
+              artwork_title: artwork.title,
+              gallery_id: artwork.gallery_id,
+              source: isSupabaseConfigured() ? 'supabase' : 'mock'
+            });
+          }
           
           return artwork;
         } catch (error: any) {
