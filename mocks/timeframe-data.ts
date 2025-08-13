@@ -112,6 +112,117 @@ export const mockTimeFrameGalleries = [
         available: false // This one is sold
       }
     ]
+  },
+  {
+    id: 4,
+    name: "Classical Arts Museum",
+    description: "Dedicated to preserving and showcasing classical art from ancient civilizations",
+    location: "Washington, DC",
+    established: 1962,
+    artworks: [
+      {
+        id: 401,
+        name: "Ancient Greek Vase",
+        description: "Authentic ancient Greek pottery with intricate geometric patterns",
+        price: 5000,
+        image_url: "https://images.unsplash.com/photo-1594736797933-d0401ba2fe65?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        artist_name: "Unknown Ancient Artist",
+        medium: "Ceramic",
+        year: -450,
+        dimensions: "12 x 8 inches",
+        category: "Ancient Art",
+        tags: ["ancient", "greek", "pottery"],
+        available: true
+      },
+      {
+        id: 402,
+        name: "Roman Marble Sculpture",
+        description: "Classical Roman sculpture depicting mythological figures",
+        price: 8500,
+        image_url: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        artist_name: "Roman Artisan",
+        medium: "Marble",
+        year: 150,
+        dimensions: "36 x 18 x 12 inches",
+        category: "Classical Sculpture",
+        tags: ["roman", "marble", "sculpture"],
+        available: true
+      }
+    ]
+  },
+  {
+    id: 5,
+    name: "Photography Center",
+    description: "Contemporary photography gallery featuring both emerging and established photographers",
+    location: "San Francisco, CA",
+    established: 2015,
+    artworks: [
+      {
+        id: 501,
+        name: "Urban Landscapes Series",
+        description: "Black and white photography capturing the essence of modern city life",
+        price: 750,
+        image_url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        artist_name: "Jennifer Walsh",
+        medium: "Digital Photography",
+        year: 2024,
+        dimensions: "16 x 20 inches",
+        category: "Photography",
+        tags: ["photography", "urban", "black and white"],
+        available: true
+      },
+      {
+        id: 502,
+        name: "Nature's Patterns",
+        description: "Macro photography exploring the intricate patterns found in nature",
+        price: 650,
+        image_url: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        artist_name: "Michael Torres",
+        medium: "Color Photography",
+        year: 2024,
+        dimensions: "12 x 18 inches",
+        category: "Nature Photography",
+        tags: ["photography", "nature", "macro"],
+        available: true
+      }
+    ]
+  },
+  {
+    id: 6,
+    name: "Sculpture Garden Gallery",
+    description: "Indoor and outdoor gallery space dedicated to contemporary sculpture",
+    location: "Seattle, WA",
+    established: 2010,
+    artworks: [
+      {
+        id: 601,
+        name: "Metal Flow",
+        description: "Large-scale metal sculpture exploring movement and fluidity",
+        price: 12000,
+        image_url: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        artist_name: "Carlos Mendez",
+        medium: "Steel and Bronze",
+        year: 2023,
+        dimensions: "72 x 48 x 36 inches",
+        category: "Contemporary Sculpture",
+        tags: ["sculpture", "metal", "contemporary"],
+        available: true
+      },
+      {
+        id: 602,
+        name: "Organic Forms",
+        description: "Wood sculpture inspired by natural growth patterns",
+        price: 3500,
+        image_url: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80",
+        artist_name: "Lisa Park",
+        medium: "Reclaimed Wood",
+        year: 2024,
+        dimensions: "48 x 24 x 18 inches",
+        category: "Wood Sculpture",
+        tags: ["sculpture", "wood", "organic"],
+        available: true
+      }
+    ]
   }
 ];
 

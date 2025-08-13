@@ -138,6 +138,75 @@ export const useVenueStore = create<VenueState>()(
                 latitude: 40.7282,
                 longitude: -73.9942
               }
+            },
+            {
+              id: 'timeframe-4',
+              name: 'Classical Arts Museum',
+              type: 'Art Museum',
+              description: 'Dedicated to preserving and showcasing classical art from ancient civilizations.',
+              imageUrl: 'https://images.unsplash.com/photo-1594736797933-d0401ba2fe65?w=800&h=600&fit=crop',
+              location: 'Museum District',
+              distance: '1.8 km away',
+              rating: 4.8,
+              openingHours: 'Tue-Sun: 9:00 AM - 5:00 PM',
+              admission: '$20',
+              featured: false,
+              category: 'Art Galleries Near You',
+              tags: ['art', 'museum', 'timeframe', 'classical'],
+              phone: '+1 (555) 456-7890',
+              website: 'https://classicalarts.example.com',
+              address: '101 Museum Row, Museum District',
+              cost: '$20 per person',
+              coordinates: {
+                latitude: 40.7614,
+                longitude: -73.9776
+              }
+            },
+            {
+              id: 'timeframe-5',
+              name: 'Photography Center',
+              type: 'Photography Gallery',
+              description: 'Contemporary photography gallery featuring both emerging and established photographers.',
+              imageUrl: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop',
+              location: 'Arts Quarter',
+              distance: '2.5 km away',
+              rating: 4.5,
+              openingHours: 'Mon-Fri: 10:00 AM - 7:00 PM, Sat-Sun: 11:00 AM - 6:00 PM',
+              admission: '$12',
+              featured: false,
+              category: 'Art Galleries Near You',
+              tags: ['photography', 'gallery', 'timeframe', 'contemporary'],
+              phone: '+1 (555) 567-8901',
+              website: 'https://photocenter.example.com',
+              address: '202 Arts Ave, Arts Quarter',
+              cost: '$12 per person',
+              coordinates: {
+                latitude: 40.7489,
+                longitude: -73.9680
+              }
+            },
+            {
+              id: 'timeframe-6',
+              name: 'Sculpture Garden Gallery',
+              type: 'Sculpture Gallery',
+              description: 'Indoor and outdoor gallery space dedicated to contemporary sculpture.',
+              imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop',
+              location: 'Sculpture Park',
+              distance: '3.2 km away',
+              rating: 4.9,
+              openingHours: 'Daily: 8:00 AM - 8:00 PM',
+              admission: 'Free',
+              featured: false,
+              category: 'Art Galleries Near You',
+              tags: ['sculpture', 'gallery', 'timeframe', 'outdoor'],
+              phone: '+1 (555) 678-9012',
+              website: 'https://sculpturegarden.example.com',
+              address: '303 Sculpture Way, Sculpture Park',
+              cost: 'Free',
+              coordinates: {
+                latitude: 40.7831,
+                longitude: -73.9712
+              }
             }
           ];
           
