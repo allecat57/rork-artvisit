@@ -39,38 +39,49 @@ export default function SupabaseTestScreen() {
         throw new Error('Supabase is not properly configured');
       }
       
-      // Test basic connection
-      const { error: connectionError } = await supabase
-        .from('information_schema.tables')
-        .select('table_name')
-        .eq('table_schema', 'public')
+      // Test basic connection with a simple query to galleries table
+      console.log('🔗 Testing connection with galleries table...');
+      const { data: testData, error: connectionError } = await supabase
+        .from('galleries')
+        .select('id')
         .limit(1);
       
       if (connectionError) {
-        console.error('❌ Connection test failed:', {
-          message: connectionError.message,
-          details: connectionError.details,
-          hint: connectionError.hint,
-          code: connectionError.code
-        });
-        throw new Error(`Connection failed: ${connectionError.message || 'Unknown error'}`);
+        const errorDetails = {
+          message: connectionError.message || 'Unknown error',
+          details: connectionError.details || 'No details available',
+          hint: connectionError.hint || 'No hint available',
+          code: connectionError.code || 'No code available'
+        };
+        
+        console.error('❌ Connection test failed:', errorDetails);
+        
+        // Create a more detailed error message
+        const detailedError = `Connection failed: ${errorDetails.message}\n\nDetails: ${errorDetails.details}\n\nHint: ${errorDetails.hint}\n\nCode: ${errorDetails.code}`;
+        throw new Error(detailedError);
       }
       
-      console.log('✅ Supabase connection successful!');
+      console.log('✅ Supabase connection successful!', { testData });
       setConnectionStatus('connected');
       
       // Get all tables info
       await getAllTablesInfo();
       
     } catch (err: any) {
-      console.error('❌ Supabase test failed:', {
-        message: err.message,
-        details: err.details,
-        hint: err.hint,
-        code: err.code,
-        stack: err.stack
-      });
-      setError(err.message || 'Unknown error occurred');
+      const errorDetails = {
+        message: err.message || 'Unknown error occurred',
+        details: err.details || 'No details available',
+        hint: err.hint || 'No hint available',
+        code: err.code || 'No code available',
+        stack: err.stack || 'No stack trace available'
+      };
+      
+      console.error('❌ Supabase test failed:', errorDetails);
+      
+      // Create a user-friendly error message
+      const userError = `${errorDetails.message}\n\nTechnical Details:\n- Code: ${errorDetails.code}\n- Details: ${errorDetails.details}\n- Hint: ${errorDetails.hint}`;
+      
+      setError(userError);
       setConnectionStatus('error');
     } finally {
       setIsLoading(false);
@@ -81,105 +92,91 @@ export default function SupabaseTestScreen() {
     try {
       const tablesInfo: TableInfo[] = [];
       
-      // Get all public tables
-      const { data: tables, error: tablesError } = await supabase
-        .from('information_schema.tables')
-        .select('table_name')
-        .eq('table_schema', 'public')
-        .order('table_name');
+      // Instead of querying information_schema, let's test the known tables from our config
+      const knownTables = [
+        'profiles',
+        'galleries', 
+        'featured_galleries',
+        'venues',
+        'events',
+        'reservations',
+        'event_registrations',
+        'favorites',
+        'visit_history',
+        'purchase_history',
+        'products',
+        'cart_items',
+        'notifications',
+        'privacy_settings'
+      ];
       
-      if (tablesError) {
-        console.error('❌ Tables query failed:', {
-          message: tablesError.message,
-          details: tablesError.details,
-          hint: tablesError.hint,
-          code: tablesError.code
-        });
-        throw new Error(`Tables query failed: ${tablesError.message || 'Unknown error'}`);
-      }
+      console.log('📋 Testing known tables:', knownTables);
       
-      console.log('📋 Found tables:', tables?.map(t => t.table_name));
-      
-      // For each table, get column info and row count
-      for (const table of tables || []) {
+      // For each known table, test if it exists and get info
+      for (const tableName of knownTables) {
         try {
-          // Get columns
-          const { data: columns, error: columnsError } = await supabase
-            .from('information_schema.columns')
-            .select('column_name')
-            .eq('table_schema', 'public')
-            .eq('table_name', table.table_name)
-            .order('ordinal_position');
-          
-          if (columnsError) {
-            console.warn(`⚠️ Could not get columns for ${table.table_name}:`, {
-              message: columnsError.message,
-              details: columnsError.details,
-              hint: columnsError.hint,
-              code: columnsError.code
-            });
-            continue;
-          }
+          console.log(`🔍 Testing table: ${tableName}`);
           
           // Get row count
           const { count, error: countError } = await supabase
-            .from(table.table_name)
+            .from(tableName)
             .select('*', { count: 'exact', head: true });
           
           if (countError) {
-            console.warn(`⚠️ Could not get count for ${table.table_name}:`, {
+            console.warn(`⚠️ Table ${tableName} not accessible:`, {
               message: countError.message,
-              details: countError.details,
-              hint: countError.hint,
               code: countError.code
             });
+            continue; // Skip this table if it doesn't exist or isn't accessible
           }
           
           // Get sample data (first 3 rows)
           const { data: sampleData, error: sampleError } = await supabase
-            .from(table.table_name)
+            .from(tableName)
             .select('*')
             .limit(3);
           
           if (sampleError) {
-            console.warn(`⚠️ Could not get sample data for ${table.table_name}:`, {
+            console.warn(`⚠️ Could not get sample data for ${tableName}:`, {
               message: sampleError.message,
-              details: sampleError.details,
-              hint: sampleError.hint,
               code: sampleError.code
             });
           }
           
+          // Get column names from the sample data
+          const columns = sampleData && sampleData.length > 0 
+            ? Object.keys(sampleData[0]) 
+            : [];
+          
           tablesInfo.push({
-            table_name: table.table_name,
+            table_name: tableName,
             row_count: count || 0,
-            columns: columns?.map(c => c.column_name) || [],
+            columns: columns,
             sample_data: sampleData || []
           });
           
-          console.log(`📊 ${table.table_name}: ${count || 0} rows, ${columns?.length || 0} columns`);
+          console.log(`✅ ${tableName}: ${count || 0} rows, ${columns.length} columns`);
           
         } catch (tableError: any) {
-          console.warn(`⚠️ Error processing table ${table.table_name}:`, {
-            message: tableError.message,
-            details: tableError.details,
-            hint: tableError.hint,
-            code: tableError.code
+          console.warn(`⚠️ Error processing table ${tableName}:`, {
+            message: tableError.message || 'Unknown error',
+            code: tableError.code || 'No code'
           });
         }
       }
       
+      console.log(`📊 Successfully tested ${tablesInfo.length} tables`);
       setTableInfo(tablesInfo);
       
     } catch (err: any) {
-      console.error('❌ Error getting tables info:', {
-        message: err.message,
-        details: err.details,
-        hint: err.hint,
-        code: err.code,
-        stack: err.stack
-      });
-      throw err;
+      const errorDetails = {
+        message: err.message || 'Unknown error occurred',
+        code: err.code || 'No code available',
+        stack: err.stack || 'No stack trace available'
+      };
+      
+      console.error('❌ Error getting tables info:', errorDetails);
+      throw new Error(`Failed to get table info: ${errorDetails.message}`);
     }
   };
 
