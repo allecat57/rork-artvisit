@@ -30,20 +30,20 @@ interface UseTimeFrameArtworkResult {
 const convertToProduct = (artwork: TimeFrameArtwork): Product => {
   return {
     id: `timeframe-${artwork.id}`,
-    title: artwork.name,
-    description: artwork.description,
-    price: artwork.price,
-    image: artwork.image_url,
-    imageUrl: artwork.image_url,
+    title: artwork.name || 'Untitled',
+    description: artwork.description || 'No description available',
+    price: typeof artwork.price === 'number' ? artwork.price : 0,
+    image: artwork.image_url || 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+    imageUrl: artwork.image_url || 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
     category: artwork.category || 'Contemporary Art',
     featured: Math.random() > 0.7, // Randomly feature some artworks
     inventory: artwork.available ? 1 : 0,
-    inStock: artwork.available,
-    artist: artwork.artist_name,
-    medium: artwork.medium,
-    year: artwork.year?.toString(),
-    gallery: artwork.gallery_name,
-    dimensions: artwork.dimensions,
+    inStock: artwork.available !== false,
+    artist: artwork.artist_name || 'Unknown Artist',
+    medium: artwork.medium || 'Mixed Media',
+    year: artwork.year?.toString() || new Date().getFullYear().toString(),
+    gallery: artwork.gallery_name || 'TimeFrame Gallery',
+    dimensions: artwork.dimensions || 'Not specified',
     weight: '0.5 kg', // Default weight
     tags: artwork.tags || ['timeframe', 'gallery']
   };
@@ -75,13 +75,21 @@ export const useTimeFrameArtwork = (): UseTimeFrameArtworkResult => {
           const artworksResponse = await TimeFrameAPI.getGalleryArtworks(gallery.id);
           
           if (artworksResponse.success && artworksResponse.data) {
-            const galleryArtworks = artworksResponse.data.map((artwork: any) => 
-              convertToProduct({
-                ...artwork,
-                gallery_id: gallery.id,
-                gallery_name: gallery.name
+            const galleryArtworks = artworksResponse.data
+              .filter((artwork: any) => artwork && typeof artwork === 'object')
+              .map((artwork: any) => {
+                try {
+                  return convertToProduct({
+                    ...artwork,
+                    gallery_id: gallery.id,
+                    gallery_name: gallery.name
+                  });
+                } catch (conversionError) {
+                  console.warn('Failed to convert artwork:', artwork, conversionError);
+                  return null;
+                }
               })
-            );
+              .filter((artwork: Product | null): artwork is Product => artwork !== null);
             allArtworks.push(...galleryArtworks);
           }
         } catch (galleryError) {

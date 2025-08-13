@@ -80,7 +80,7 @@ export default function ProductDetailScreen() {
   };
   
   const formatPrice = (price: number) => {
-    return price.toLocaleString("en-US", {
+    return (price || 0).toLocaleString("en-US", {
       style: "currency",
       currency: "USD",
       minimumFractionDigits: 0,
@@ -105,7 +105,7 @@ export default function ProductDetailScreen() {
             <Button
               title="Back"
               onPress={() => router.back()}
-              variant="text"
+              variant="ghost"
               icon={<ArrowLeft size={24} color={colors.primary.text} />}
               style={styles.backButton}
             />

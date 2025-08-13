@@ -50,7 +50,7 @@ export default function ProductCard({ product, onPress, compact = false }: Produ
           <Text style={styles.compactCategory} numberOfLines={1}>{product.category}</Text>
           <Text style={styles.compactTitle} numberOfLines={2}>{product.title}</Text>
           <View style={styles.compactFooter}>
-            <Text style={styles.compactPrice}>${product.price.toFixed(2)}</Text>
+            <Text style={styles.compactPrice}>${(product.price || 0).toFixed(2)}</Text>
             <TouchableOpacity 
               style={styles.compactCartButton}
               onPress={handleAddToCart}
@@ -84,7 +84,7 @@ export default function ProductCard({ product, onPress, compact = false }: Produ
         <Text style={styles.description} numberOfLines={2}>{product.description}</Text>
         
         <View style={styles.footer}>
-          <Text style={styles.price}>${product.price.toFixed(2)}</Text>
+          <Text style={styles.price}>${(product.price || 0).toFixed(2)}</Text>
           <TouchableOpacity 
             style={styles.cartButton}
             onPress={handleAddToCart}

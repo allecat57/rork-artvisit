@@ -153,7 +153,7 @@ export default function ShopScreen() {
       <View style={styles.featuredContent}>
         <Text style={styles.featuredCategory}>{product.category}</Text>
         <Text style={styles.featuredTitle}>{product.title}</Text>
-        <Text style={styles.featuredPrice}>${product.price}</Text>
+        <Text style={styles.featuredPrice}>${(product.price || 0).toFixed(2)}</Text>
       </View>
     </TouchableOpacity>
   );
