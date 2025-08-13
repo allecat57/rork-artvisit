@@ -37,6 +37,7 @@ import SubscriptionModal from "@/components/SubscriptionModal";
 import PrivacySettingsModal from "@/components/PrivacySettingsModal";
 import NotificationsModal from "@/components/NotificationsModal";
 import HelpCenterModal from "@/components/HelpCenterModal";
+import { CacheClearButton } from "@/components/CacheClearButton";
 import * as Analytics from "@/utils/analytics";
 
 const fontFamily = Platform.select({
@@ -374,6 +375,28 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.menuSection}>
+        <Text style={styles.sectionTitle}>Cache Management</Text>
+        
+        <View style={styles.cacheButtons}>
+          <CacheClearButton 
+            type="timeframe" 
+            style={styles.cacheButton}
+            onClearComplete={() => {
+              Analytics.logEvent("cache_timeframe_cleared");
+            }}
+          />
+          
+          <CacheClearButton 
+            type="all" 
+            style={styles.cacheButton}
+            onClearComplete={() => {
+              Analytics.logEvent("cache_all_cleared");
+            }}
+          />
+        </View>
+      </View>
+
+      <View style={styles.menuSection}>
         <MenuItem
           icon={<LogOut size={20} color={colors.error} />}
           title="Sign Out"
@@ -558,5 +581,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
     color: colors.background,
+  },
+  cacheButtons: {
+    paddingHorizontal: 24,
+    gap: 12,
+  },
+  cacheButton: {
+    marginVertical: 0,
   },
 });

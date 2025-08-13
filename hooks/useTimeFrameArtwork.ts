@@ -24,6 +24,7 @@ interface UseTimeFrameArtworkResult {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  clearCacheAndRefetch: () => Promise<void>;
 }
 
 // Convert TimeFrame artwork to Product format
@@ -60,7 +61,7 @@ export const useTimeFrameArtwork = (): UseTimeFrameArtworkResult => {
       setError(null);
       
       console.log('🎨 Fetching galleries from TimeFrame API...');
-      const galleriesResponse = await TimeFrameAPI.getGalleries();
+      const galleriesResponse = await TimeFrameAPI.getGalleries(false); // Force fresh data
       
       if (!galleriesResponse.success) {
         throw new Error('Failed to fetch galleries');
@@ -72,7 +73,7 @@ export const useTimeFrameArtwork = (): UseTimeFrameArtworkResult => {
       for (const gallery of galleriesResponse.data) {
         try {
           console.log(`🖼️ Fetching artworks for gallery: ${gallery.name}`);
-          const artworksResponse = await TimeFrameAPI.getGalleryArtworks(gallery.id);
+          const artworksResponse = await TimeFrameAPI.getGalleryArtworks(gallery.id, false); // Force fresh data
           
           if (artworksResponse.success && artworksResponse.data) {
             const galleryArtworks = artworksResponse.data
@@ -111,6 +112,13 @@ export const useTimeFrameArtwork = (): UseTimeFrameArtworkResult => {
     }
   }, []);
 
+  // Clear cache and refetch
+  const clearCacheAndRefetch = useCallback(async () => {
+    console.log('🧹 Clearing TimeFrame artwork cache and refetching...');
+    TimeFrameAPI.clearCache();
+    await fetchArtworks();
+  }, [fetchArtworks]);
+
   useEffect(() => {
     fetchArtworks();
   }, [fetchArtworks]);
@@ -119,6 +127,7 @@ export const useTimeFrameArtwork = (): UseTimeFrameArtworkResult => {
     artworks,
     loading,
     error,
-    refetch: fetchArtworks
+    refetch: fetchArtworks,
+    clearCacheAndRefetch
   };
 };

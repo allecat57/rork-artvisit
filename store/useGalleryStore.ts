@@ -59,6 +59,7 @@ interface GalleryState {
   setSelectedGallery: (gallery: Gallery | null) => void;
   setSelectedArtwork: (artwork: Artwork | null) => void;
   clearError: () => void;
+  clearCache: () => void;
   
   // Selectors
   getGalleryByIdFromStore: (id: string) => Gallery | undefined;
@@ -309,6 +310,18 @@ export const useGalleryStore = create<GalleryState>()(
       setSelectedGallery: (gallery) => set({ selectedGallery: gallery }),
       setSelectedArtwork: (artwork) => set({ selectedArtwork: artwork }),
       clearError: () => set({ error: null }),
+      
+      clearCache: () => {
+        console.log('🧹 Clearing gallery store cache');
+        set({
+          galleries: [],
+          artworks: [],
+          selectedGallery: null,
+          selectedArtwork: null,
+          error: null,
+          isLoading: false
+        });
+      },
       
       getGalleryByIdFromStore: (id: string) => {
         const galleries = get().galleries;
