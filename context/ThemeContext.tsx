@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useColorScheme } from 'react-native';
-import colors from '@/constants/colors';
+import colors, { AppColors } from '@/constants/colors';
 
 type ThemeType = 'light' | 'dark' | 'system';
 
@@ -9,7 +9,7 @@ interface ThemeContextType {
   isDark: boolean;
   setTheme: (theme: ThemeType) => void;
   toggleTheme: () => void;
-  colors: typeof colors;
+  colors: AppColors;
 }
 
 const ThemeContext = createContext<ThemeContextType>({

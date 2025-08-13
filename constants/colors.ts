@@ -1,4 +1,54 @@
-const colors = {
+export interface AppColors {
+  // Main theme colors
+  primary: {
+    background: string;
+    surface: string;
+    card: string;
+    text: string;
+    textSecondary: string;
+    muted: string;
+    accent: string;
+    border: string;
+    divider: string;
+  };
+  
+  // Legacy flat structure for backward compatibility
+  background: string;
+  surface: string;
+  card: string;
+  text: string;
+  textSecondary: string;
+  textMuted: string;
+  accent: string;
+  border: string;
+  divider: string;
+  
+  // Status colors
+  success: string;
+  error: string;
+  warning: string;
+  info: string;
+  
+  // Utility colors
+  white: string;
+  black: string;
+  transparent: string;
+  
+  // Legacy support
+  muted: string;
+  constructive: string;
+  destructive: string;
+  
+  // Status object
+  status: {
+    success: string;
+    error: string;
+    warning: string;
+    info: string;
+  };
+}
+
+const colors: AppColors = {
   // Main theme colors
   primary: {
     background: "#013025",    // Dark green - main background
