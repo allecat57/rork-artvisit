@@ -98,7 +98,7 @@ export default function ShopScreen() {
     setSearchQuery("");
   };
 
-  const featuredProducts = filteredProducts.filter(product => product.featured).slice(0, 3);
+  const featuredProducts = filteredProducts.filter(product => product.featured);
   const regularProducts = filteredProducts.filter(product => !product.featured);
   
   const categories = Array.from(new Set(allProducts.map(p => p.category)));
