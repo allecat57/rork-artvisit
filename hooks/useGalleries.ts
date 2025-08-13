@@ -1,44 +1,5 @@
 import { useEffect, useState } from "react";
-
-// TimeFrame API configuration
-const USE_MOCK_DATA = false; // Set to false to use real TimeFrame API data
-const TIMEFRAME_API_BASE = "http://localhost:5000"; // Change to your deployed URL when ready
-
-// TimeFrame API client
-const timeframeAPI = {
-  async fetchGalleries(featured?: boolean) {
-    try {
-      console.log(`Fetching galleries from TimeFrame API (featured: ${featured})`);
-      
-      const response = await fetch(`${TIMEFRAME_API_BASE}/api/mobile/galleries`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache',
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log(`TimeFrame API: Received ${result.count || 0} galleries`);
-      
-      let galleries = result.data || [];
-      
-      // Filter for featured galleries if requested
-      if (featured) {
-        galleries = galleries.filter((gallery: any) => gallery.artworkCount > 2);
-      }
-      
-      return galleries;
-    } catch (error) {
-      console.error('TimeFrame API Error:', error);
-      throw error;
-    }
-  }
-};
+import timeFrameAPI from "@/utils/timeframe-api";
 
 export const useGalleries = (featured?: boolean) => {
   const [galleries, setGalleries] = useState<any[]>([]);
@@ -51,20 +12,23 @@ export const useGalleries = (featured?: boolean) => {
         setLoading(true);
         setError(null);
         
-        console.log(`Fetching galleries from TimeFrame API (featured: ${featured})`);
-        const data = await timeframeAPI.fetchGalleries(featured);
+        console.log(`Fetching galleries from TIMEFRAME API`);
+        const response = await timeFrameAPI.getGalleries();
 
-        if (data && data.length > 0) {
-          console.log(`Successfully fetched ${data.length} galleries from TimeFrame API`);
-          setGalleries(data);
+        if (response && response.success && response.data) {
+          let galleriesData = response.data;
+          
+          // No filtering - show all galleries
+          console.log(`Successfully fetched ${galleriesData.length} galleries from TIMEFRAME API`);
+          setGalleries(galleriesData);
         } else {
-          console.log("No galleries found in TimeFrame API");
+          console.log("No galleries found in TIMEFRAME API");
           setGalleries([]);
         }
         
         setLoading(false);
       } catch (err) {
-        console.warn("Failed to fetch galleries from TimeFrame API:", err);
+        console.warn("Failed to fetch galleries from TIMEFRAME API:", err);
         setError(err instanceof Error ? err.message : "Failed to fetch galleries");
         setLoading(false);
         setGalleries([]);
@@ -79,12 +43,15 @@ export const useGalleries = (featured?: boolean) => {
       setLoading(true);
       setError(null);
       
-      console.log(`Refetching galleries from TimeFrame API (featured: ${featured})`);
-      const data = await timeframeAPI.fetchGalleries(featured);
+      console.log(`Refetching galleries from TIMEFRAME API`);
+      const response = await timeFrameAPI.getGalleries(false); // Force fresh data
       
-      if (data && data.length > 0) {
-        console.log(`Successfully refetched ${data.length} galleries from TimeFrame API`);
-        setGalleries(data);
+      if (response && response.success && response.data) {
+        let galleriesData = response.data;
+        
+        // No filtering - show all galleries
+        console.log(`Successfully refetched ${galleriesData.length} galleries from TIMEFRAME API`);
+        setGalleries(galleriesData);
       } else {
         setGalleries([]);
       }
@@ -102,6 +69,6 @@ export const useGalleries = (featured?: boolean) => {
     loading, 
     error,
     refetch,
-    isUsingMockData: USE_MOCK_DATA
+    isUsingMockData: false // Using TIMEFRAME API
   };
 };
