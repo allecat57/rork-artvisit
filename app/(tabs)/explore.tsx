@@ -6,7 +6,9 @@ import {
   FlatList,
   ActivityIndicator,
   Platform,
+  TouchableOpacity,
 } from "react-native";
+import { router } from "expo-router";
 import colors from "@/constants/colors";
 import SearchBar from "@/components/SearchBar";
 import CategoryCard from "@/components/CategoryCard";
@@ -74,6 +76,14 @@ export default function ExploreScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.categoriesContainer}
           />
+          
+          {/* Supabase Test Button */}
+          <TouchableOpacity 
+            style={styles.testButton}
+            onPress={() => router.push('/supabase-test')}
+          >
+            <Text style={styles.testButtonText}>🗄️ Test Supabase Database</Text>
+          </TouchableOpacity>
         </>
       )}
 
@@ -129,7 +139,9 @@ export default function ExploreScreen() {
   return (
     <View style={styles.container}>
       <FlatList
-        data={[]}
+        data={[1]} // Dummy data to make FlatList work
+        keyExtractor={() => 'header'}
+        renderItem={() => null}
         ListHeaderComponent={renderHeader}
         ListFooterComponent={
           <View>
@@ -238,5 +250,18 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: "center",
     lineHeight: 20,
+  },
+  testButton: {
+    backgroundColor: colors.accent,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: 16,
+    alignItems: "center",
+  },
+  testButtonText: {
+    color: colors.background,
+    fontSize: 14,
+    fontWeight: "600" as const,
   },
 });

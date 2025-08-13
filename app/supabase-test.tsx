@@ -172,6 +172,64 @@ export default function SupabaseTestScreen() {
     }
   };
 
+  const testGalleryQueries = async () => {
+    try {
+      setIsLoading(true);
+      console.log('🎨 Testing gallery-specific queries...');
+      
+      // Test 1: Get all galleries
+      console.log('📋 Testing: Get all galleries');
+      const { data: allGalleries, error: allError } = await supabase
+        .from('galleries') 
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (allError) {
+        throw new Error(`All galleries query failed: ${allError.message}`);
+      }
+      
+      console.log(`✅ Found ${allGalleries?.length || 0} galleries`);
+      
+      // Test 2: Get specific gallery by ID (using ID 4 as you mentioned)
+      console.log('🔍 Testing: Get gallery with ID 4');
+      const { data: specificGallery, error: specificError } = await supabase
+        .from('galleries')
+        .select('*') 
+        .eq('id', 4)
+        .single();
+      
+      if (specificError && specificError.code !== 'PGRST116') { // PGRST116 = no rows returned
+        throw new Error(`Specific gallery query failed: ${specificError.message}`);
+      }
+      
+      const results = {
+        totalGalleries: allGalleries?.length || 0,
+        galleryWithId4: specificGallery ? 'Found' : 'Not found',
+        sampleGallery: allGalleries?.[0] || null
+      };
+      
+      console.log('🎨 Gallery query results:', results);
+      
+      Alert.alert(
+        '🎨 Gallery Queries Test Results',
+        `✅ All Galleries: ${results.totalGalleries} found\n\n` +
+        `🔍 Gallery ID 4: ${results.galleryWithId4}\n\n` +
+        `📋 Sample Gallery:\n${results.sampleGallery ? JSON.stringify(results.sampleGallery, null, 2) : 'No galleries found'}`,
+        [{ text: 'OK' }]
+      );
+      
+    } catch (err: any) {
+      console.error('❌ Gallery queries test failed:', err);
+      Alert.alert(
+        '❌ Gallery Queries Failed',
+        `Error: ${err.message}`,
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const onRefresh = async () => {
     setRefreshing(true);
     await testConnection();
@@ -254,18 +312,28 @@ export default function SupabaseTestScreen() {
           )}
         </View>
 
-        {/* Refresh Button */}
-        <TouchableOpacity 
-          style={styles.refreshButton} 
-          onPress={testConnection}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color={colors.background} size="small" />
-          ) : (
-            <Text style={styles.refreshButtonText}>🔄 Refresh Test</Text>
-          )}
-        </TouchableOpacity>
+        {/* Action Buttons */}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.refreshButton]} 
+            onPress={testConnection}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <ActivityIndicator color={colors.background} size="small" />
+            ) : (
+              <Text style={styles.buttonText}>🔄 Refresh Test</Text>
+            )}
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.galleryButton]} 
+            onPress={testGalleryQueries}
+            disabled={isLoading}
+          >
+            <Text style={styles.buttonText}>🎨 Test Gallery Queries</Text>
+          </TouchableOpacity>
+        </View>
 
         {/* Tables Info */}
         {tableInfo.length > 0 && (
@@ -339,17 +407,28 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontFamily: 'monospace',
   },
-  refreshButton: {
-    backgroundColor: colors.accent,
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 24,
+  },
+  actionButton: {
+    flex: 1,
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 24,
   },
-  refreshButtonText: {
+  refreshButton: {
+    backgroundColor: colors.accent,
+  },
+  galleryButton: {
+    backgroundColor: '#9C27B0',
+  },
+  buttonText: {
     color: colors.background,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600' as const,
+    textAlign: 'center',
   },
   sectionTitle: {
     fontSize: 20,
