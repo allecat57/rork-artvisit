@@ -27,9 +27,9 @@ interface UseTimeFrameArtworkResult {
 }
 
 // Convert TimeFrame artwork to Product format
-const convertToProduct = (artwork: TimeFrameArtwork): Product => {
+const convertToProduct = (artwork: TimeFrameArtwork, galleryId?: number): Product => {
   return {
-    id: `timeframe-${artwork.id}`,
+    id: `timeframe-${galleryId || artwork.gallery_id}-${artwork.id}`,
     title: artwork.name || 'Untitled',
     description: artwork.description || 'No description available',
     price: typeof artwork.price === 'number' ? artwork.price : 0,
@@ -83,7 +83,7 @@ export const useTimeFrameArtwork = (): UseTimeFrameArtworkResult => {
                     ...artwork,
                     gallery_id: gallery.id,
                     gallery_name: gallery.name
-                  });
+                  }, gallery.id);
                 } catch (conversionError) {
                   console.warn('Failed to convert artwork:', artwork, conversionError);
                   return null;

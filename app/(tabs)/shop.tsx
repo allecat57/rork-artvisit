@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { ShoppingBag, Filter, Grid, List, ChevronRight } from "lucide-react-native";
+import { ShoppingBag, Grid, List, ChevronRight } from "lucide-react-native";
 import colors from "@/constants/colors";
 import SearchBar from "@/components/SearchBar";
 import ProductCard from "@/components/ProductCard";
@@ -265,7 +265,7 @@ export default function ShopScreen() {
           {filteredProducts.length > 0 ? (
             <FlatList
               data={searchQuery ? filteredProducts : regularProducts}
-              keyExtractor={(item) => item.id}
+              keyExtractor={(item, index) => `${item.id}-${index}`}
               renderItem={renderProduct}
               numColumns={viewMode === 'grid' ? 2 : 1}
               key={viewMode}
