@@ -2,7 +2,7 @@ import axios from 'axios';
 import { mockApiResponses } from '@/mocks/timeframe-data';
 
 const BASE_URL = 'https://18849333-83fa-4dea-9464-e6ba0f0654bf-00-3dsp6vm1uqkpn.kirk.replit.dev';
-const USE_MOCK_DATA = true; // Set to true for development/testing - using mock data for now
+const USE_MOCK_DATA = false; // Set to true for development/testing - using mock data for now
 
 class TimeFrameAPI {
   private api;
