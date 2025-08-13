@@ -18,6 +18,8 @@ import ProductCard from "@/components/ProductCard";
 import { products } from "@/mocks/products";
 import { Product } from "@/types/product";
 import { useCartStore } from "@/store/useCartStore";
+import { useTimeFrameArtwork } from "@/hooks/useTimeFrameArtwork";
+import { useTimeFrameWebSocket } from "@/hooks/useTimeFrameWebSocket";
 
 const fontFamily = Platform.select({
   ios: "Georgia",
@@ -47,30 +49,46 @@ export default function ShopScreen() {
   const router = useRouter();
   const { getCurrentUserCart } = useCartStore();
   const items = getCurrentUserCart();
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
+  // TimeFrame API integration
+  const { artworks: timeFrameArtworks, loading: timeFrameLoading, error: timeFrameError, refetch } = useTimeFrameArtwork();
+  
+  // Combine mock products with TimeFrame artworks
+  const allProducts = React.useMemo(() => {
+    return [...products, ...timeFrameArtworks];
+  }, [timeFrameArtworks]);
+  
+  const loading = timeFrameLoading;
+  
+  // Real-time updates for new artworks
+  useTimeFrameWebSocket({
+    onArtworkAdded: (data) => {
+      console.log('🎨 New artwork added:', data);
+      refetch(); // Refresh artwork list
+    },
+    onArtworkSold: (data) => {
+      console.log('💰 Artwork sold:', data);
+      refetch(); // Refresh artwork list
+    }
+  });
 
-  useEffect(() => {
-    // Simulate loading
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-  }, []);
+
 
   useEffect(() => {
     if (searchQuery.trim()) {
-      const filtered = products.filter(product =>
+      const filtered = allProducts.filter(product =>
         product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (product.artist && product.artist.toLowerCase().includes(searchQuery.toLowerCase())) ||
         product.category.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredProducts(filtered);
     } else {
-      setFilteredProducts(products);
+      setFilteredProducts(allProducts);
     }
-  }, [searchQuery]);
+  }, [searchQuery, allProducts]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -83,7 +101,7 @@ export default function ShopScreen() {
   const featuredProducts = filteredProducts.filter(product => product.featured).slice(0, 3);
   const regularProducts = filteredProducts.filter(product => !product.featured);
   
-  const categories = Array.from(new Set(products.map(p => p.category)));
+  const categories = Array.from(new Set(allProducts.map(p => p.category)));
   
   const renderProduct = ({ item }: { item: Product }) => (
     <View style={styles.productContainer}>
@@ -118,7 +136,7 @@ export default function ShopScreen() {
       style={styles.categoryCard}
       onPress={() => {
         // Filter by category
-        const categoryProducts = products.filter(p => p.category === category);
+        const categoryProducts = allProducts.filter(p => p.category === category);
         setFilteredProducts(categoryProducts);
       }}
     >
@@ -144,7 +162,8 @@ export default function ShopScreen() {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.accent} />
-        <Text style={styles.loadingText}>Loading art collection...</Text>
+        <Text style={styles.loadingText}>Loading TimeFrame galleries...</Text>
+        <Text style={styles.loadingSubtext}>Connecting to live art marketplace</Text>
       </View>
     );
   }
@@ -157,7 +176,15 @@ export default function ShopScreen() {
           <View style={styles.headerTop}>
             <View>
               <Text style={styles.headerTitle}>Art Shop</Text>
-              <Text style={styles.headerSubtitle}>Discover unique pieces</Text>
+              <Text style={styles.headerSubtitle}>
+                {timeFrameArtworks.length > 0 
+                  ? `${timeFrameArtworks.length} live artworks from TimeFrame galleries`
+                  : 'Discover unique pieces'
+                }
+              </Text>
+              {timeFrameError && (
+                <Text style={styles.errorText}>TimeFrame: {timeFrameError}</Text>
+              )}
             </View>
             <TouchableOpacity 
               style={styles.cartIconContainer}
@@ -452,5 +479,16 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: "center",
     lineHeight: 20,
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#ff6b6b',
+    marginTop: 4,
+  },
+  loadingSubtext: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontWeight: "400",
+    marginTop: 4,
   },
 });

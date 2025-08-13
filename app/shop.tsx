@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, Text, View, FlatList, TouchableOpacity, ScrollView } from "react-native";
+import { StyleSheet, Text, View, FlatList, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { ShoppingCart, Search, Tag } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -12,6 +12,8 @@ import typography from "@/constants/typography";
 import { products } from "@/mocks/products";
 import { Product } from "@/types/product";
 import * as Analytics from "@/utils/analytics";
+import { useTimeFrameArtwork } from "@/hooks/useTimeFrameArtwork";
+import { useTimeFrameWebSocket } from "@/hooks/useTimeFrameWebSocket";
 
 const artCategories = ["Renaissance", "Cubism", "Surrealism", "Abstract Art"];
 
@@ -22,6 +24,26 @@ export default function ShopScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   
+  // TimeFrame API integration
+  const { artworks: timeFrameArtworks, loading: timeFrameLoading, error: timeFrameError, refetch } = useTimeFrameArtwork();
+  
+  // Combine mock products with TimeFrame artworks
+  const allProducts = React.useMemo(() => {
+    return [...products, ...timeFrameArtworks];
+  }, [timeFrameArtworks]);
+  
+  // Real-time updates for new artworks
+  useTimeFrameWebSocket({
+    onArtworkAdded: (data) => {
+      console.log('🎨 New artwork added:', data);
+      refetch(); // Refresh artwork list
+    },
+    onArtworkSold: (data) => {
+      console.log('💰 Artwork sold:', data);
+      refetch(); // Refresh artwork list
+    }
+  });
+  
   useEffect(() => {
     // Log analytics event
     Analytics.logEvent("view_shop_screen", {});
@@ -29,7 +51,7 @@ export default function ShopScreen() {
   
   // Filter products based on search query and selected category
   const filteredProducts = React.useMemo(() => {
-    let filtered = products;
+    let filtered = allProducts;
     
     // Apply search filter
     if (searchQuery) {
@@ -49,7 +71,7 @@ export default function ShopScreen() {
     }
     
     return filtered;
-  }, [searchQuery, selectedCategory]);
+  }, [searchQuery, selectedCategory, allProducts]);
   
   // Handle product card press
   const handleProductPress = (productId: string) => {
@@ -64,7 +86,17 @@ export default function ShopScreen() {
   // Render header with search and cart
   const renderHeader = () => (
     <View style={styles.header}>
-      <Text style={styles.screenTitle}>Shop</Text>
+      <View>
+        <Text style={styles.screenTitle}>Shop</Text>
+        {timeFrameArtworks.length > 0 && (
+          <Text style={styles.timeFrameIndicator}>
+            {timeFrameArtworks.length} live artworks from TimeFrame
+          </Text>
+        )}
+        {timeFrameError && (
+          <Text style={styles.errorText}>TimeFrame: {timeFrameError}</Text>
+        )}
+      </View>
       <TouchableOpacity 
         style={styles.cartButton}
         onPress={() => router.push("/shop/cart")}
@@ -136,7 +168,12 @@ export default function ShopScreen() {
         {selectedCategory ? selectedCategory : "All Products"}
       </Text>
       
-      {filteredProducts.length === 0 ? (
+      {timeFrameLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.accent} />
+          <Text style={styles.loadingText}>Loading TimeFrame galleries...</Text>
+        </View>
+      ) : filteredProducts.length === 0 ? (
         <EmptyState
           icon={<Search size={40} color={colors.textMuted} />}
           title="No products found"
@@ -276,5 +313,25 @@ const styles = StyleSheet.create({
   productGridItem: {
     width: "48%",
     marginBottom: 16,
+  },
+  timeFrameIndicator: {
+    fontSize: 12,
+    color: colors.accent,
+    fontWeight: "500",
+    marginTop: 2,
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#ff6b6b',
+    marginTop: 2,
+  },
+  loadingContainer: {
+    padding: 32,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 8,
   },
 });
