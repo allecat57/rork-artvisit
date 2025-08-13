@@ -68,39 +68,136 @@ export const useVenueStore = create<VenueState>()(
         try {
           console.log('🏛️ Fetching galleries from TimeFrame API...');
           
-          // Fetch from TimeFrame API
-          const response = await TimeFrameAPI.getGalleries();
-          
-          if (response.success && response.data) {
-            console.log(`✅ Loaded ${response.count} galleries from TimeFrame`);
-            
-            // Transform TimeFrame galleries to venue format
-            const timeFrameVenues: Venue[] = response.data.map((gallery: any, index: number) => ({
-              id: `timeframe-${gallery.id}`,
-              name: gallery.name || 'Unnamed Gallery',
+          // Create sample TimeFrame galleries as fallback
+          const sampleTimeFrameVenues: Venue[] = [
+            {
+              id: 'timeframe-1',
+              name: 'Contemporary Arts Center',
               type: 'Art Gallery',
-              description: gallery.description || 'A contemporary art gallery featuring curated exhibitions.',
-              imageUrl: gallery.image_url || 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&h=600&fit=crop',
-              location: gallery.location || 'Location TBD',
-              distance: `${Math.floor(Math.random() * 10) + 1} km away`,
-              rating: gallery.rating || (4.0 + Math.random() * 1.0),
-              openingHours: gallery.opening_hours || 'Mon-Sun: 10:00 AM - 6:00 PM',
-              admission: gallery.admission_fee ? `${gallery.admission_fee}` : 'Free',
-              featured: index < 2, // Make first 2 galleries featured
+              description: 'A cutting-edge contemporary art gallery featuring emerging and established artists from around the world.',
+              imageUrl: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&h=600&fit=crop',
+              location: 'Downtown Arts District',
+              distance: '0.8 km away',
+              rating: 4.6,
+              openingHours: 'Tue-Sun: 10:00 AM - 7:00 PM',
+              admission: 'Free',
+              featured: true,
               category: 'Art Galleries Near You',
-              tags: ['art', 'gallery', 'timeframe'],
-              phone: gallery.phone,
-              website: gallery.website,
-              coordinates: gallery.coordinates ? {
-                latitude: gallery.coordinates.lat,
-                longitude: gallery.coordinates.lng
-              } : undefined,
-              address: gallery.address,
-              cost: gallery.admission_fee ? `${gallery.admission_fee}` : 'Free'
-            }));
+              tags: ['art', 'gallery', 'timeframe', 'contemporary'],
+              phone: '+1 (555) 123-4567',
+              website: 'https://timeframe.example.com',
+              address: '123 Gallery Street, Arts District',
+              cost: 'Free',
+              coordinates: {
+                latitude: 40.7580,
+                longitude: -73.9855
+              }
+            },
+            {
+              id: 'timeframe-2',
+              name: 'Modern Expressions Gallery',
+              type: 'Art Gallery',
+              description: 'Showcasing modern and abstract art from local and international artists.',
+              imageUrl: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop',
+              location: 'Midtown Cultural Quarter',
+              distance: '1.2 km away',
+              rating: 4.4,
+              openingHours: 'Mon-Sat: 9:00 AM - 6:00 PM',
+              admission: '$15',
+              featured: true,
+              category: 'Art Galleries Near You',
+              tags: ['art', 'gallery', 'timeframe', 'modern'],
+              phone: '+1 (555) 234-5678',
+              website: 'https://modernexpressions.example.com',
+              address: '456 Modern Ave, Cultural Quarter',
+              cost: '$15 per person',
+              coordinates: {
+                latitude: 40.7505,
+                longitude: -73.9934
+              }
+            },
+            {
+              id: 'timeframe-3',
+              name: 'Urban Art Collective',
+              type: 'Art Gallery',
+              description: 'A vibrant space dedicated to street art, murals, and urban contemporary works.',
+              imageUrl: 'https://images.unsplash.com/photo-1566127992631-137a642a90f4?w=800&h=600&fit=crop',
+              location: 'Creative District',
+              distance: '2.1 km away',
+              rating: 4.7,
+              openingHours: 'Wed-Sun: 11:00 AM - 8:00 PM',
+              admission: '$10',
+              featured: false,
+              category: 'Art Galleries Near You',
+              tags: ['art', 'gallery', 'timeframe', 'urban', 'street art'],
+              phone: '+1 (555) 345-6789',
+              website: 'https://urbanartcollective.example.com',
+              address: '789 Creative Blvd, Creative District',
+              cost: '$10 per person',
+              coordinates: {
+                latitude: 40.7282,
+                longitude: -73.9942
+              }
+            }
+          ];
+          
+          try {
+            // Try to fetch from TimeFrame API
+            const response = await TimeFrameAPI.getGalleries();
             
-            // Combine with existing mock venues
-            const allVenues = [...timeFrameVenues, ...venues];
+            if (response.success && response.data && response.data.length > 0) {
+              console.log(`✅ Loaded ${response.count} galleries from TimeFrame API`);
+              
+              // Transform TimeFrame galleries to venue format
+              const timeFrameVenues: Venue[] = response.data.map((gallery: any, index: number) => ({
+                id: `timeframe-${gallery.id}`,
+                name: gallery.name || 'Unnamed Gallery',
+                type: 'Art Gallery',
+                description: gallery.description || 'A contemporary art gallery featuring curated exhibitions.',
+                imageUrl: gallery.image_url || 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&h=600&fit=crop',
+                location: gallery.location || 'Location TBD',
+                distance: `${Math.floor(Math.random() * 10) + 1} km away`,
+                rating: gallery.rating || (4.0 + Math.random() * 1.0),
+                openingHours: gallery.opening_hours || 'Mon-Sun: 10:00 AM - 6:00 PM',
+                admission: gallery.admission_fee ? `${gallery.admission_fee}` : 'Free',
+                featured: index < 2, // Make first 2 galleries featured
+                category: 'Art Galleries Near You',
+                tags: ['art', 'gallery', 'timeframe'],
+                phone: gallery.phone,
+                website: gallery.website,
+                coordinates: gallery.coordinates ? {
+                  latitude: gallery.coordinates.lat,
+                  longitude: gallery.coordinates.lng
+                } : undefined,
+                address: gallery.address,
+                cost: gallery.admission_fee ? `${gallery.admission_fee}` : 'Free'
+              }));
+              
+              // Combine API data with existing mock venues
+              const allVenues = [...timeFrameVenues, ...venues];
+              
+              set({ 
+                venues: allVenues,
+                categories: categories || [],
+                isLoading: false 
+              });
+              
+              // Log analytics
+              Analytics.logEvent('timeframe_venues_loaded', {
+                count: timeFrameVenues.length,
+                total_venues: allVenues.length,
+                source: 'api'
+              });
+              
+            } else {
+              throw new Error('No data returned from TimeFrame API');
+            }
+            
+          } catch (apiError) {
+            console.warn('⚠️ TimeFrame API failed, using sample data:', apiError);
+            
+            // Use sample TimeFrame venues as fallback
+            const allVenues = [...sampleTimeFrameVenues, ...venues];
             
             set({ 
               venues: allVenues,
@@ -110,23 +207,17 @@ export const useVenueStore = create<VenueState>()(
             
             // Log analytics
             Analytics.logEvent('timeframe_venues_loaded', {
-              count: timeFrameVenues.length,
-              total_venues: allVenues.length
-            });
-            
-          } else {
-            console.warn('⚠️ TimeFrame API returned no data, using mock venues');
-            // Fallback to mock data
-            set({ 
-              venues: venues || [],
-              categories: categories || [],
-              isLoading: false 
+              count: sampleTimeFrameVenues.length,
+              total_venues: allVenues.length,
+              source: 'sample_data',
+              api_error: apiError instanceof Error ? apiError.message : 'Unknown API error'
             });
           }
-        } catch (error) {
-          console.error('❌ Error fetching TimeFrame venues:', error);
           
-          // Fallback to mock data on error
+        } catch (error) {
+          console.error('❌ Error in fetchVenues:', error);
+          
+          // Final fallback to just mock data
           set({ 
             venues: venues || [],
             categories: categories || [],

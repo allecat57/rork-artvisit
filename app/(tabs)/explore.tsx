@@ -9,7 +9,6 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { router } from "expo-router";
-import colors from "@/constants/colors";
 import SearchBar from "@/components/SearchBar";
 import CategoryCard from "@/components/CategoryCard";
 import VenueCard from "@/components/VenueCard";
@@ -18,6 +17,16 @@ import VenueModal from "@/components/VenueModal";
 import { useVenueStore } from "@/store/useVenueStore";
 import { categories } from "@/mocks/categories";
 import { Venue } from "@/types/venue";
+
+// Define colors directly to avoid import issues
+const colors = {
+  background: "#013025",
+  text: "#FFFFFF",
+  textSecondary: "#B0B0B0",
+  accent: "#AC8901",
+  card: "#1a4037",
+  border: "rgba(172, 137, 1, 0.2)",
+};
 
 const fontFamily = Platform.select({
   ios: "Georgia",
@@ -35,8 +44,23 @@ export default function ExploreScreen() {
 
   useEffect(() => {
     // Load venues on component mount
+    console.log('🔄 Explore screen mounted, loading venues...');
     fetchVenues();
   }, [fetchVenues]);
+
+  // Also trigger loading when the screen comes into focus
+  useEffect(() => {
+    const loadInitialData = async () => {
+      if (venues.length === 0) {
+        console.log('🔄 No venues found, triggering fetch...');
+        await fetchVenues();
+      } else {
+        console.log(`✅ Found ${venues.length} venues already loaded`);
+      }
+    };
+    
+    loadInitialData();
+  }, [fetchVenues, venues.length]);
 
   useEffect(() => {
     if (searchQuery.trim()) {
