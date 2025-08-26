@@ -124,7 +124,7 @@ export default function LoginScreen() {
         success = await login(email, password);
 
         // Log analytics event
-        Analytics.logEvent(Analytics.Events.LOGIN, {
+        Analytics.logEvent(Analytics.Events.USER_LOGIN, {
           method: "email",
           success: success
         });
@@ -132,7 +132,7 @@ export default function LoginScreen() {
         success = await signup(email, name, password);
 
         // Log analytics event
-        Analytics.logEvent(Analytics.Events.SIGNUP, {
+        Analytics.logEvent(Analytics.Events.USER_SIGNUP, {
           method: "email",
           success: success
         });
@@ -149,7 +149,7 @@ export default function LoginScreen() {
       console.error("Authentication error:", err);
 
       // Log analytics event for failure
-      Analytics.logEvent(isLogin ? Analytics.Events.LOGIN : Analytics.Events.SIGNUP, {
+      Analytics.logEvent(isLogin ? Analytics.Events.USER_LOGIN : Analytics.Events.USER_SIGNUP, {
         method: "email",
         success: false,
         error: err instanceof Error ? err.message : "Unknown error"
@@ -159,15 +159,18 @@ export default function LoginScreen() {
 
   const handleUseTestAccount = async () => {
     try {
+      console.log("Test account login started");
       setEmail(TEST_USER.email);
       setPassword("password");
 
-      // Wait a moment to show the filled fields before submitting
-      setTimeout(async () => {
-        await login(TEST_USER.email, "password");
+      // Login directly without setTimeout
+      const success = await login(TEST_USER.email, "password");
 
+      if (success) {
+        console.log("Test account login successful");
+        
         // Log analytics event
-        Analytics.logEvent(Analytics.Events.LOGIN, {
+        Analytics.logEvent(Analytics.Events.USER_LOGIN, {
           method: "test_account",
           success: true
         });
@@ -176,7 +179,9 @@ export default function LoginScreen() {
         ensureDefaultSubscription();
 
         router.replace("/(tabs)");
-      }, 500);
+      } else {
+        throw new Error("Login failed");
+      }
     } catch (err) {
       console.error("Error using test account:", err);
       Alert.alert(
@@ -185,7 +190,7 @@ export default function LoginScreen() {
       );
 
       // Log analytics event for failure
-      Analytics.logEvent(Analytics.Events.LOGIN, {
+      Analytics.logEvent(Analytics.Events.USER_LOGIN, {
         method: "test_account",
         success: false,
         error: err instanceof Error ? err.message : "Unknown error"

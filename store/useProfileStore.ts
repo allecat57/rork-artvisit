@@ -177,6 +177,7 @@ export const useProfileStore = create<ProfileState>()(
           if (!targetUserId) return;
           
           set((state) => {
+            if (!targetUserId) return state;
             const currentProfile = state.profiles[targetUserId] || createDefaultProfile(targetUserId);
             
             // Log analytics event
@@ -212,6 +213,7 @@ export const useProfileStore = create<ProfileState>()(
           if (!targetUserId) return;
           
           set((state) => {
+            if (!targetUserId) return state;
             const currentProfile = state.profiles[targetUserId] || createDefaultProfile(targetUserId);
             
             // Log analytics event
@@ -255,6 +257,7 @@ export const useProfileStore = create<ProfileState>()(
           if (!targetUserId) return;
           
           set((state) => {
+            if (!targetUserId) return state;
             const currentProfile = state.profiles[targetUserId] || createDefaultProfile(targetUserId);
             
             // Log analytics event
@@ -300,6 +303,7 @@ export const useProfileStore = create<ProfileState>()(
           if (!targetUserId) return;
           
           set((state) => {
+            if (!targetUserId) return state;
             const currentProfile = state.profiles[targetUserId] || createDefaultProfile(targetUserId);
             
             // Log analytics event
@@ -344,50 +348,46 @@ export const useProfileStore = create<ProfileState>()(
             return;
           }
           
-          // Special case for test user - ensure they have the collector subscription
+          console.log(`ProfileStore: Ensuring default subscription for user ${targetUserId}`);
+          
+          // Special case for test user - they should already have collector subscription
           if (targetUserId === "test-user-123") {
             const testUserProfile = get().getProfileByUserId("test-user-123");
-            if (!testUserProfile || !testUserProfile.subscription || testUserProfile.subscription.id !== "collector") {
-              console.log("Ensuring test user has collector subscription");
-              const { useAuthStore } = require("./useAuthStore");
-              useAuthStore.getState().setupTestUserProfile();
+            if (testUserProfile && testUserProfile.subscription && testUserProfile.subscription.id === "collector") {
+              console.log("Test user already has collector subscription");
               return;
             }
+            console.log("Setting up test user collector subscription");
+            // Set up collector subscription directly without calling setupTestUserProfile
+            get().setSubscriptionForUser("test-user-123", {
+              id: "collector",
+              name: "Master Collector",
+              price: 20.00,
+              renewalDate: "2023-12-31",
+              stripeSubscriptionId: "sub_test_collector_123456789",
+              stripePriceId: SUBSCRIPTION_PLANS.collector.stripePriceId,
+              level: AccessLevel.COLLECTOR
+            });
+            return;
           }
           
-          set((state) => {
-            // If user exists but has no profile or no subscription, set the free tier
-            const currentProfile = state.profiles[targetUserId];
+          // For other users, ensure they have a free subscription
+          const currentProfile = get().profiles[targetUserId];
+          if (!currentProfile || !currentProfile.subscription) {
+            console.log(`Creating default free subscription for user ${targetUserId}`);
+            get().setSubscriptionForUser(targetUserId, {
+              id: "free",
+              name: "Free Access",
+              price: 0,
+              renewalDate: "Never",
+              level: AccessLevel.FREE
+            });
             
-            if (!currentProfile || !currentProfile.subscription) {
-              console.log(`Creating default profile for user ${targetUserId}`);
-              const updatedProfile = currentProfile || createDefaultProfile(targetUserId);
-              
-              if (!updatedProfile.subscription) {
-                updatedProfile.subscription = {
-                  id: "free",
-                  name: "Free Access",
-                  price: 0,
-                  renewalDate: "Never",
-                  level: AccessLevel.FREE
-                };
-                
-                // Log analytics event
-                Analytics.logEvent('default_subscription_created', {
-                  user_id: targetUserId
-                });
-              }
-              
-              return {
-                profiles: {
-                  ...state.profiles,
-                  [targetUserId]: updatedProfile
-                }
-              };
-            }
-            
-            return state;
-          });
+            // Log analytics event
+            Analytics.logEvent('default_subscription_created', {
+              user_id: targetUserId
+            });
+          }
         } catch (error) {
           console.error("Error ensuring default subscription:", error);
         }

@@ -122,6 +122,7 @@ export const useAuthStore = create<AuthState>()(
           
           // If Supabase is not configured or failed, use mock auth
           if (email === TEST_USER.email && password === "password") {
+            console.log("AuthStore: Logging in test user");
             set({ user: TEST_USER, isAuthenticated: true, isLoading: false });
             
             // Log analytics event
@@ -134,11 +135,12 @@ export const useAuthStore = create<AuthState>()(
             // Set user ID for analytics
             Analytics.setUserId(TEST_USER.id);
             
+            console.log("AuthStore: Test user login completed");
             return true;
           }
           
-          // Simulate API call delay
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          // Simulate API call delay (reduced from 1000ms to 500ms)
+          await new Promise(resolve => setTimeout(resolve, 500));
           
           // For demo purposes, any email/password combination works
           const newUser: User = {
