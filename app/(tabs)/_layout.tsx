@@ -89,7 +89,7 @@ export default function TabLayout() {
           }}
         />
         
-        {/* Hide unregistered tab files */
+        {/* Hide unregistered tab files */}
         <Tabs.Screen name="reservations" options={{ href: null }} />
         <Tabs.Screen name="todos" options={{ href: null }} />
     </Tabs>
