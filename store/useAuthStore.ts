@@ -3,8 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SUBSCRIPTION_PLANS } from "@/config/stripe";
 import * as Analytics from "@/utils/analytics";
-import { Platform } from "react-native";
-import { supabase, isSupabaseConfigured } from "@/config/supabase";
+
 import { AccessLevel } from "@/types/event";
 
 // User interface
@@ -81,46 +80,9 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         try {
           set({ isLoading: true, error: null });
+          console.log("AuthStore: Starting login process for:", email);
           
-          // Check if Supabase is configured
-          if (isSupabaseConfigured()) {
-            try {
-              // Use Supabase Auth
-              const { data, error } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-              });
-              
-              if (error) throw error;
-              
-              if (data.user) {
-                const newUser: User = {
-                  id: data.user.id,
-                  email: data.user.email || email,
-                  name: email.split('@')[0],
-                  avatar: data.user.user_metadata?.avatar_url,
-                };
-                
-                set({ user: newUser, isAuthenticated: true, isLoading: false });
-                
-                // Log analytics event
-                Analytics.logEvent(Analytics.Events.USER_LOGIN, {
-                  method: "supabase",
-                  user_id: newUser.id,
-                  email: newUser.email
-                });
-                
-                // Set user ID for analytics
-                Analytics.setUserId(newUser.id);
-                
-                return true;
-              }
-            } catch (supabaseError) {
-              console.warn("Supabase login failed, falling back to mock auth:", supabaseError);
-            }
-          }
-          
-          // If Supabase is not configured or failed, use mock auth
+          // Handle test user login immediately
           if (email === TEST_USER.email && password === "password") {
             console.log("AuthStore: Logging in test user");
             set({ user: TEST_USER, isAuthenticated: true, isLoading: false });
@@ -139,10 +101,10 @@ export const useAuthStore = create<AuthState>()(
             return true;
           }
           
-          // Simulate API call delay (reduced from 1000ms to 500ms)
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // For demo purposes, simulate a quick API call
+          await new Promise(resolve => setTimeout(resolve, 300));
           
-          // For demo purposes, any email/password combination works
+          // Create user for any valid email/password combination
           const newUser: User = {
             id: `user-${Date.now()}`,
             email,
@@ -161,6 +123,7 @@ export const useAuthStore = create<AuthState>()(
           // Set user ID for analytics
           Analytics.setUserId(newUser.id);
           
+          console.log("AuthStore: Login completed for:", email);
           return true;
         } catch (error: any) {
           console.error("Login error:", error);
@@ -192,14 +155,7 @@ export const useAuthStore = create<AuthState>()(
             user_id: userId
           });
           
-          // If Supabase is configured, sign out
-          if (isSupabaseConfigured()) {
-            try {
-              await supabase.auth.signOut();
-            } catch (error) {
-              console.warn("Supabase logout error:", error);
-            }
-          }
+          console.log("AuthStore: User logged out");
         } catch (error) {
           console.warn("Logout error:", error);
         }
@@ -210,51 +166,10 @@ export const useAuthStore = create<AuthState>()(
       signup: async (email: string, name: string, password: string) => {
         try {
           set({ isLoading: true, error: null });
-          
-          // Check if Supabase is configured
-          if (isSupabaseConfigured()) {
-            try {
-              // Use Supabase Auth
-              const { data, error } = await supabase.auth.signUp({
-                email,
-                password,
-                options: {
-                  data: {
-                    name,
-                  },
-                },
-              });
-              
-              if (error) throw error;
-              
-              if (data.user) {
-                const newUser: User = {
-                  id: data.user.id,
-                  email: data.user.email || email,
-                  name,
-                };
-                
-                set({ user: newUser, isAuthenticated: true, isLoading: false });
-                
-                // Log analytics event
-                Analytics.logEvent(Analytics.Events.USER_SIGNUP, {
-                  method: "supabase",
-                  user_id: newUser.id,
-                  email: newUser.email
-                });
-                
-                // Set user ID for analytics
-                Analytics.setUserId(newUser.id);
-                
-                return true;
-              }
-            } catch (supabaseError) {
-              console.warn("Supabase signup failed, falling back to mock auth:", supabaseError);
-            }
-          }
+          console.log("AuthStore: Starting signup process for:", email);
           
           // Simulate API call delay
-          await new Promise(resolve => setTimeout(resolve, 1500));
+          await new Promise(resolve => setTimeout(resolve, 800));
           
           const newUser: User = {
             id: `user-${Date.now()}`,
@@ -274,6 +189,7 @@ export const useAuthStore = create<AuthState>()(
           // Set user ID for analytics
           Analytics.setUserId(newUser.id);
           
+          console.log("AuthStore: Signup completed for:", email);
           return true;
         } catch (error: any) {
           console.error("Registration error:", error);
@@ -365,6 +281,7 @@ export const useAuthStore = create<AuthState>()(
           console.log('AuthStore: setupTestUserProfile called');
           // Import dynamically to avoid circular dependency
           const getProfileStore = () => {
+            // eslint-disable-next-line @typescript-eslint/no-require-imports
             return require("./useProfileStore").useProfileStore.getState();
           };
           
