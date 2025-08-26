@@ -7,14 +7,18 @@ import {
   ActivityIndicator,
   Platform,
   TouchableOpacity,
+  ScrollView,
 } from "react-native";
 import { router } from "expo-router";
+import { MapPin, Clock, Star, RefreshCw } from "lucide-react-native";
 import SearchBar from "@/components/SearchBar";
 import CategoryCard from "@/components/CategoryCard";
 import VenueCard from "@/components/VenueCard";
 import FeaturedVenueCard from "@/components/FeaturedVenueCard";
 import VenueModal from "@/components/VenueModal";
+import GalleryModal from "@/components/GalleryModal";
 import { useVenueStore } from "@/store/useVenueStore";
+import { useGalleries } from "@/hooks/useGalleries";
 import { categories } from "@/mocks/categories";
 import { Venue } from "@/types/venue";
 
@@ -36,11 +40,16 @@ const fontFamily = Platform.select({
 
 export default function ExploreScreen() {
   const { venues, isLoading, fetchVenues } = useVenueStore();
+  const { galleries, loading: galleriesLoading, error: galleriesError, refetch: refetchGalleries, isUsingMockData } = useGalleries();
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredVenues, setFilteredVenues] = useState<Venue[]>([]);
+  const [filteredGalleries, setFilteredGalleries] = useState<any[]>([]);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedGallery, setSelectedGallery] = useState<any>(null);
+  const [venueModalVisible, setVenueModalVisible] = useState(false);
+  const [galleryModalVisible, setGalleryModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState<'venues' | 'galleries'>('venues');
 
   useEffect(() => {
     // Load venues on component mount
@@ -64,16 +73,24 @@ export default function ExploreScreen() {
 
   useEffect(() => {
     if (searchQuery.trim()) {
-      const filtered = venues.filter(venue =>
+      const filteredV = venues.filter(venue =>
         venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         venue.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
         venue.category?.toLowerCase().includes(searchQuery.toLowerCase())
       );
-      setFilteredVenues(filtered);
+      setFilteredVenues(filteredV);
+      
+      const filteredG = galleries.filter(gallery =>
+        gallery.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        gallery.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        gallery.category?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredGalleries(filteredG);
     } else {
       setFilteredVenues(venues);
+      setFilteredGalleries(galleries);
     }
-  }, [searchQuery, venues]);
+  }, [searchQuery, venues, galleries]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -89,7 +106,7 @@ export default function ExploreScreen() {
   const renderHeader = () => (
     <View style={styles.header}>
       <SearchBar
-        placeholder="Search venues, locations..."
+        placeholder="Search venues, galleries, locations..."
         onChangeText={handleSearch}
         onClear={handleClearSearch}
         value={searchQuery}
@@ -107,6 +124,22 @@ export default function ExploreScreen() {
             contentContainerStyle={styles.categoriesContainer}
           />
           
+          {/* Tab Selector */}
+          <View style={styles.tabContainer}>
+            <TouchableOpacity 
+              style={[styles.tabButton, activeTab === 'venues' && styles.activeTab]}
+              onPress={() => setActiveTab('venues')}
+            >
+              <Text style={[styles.tabText, activeTab === 'venues' && styles.activeTabText]}>Venues</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.tabButton, activeTab === 'galleries' && styles.activeTab]}
+              onPress={() => setActiveTab('galleries')}
+            >
+              <Text style={[styles.tabText, activeTab === 'galleries' && styles.activeTabText]}>Galleries</Text>
+            </TouchableOpacity>
+          </View>
+          
           {/* Test Buttons */}
           <View style={styles.testButtonsContainer}>
             <TouchableOpacity 
@@ -123,18 +156,39 @@ export default function ExploreScreen() {
             onPress={async () => {
               setRefreshing(true);
               await fetchVenues();
+              await refetchGalleries();
               setRefreshing(false);
             }}
             disabled={refreshing}
           >
             <Text style={styles.testButtonText}>
-              {refreshing ? '🔄 Refreshing...' : '🔄 Refresh Galleries'}
+              {refreshing ? '🔄 Refreshing...' : '🔄 Refresh Data'}
             </Text>
           </TouchableOpacity>
+          
+          {isUsingMockData && (
+            <View style={styles.mockDataBanner}>
+              <Text style={styles.mockDataText}>
+                📱 Using sample data - TIMEFRAME API unavailable
+              </Text>
+            </View>
+          )}
+
+          {galleriesError && (
+            <View style={styles.errorBanner}>
+              <Text style={styles.errorText}>
+                ⚠️ {galleriesError}
+              </Text>
+              <TouchableOpacity style={styles.retryButton} onPress={refetchGalleries}>
+                <RefreshCw size={14} color={colors.accent} />
+                <Text style={styles.retryText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </>
       )}
 
-      {featuredVenues.length > 0 && (
+      {((activeTab === 'venues' && featuredVenues.length > 0) || searchQuery) && (
         <Text style={styles.sectionTitle}>
           {searchQuery ? "Featured Results" : "Featured Venues"}
         </Text>
@@ -144,12 +198,22 @@ export default function ExploreScreen() {
 
   const handleVenuePress = (venue: Venue) => {
     setSelectedVenue(venue);
-    setModalVisible(true);
+    setVenueModalVisible(true);
   };
 
-  const handleCloseModal = () => {
-    setModalVisible(false);
+  const handleGalleryPress = (gallery: any) => {
+    setSelectedGallery(gallery);
+    setGalleryModalVisible(true);
+  };
+
+  const handleCloseVenueModal = () => {
+    setVenueModalVisible(false);
     setSelectedVenue(null);
+  };
+
+  const handleCloseGalleryModal = () => {
+    setGalleryModalVisible(false);
+    setSelectedGallery(null);
   };
 
   const renderFeaturedVenue = ({ item }: { item: Venue }) => (
@@ -158,6 +222,43 @@ export default function ExploreScreen() {
 
   const renderVenue = ({ item }: { item: Venue }) => (
     <VenueCard venue={item} onPress={() => handleVenuePress(item)} />
+  );
+
+  const renderGalleryItem = ({ item }: { item: any }) => (
+    <TouchableOpacity
+      style={styles.galleryCard}
+      onPress={() => handleGalleryPress(item)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.cardContent}>
+        <View style={styles.galleryHeader}>
+          <Text style={styles.galleryName}>{item.name}</Text>
+          <View style={styles.ratingContainer}>
+            <Star size={14} color={colors.accent} fill={colors.accent} />
+            <Text style={styles.rating}>{item.rating || 4.8}</Text>
+          </View>
+        </View>
+        
+        <View style={styles.locationContainer}>
+          <MapPin size={14} color={colors.textSecondary} />
+          <Text style={styles.location}>{item.location}</Text>
+        </View>
+        
+        {item.description && (
+          <Text style={styles.description} numberOfLines={2}>
+            {item.description}
+          </Text>
+        )}
+        
+        <View style={styles.metaContainer}>
+          <View style={styles.hoursContainer}>
+            <Clock size={12} color={colors.textSecondary} />
+            <Text style={styles.hours}>{item.hours || "Open today 10AM - 6PM"}</Text>
+          </View>
+          <Text style={styles.category}>{item.category || "Gallery"}</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
   );
 
   const renderEmptyState = () => (
@@ -174,61 +275,131 @@ export default function ExploreScreen() {
     </View>
   );
 
-  if (isLoading) {
+  if (isLoading || galleriesLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.accent} />
-        <Text style={styles.loadingText}>Loading venues...</Text>
+        <Text style={styles.loadingText}>Loading content...</Text>
       </View>
     );
   }
 
+  const renderContent = () => {
+    if (searchQuery) {
+      // Show combined search results
+      const allResults = [...filteredVenues, ...filteredGalleries];
+      if (allResults.length === 0) {
+        return renderEmptyState();
+      }
+      
+      return (
+        <View>
+          {filteredVenues.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>Venues</Text>
+              <FlatList
+                data={filteredVenues}
+                keyExtractor={(item: Venue) => `venue-${item.id}`}
+                renderItem={renderVenue}
+                scrollEnabled={false}
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
+              />
+            </>
+          )}
+          
+          {filteredGalleries.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>Galleries</Text>
+              <FlatList
+                data={filteredGalleries}
+                keyExtractor={(item: any) => `gallery-${item.id}`}
+                renderItem={renderGalleryItem}
+                scrollEnabled={false}
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
+              />
+            </>
+          )}
+        </View>
+      );
+    }
+    
+    if (activeTab === 'venues') {
+      return (
+        <View>
+          {featuredVenues.length > 0 && (
+            <FlatList
+              data={featuredVenues}
+              keyExtractor={(item: Venue) => `featured-${item.id}`}
+              renderItem={renderFeaturedVenue}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.featuredContainer}
+            />
+          )}
+          
+          {regularVenues.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>All Venues</Text>
+              <FlatList
+                data={regularVenues}
+                keyExtractor={(item: Venue) => item.id}
+                renderItem={renderVenue}
+                scrollEnabled={false}
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
+              />
+            </>
+          )}
+          
+          {filteredVenues.length === 0 && renderEmptyState()}
+        </View>
+      );
+    }
+    
+    // Galleries tab
+    return (
+      <View>
+        {filteredGalleries.length > 0 ? (
+          <>
+            <Text style={styles.sectionTitle}>All Galleries</Text>
+            <FlatList
+              data={filteredGalleries}
+              keyExtractor={(item: any) => item.id}
+              renderItem={renderGalleryItem}
+              scrollEnabled={false}
+              ItemSeparatorComponent={() => <View style={styles.separator} />}
+            />
+          </>
+        ) : (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyTitle}>No galleries available</Text>
+            <Text style={styles.emptyDescription}>
+              Check back later for new gallery listings.
+            </Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      <FlatList
-        data={[1]} // Dummy data to make FlatList work
-        keyExtractor={() => 'header'}
-        renderItem={() => null}
-        ListHeaderComponent={renderHeader}
-        ListFooterComponent={
-          <View>
-            {featuredVenues.length > 0 && (
-              <FlatList
-                data={featuredVenues}
-                keyExtractor={(item: Venue) => `featured-${item.id}`}
-                renderItem={renderFeaturedVenue}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.featuredContainer}
-              />
-            )}
-            
-            {regularVenues.length > 0 && (
-              <>
-                <Text style={styles.sectionTitle}>
-                  {searchQuery ? "Other Results" : "All Venues"}
-                </Text>
-                <FlatList
-                  data={regularVenues}
-                  keyExtractor={(item: Venue) => item.id}
-                  renderItem={renderVenue}
-                  scrollEnabled={false}
-                  ItemSeparatorComponent={() => <View style={styles.separator} />}
-                />
-              </>
-            )}
-            
-            {filteredVenues.length === 0 && renderEmptyState()}
-          </View>
-        }
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContainer}
-      />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {renderHeader()}
+        <View style={styles.contentContainer}>
+          {renderContent()}
+        </View>
+      </ScrollView>
       
       <VenueModal
-        visible={modalVisible}
+        visible={venueModalVisible}
         venue={selectedVenue}
-        onClose={handleCloseModal}
+        onClose={handleCloseVenueModal}
+      />
+      
+      <GalleryModal
+        visible={galleryModalVisible}
+        gallery={selectedGallery}
+        onClose={handleCloseGalleryModal}
       />
     </View>
   );
@@ -286,7 +457,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: "700",
+    fontWeight: "700" as const,
     color: colors.text,
     marginBottom: 8,
     textAlign: "center",
@@ -297,6 +468,159 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     textAlign: "center",
     lineHeight: 20,
+  },
+  contentContainer: {
+    paddingHorizontal: 16,
+    paddingBottom: 32,
+  },
+  tabContainer: {
+    flexDirection: "row",
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 4,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  activeTab: {
+    backgroundColor: colors.accent,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: "600" as const,
+    color: colors.textSecondary,
+  },
+  activeTabText: {
+    color: colors.background,
+  },
+  galleryCard: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: "hidden",
+  },
+  cardContent: {
+    padding: 20,
+  },
+  galleryHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 8,
+  },
+  galleryName: {
+    fontSize: 20,
+    fontWeight: "700" as const,
+    color: colors.text,
+    flex: 1,
+    marginRight: 12,
+    fontFamily,
+  },
+  ratingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.card,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    gap: 4,
+  },
+  rating: {
+    fontSize: 12,
+    fontWeight: "600" as const,
+    color: colors.accent,
+  },
+  locationContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+    gap: 6,
+  },
+  location: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontWeight: "500" as const,
+  },
+  description: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  metaContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  hoursContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  hours: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: "500" as const,
+  },
+  category: {
+    fontSize: 12,
+    color: colors.accent,
+    fontWeight: "600" as const,
+    backgroundColor: colors.card,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  mockDataBanner: {
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  mockDataText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    textAlign: "center",
+  },
+  errorBanner: {
+    backgroundColor: "#FEF2F2",
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: "#FECACA",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  errorText: {
+    fontSize: 14,
+    color: "#DC2626",
+    flex: 1,
+    marginRight: 12,
+  },
+  retryButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: colors.card,
+  },
+  retryText: {
+    fontSize: 12,
+    color: colors.accent,
+    fontWeight: "600" as const,
   },
   testButtonsContainer: {
     flexDirection: "row",

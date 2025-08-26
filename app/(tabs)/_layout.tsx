@@ -61,7 +61,7 @@ export default function TabLayout() {
           options={{
             title: 'Shop',
             headerTitle: 'Shop',
-            tabBarIcon: ({ color, size }) => <ShoppingBag size={size} color={color} />,
+            tabBarIcon: ({ color, size }) => <Image size={size} color={color} />,
           }}
         />
         <Tabs.Screen
@@ -72,14 +72,7 @@ export default function TabLayout() {
             tabBarIcon: ({ color, size }) => <Calendar size={size} color={color} />,
           }}
         />
-        <Tabs.Screen
-          name="galleries"
-          options={{
-            title: 'Galleries',
-            headerTitle: 'Galleries',
-            tabBarIcon: ({ color, size }) => <Image size={size} color={color} />,
-          }}
-        />
+
         <Tabs.Screen
           name="profile"
           options={{
@@ -92,6 +85,7 @@ export default function TabLayout() {
         {/* Hide unregistered tab files */}
         <Tabs.Screen name="reservations" options={{ href: null }} />
         <Tabs.Screen name="todos" options={{ href: null }} />
+        <Tabs.Screen name="galleries" options={{ href: null }} />
     </Tabs>
   );
 }
