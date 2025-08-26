@@ -159,7 +159,18 @@ export default function DateTimePicker({
       'July', 'August', 'September', 'October', 'November', 'December'
     ];
     
-    const currentDate = new Date(date);
+    // Parse the date properly - date comes as a timestamp or date object
+    let currentDate: Date;
+    if (typeof date === 'number') {
+      currentDate = new Date(date);
+    } else if (date && typeof date === 'object' && date.timestamp) {
+      currentDate = new Date(date.timestamp);
+    } else if (date && typeof date === 'object' && date.year && date.month) {
+      currentDate = new Date(date.year, date.month - 1, 1);
+    } else {
+      currentDate = new Date();
+    }
+    
     const monthName = monthNames[currentDate.getMonth()];
     const year = currentDate.getFullYear();
     
