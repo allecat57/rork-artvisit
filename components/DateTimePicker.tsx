@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { StyleSheet, Text, View, TouchableOpacity, ScrollView, Alert } from "react-native";
-import { Calendar as CalendarIcon, Clock } from "lucide-react-native";
+import { Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight } from "lucide-react-native";
 import { Calendar } from "react-native-calendars";
 import colors from "@/constants/colors";
 import typography from "@/constants/typography";
@@ -151,6 +151,44 @@ export default function DateTimePicker({
     date.setMonth(date.getMonth() + 3);
     return formatCalendarDate(date);
   })();
+  
+  // Custom header component to avoid timezone display
+  const renderCustomHeader = (date: any) => {
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    
+    const currentDate = new Date(date);
+    const monthName = monthNames[currentDate.getMonth()];
+    const year = currentDate.getFullYear();
+    
+    return (
+      <View style={styles.customCalendarHeader}>
+        <TouchableOpacity 
+          style={styles.headerArrow}
+          onPress={() => {
+            // Navigate to previous month
+          }}
+        >
+          <ChevronLeft size={20} color={colors.accent} />
+        </TouchableOpacity>
+        
+        <Text style={styles.customHeaderText}>
+          {monthName} {year}
+        </Text>
+        
+        <TouchableOpacity 
+          style={styles.headerArrow}
+          onPress={() => {
+            // Navigate to next month
+          }}
+        >
+          <ChevronRight size={20} color={colors.accent} />
+        </TouchableOpacity>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -165,15 +203,16 @@ export default function DateTimePicker({
           maxDate={maxDate}
           onDayPress={handleDateSelect}
           markedDates={markedDates}
-          hideArrows={false}
+          hideArrows={true}
           hideExtraDays={true}
           disableMonthChange={false}
           firstDay={1}
           hideDayNames={false}
           showWeekNumbers={false}
-          disableArrowLeft={false}
-          disableArrowRight={false}
           enableSwipeMonths={true}
+          disableAllTouchEventsForDisabledDays={true}
+          displayLoadingIndicator={false}
+          customHeader={renderCustomHeader}
           theme={{
             calendarBackground: colors.card,
             textSectionTitleColor: colors.text,
@@ -394,5 +433,23 @@ const styles = StyleSheet.create({
     ...typography.bodySmall,
     color: colors.textMuted,
     textAlign: 'center',
+  },
+  customCalendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: colors.card,
+  },
+  headerArrow: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(172, 137, 1, 0.1)',
+  },
+  customHeaderText: {
+    ...typography.heading4,
+    color: colors.text,
+    fontWeight: '700',
   },
 });
