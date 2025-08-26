@@ -8,7 +8,7 @@ import {
   ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { Calendar, Package, MapPin, Clock, ChevronRight, Plus, Database } from "lucide-react-native";
+import { Calendar, Package, MapPin, Clock, ChevronRight, Plus } from "lucide-react-native";
 import colors from "@/constants/colors";
 import { useReservationStore } from "@/store/useReservationStore";
 import { usePurchaseHistoryStore } from "@/store/usePurchaseHistoryStore";
@@ -107,15 +107,7 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Welcome Back</Text>
           <Text style={styles.headerSubtitle}>Here&apos;s what&apos;s happening</Text>
-          
-          {/* Supabase Test Button */}
-          <TouchableOpacity 
-            style={styles.testButton}
-            onPress={() => router.push('/supabase-test')}
-          >
-            <Database size={16} color={colors.background} />
-            <Text style={styles.testButtonText}>Test Supabase</Text>
-          </TouchableOpacity>
+
         </View>
 
         {/* Upcoming Reservations */}
@@ -422,20 +414,5 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: colors.accent,
   },
-  testButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-    backgroundColor: colors.accent,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    marginTop: 16,
-    alignSelf: "flex-start",
-  },
-  testButtonText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: colors.background,
-  },
+
 });

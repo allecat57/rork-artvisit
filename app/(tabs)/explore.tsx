@@ -110,13 +110,6 @@ export default function ExploreScreen() {
           {/* Test Buttons */}
           <View style={styles.testButtonsContainer}>
             <TouchableOpacity 
-              style={styles.testButton}
-              onPress={() => router.push('/supabase-test')}
-            >
-              <Text style={styles.testButtonText}>🗄️ Test Supabase</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity 
               style={[styles.testButton, styles.timeframeButton]}
               onPress={() => router.push('/timeframe-test')}
             >
