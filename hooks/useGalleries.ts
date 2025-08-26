@@ -5,6 +5,7 @@ export const useGalleries = (featured?: boolean) => {
   const [galleries, setGalleries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isUsingMockData, setIsUsingMockData] = useState(false);
 
   useEffect(() => {
     const loadGalleries = async () => {
@@ -18,18 +19,25 @@ export const useGalleries = (featured?: boolean) => {
         if (response && response.success && response.data) {
           let galleriesData = response.data;
           
+          // Check if we're using mock data by looking at the API response
+          const usingMock = response.data.length > 0 && response.data[0].id === 1 && response.data[0].name === "Modern Art Collective";
+          setIsUsingMockData(usingMock);
+          
           // No filtering - show all galleries
-          console.log(`Successfully fetched ${galleriesData.length} galleries from TIMEFRAME API`);
+          console.log(`Successfully fetched ${galleriesData.length} galleries from TIMEFRAME API${usingMock ? ' (mock data)' : ''}`);
           setGalleries(galleriesData);
         } else {
           console.log("No galleries found in TIMEFRAME API");
           setGalleries([]);
+          setIsUsingMockData(false);
         }
         
         setLoading(false);
       } catch (err) {
         console.warn("Failed to fetch galleries from TIMEFRAME API:", err);
-        setError(err instanceof Error ? err.message : "Failed to fetch galleries");
+        const errorMessage = err instanceof Error ? err.message : "Failed to fetch galleries";
+        console.log("Error details:", errorMessage);
+        setError(`TIMEFRAME API Error: ${errorMessage}`);
         setLoading(false);
         setGalleries([]);
       }
@@ -49,17 +57,24 @@ export const useGalleries = (featured?: boolean) => {
       if (response && response.success && response.data) {
         let galleriesData = response.data;
         
+        // Check if we're using mock data
+        const usingMock = response.data.length > 0 && response.data[0].id === 1 && response.data[0].name === "Modern Art Collective";
+        setIsUsingMockData(usingMock);
+        
         // No filtering - show all galleries
-        console.log(`Successfully refetched ${galleriesData.length} galleries from TIMEFRAME API`);
+        console.log(`Successfully refetched ${galleriesData.length} galleries from TIMEFRAME API${usingMock ? ' (mock data)' : ''}`);
         setGalleries(galleriesData);
       } else {
         setGalleries([]);
+        setIsUsingMockData(false);
       }
       
       setLoading(false);
     } catch (err) {
       console.warn("Failed to refetch galleries:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch galleries");
+      const errorMessage = err instanceof Error ? err.message : "Failed to fetch galleries";
+      console.log("Refetch error details:", errorMessage);
+      setError(`TIMEFRAME API Error: ${errorMessage}`);
       setLoading(false);
     }
   };
@@ -69,6 +84,6 @@ export const useGalleries = (featured?: boolean) => {
     loading, 
     error,
     refetch,
-    isUsingMockData: false // Using TIMEFRAME API
+    isUsingMockData
   };
 };

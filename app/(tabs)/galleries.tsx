@@ -106,7 +106,7 @@ export default function GalleriesScreen() {
           {isUsingMockData && (
             <View style={styles.mockDataBanner}>
               <Text style={styles.mockDataText}>
-                📱 Using sample data - Connect Supabase for live galleries
+                📱 Using sample data - TIMEFRAME API unavailable
               </Text>
             </View>
           )}

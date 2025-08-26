@@ -1,6 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
-import { Home, Search, ShoppingBag, Calendar, User } from 'lucide-react-native';
+import { Home, Search, ShoppingBag, Calendar, User, Image } from 'lucide-react-native';
 import colors from '@/constants/colors';
 
 export default function TabLayout() {
@@ -73,6 +73,14 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="galleries"
+          options={{
+            title: 'Galleries',
+            headerTitle: 'Galleries',
+            tabBarIcon: ({ color, size }) => <Image size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
           name="profile"
           options={{
             title: 'Profile',
@@ -81,8 +89,7 @@ export default function TabLayout() {
           }}
         />
         
-        {/* Hide unregistered tab files */}
-        <Tabs.Screen name="galleries" options={{ href: null }} />
+        {/* Hide unregistered tab files */
         <Tabs.Screen name="reservations" options={{ href: null }} />
         <Tabs.Screen name="todos" options={{ href: null }} />
     </Tabs>
