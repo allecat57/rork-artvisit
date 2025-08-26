@@ -248,10 +248,12 @@ export default function DateTimePicker({
       
       {selectedDate && selectedTimeSlot && (
         <View style={styles.selectionSummary}>
-          <Text style={styles.summaryTitle}>Your Selection</Text>
-          <Text style={styles.summaryText}>
-            {formatDisplayDate(selectedDate)} at {selectedTimeSlot}
-          </Text>
+          <View style={styles.summaryContent}>
+            <Text style={styles.summaryTitle}>Your Selection</Text>
+            <Text style={styles.summaryText}>
+              {formatDisplayDate(selectedDate)} at {selectedTimeSlot}
+            </Text>
+          </View>
           <View style={styles.summaryCheckmark}>
             <Text style={styles.checkmarkText}>✓</Text>
           </View>
@@ -355,8 +357,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  summaryContent: {
+    flex: 1,
+  },
   summaryTitle: {
-    ...typography.bodySmall,
+    ...typography.body,
     color: colors.accent,
     fontWeight: '600',
     marginBottom: 4,
@@ -365,7 +370,6 @@ const styles = StyleSheet.create({
     ...typography.body,
     color: colors.accent,
     fontWeight: '600',
-    flex: 1,
   },
   summaryCheckmark: {
     width: 24,
