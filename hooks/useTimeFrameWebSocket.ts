@@ -27,7 +27,7 @@ export const useTimeFrameWebSocket = (options: UseTimeFrameWebSocketOptions = {}
   optionsRef.current = options;
 
   const {
-    autoConnect = false, // Disable auto-connect for now to prevent WebSocket errors
+    autoConnect = false, // Disable auto-connect by default
     onGalleryCreated,
     onGalleryUpdated,
     onArtworkAdded,
@@ -120,6 +120,16 @@ export const useTimeFrameWebSocket = (options: UseTimeFrameWebSocketOptions = {}
     timeFrameWebSocket.resetReconnectionAttempts();
   }, []);
 
+  // Enable WebSocket
+  const enableWebSocket = useCallback(() => {
+    timeFrameWebSocket.enableWebSocket();
+  }, []);
+
+  // Disable WebSocket
+  const disableWebSocket = useCallback(() => {
+    timeFrameWebSocket.disableWebSocket();
+  }, []);
+
   useEffect(() => {
     // Add event listeners
     timeFrameWebSocket.addEventListener('connection', handleConnectionChange);
@@ -160,6 +170,7 @@ export const useTimeFrameWebSocket = (options: UseTimeFrameWebSocketOptions = {}
     connectionStatus: connectionStatus.status,
     connectionError: connectionStatus.error,
     connectionState: timeFrameWebSocket.connectionState,
+    isWebSocketEnabled: timeFrameWebSocket.isWebSocketEnabled,
     
     // Messages
     lastMessage,
@@ -172,6 +183,8 @@ export const useTimeFrameWebSocket = (options: UseTimeFrameWebSocketOptions = {}
     sendMessage,
     ping,
     resetReconnectionAttempts,
+    enableWebSocket,
+    disableWebSocket,
     
     // Gallery/Artwork subscriptions
     subscribeToGallery,

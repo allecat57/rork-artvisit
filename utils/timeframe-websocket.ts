@@ -12,6 +12,7 @@ class TimeFrameWebSocketService {
   private maxReconnectAttempts = 5;
   private reconnectInterval = 3000;
   private isManuallyDisconnected = false;
+  private isEnabled = false; // Disable by default to prevent errors
 
   private readonly WS_URL = 'wss://18849333-83fa-4dea-9464-e6ba0f0654bf-00-3dsp6vm1uqkpn.kirk.replit.dev/mobile-ws';
 
@@ -20,6 +21,16 @@ class TimeFrameWebSocketService {
   }
 
   connect(): void {
+    // Check if WebSocket is enabled
+    if (!this.isEnabled) {
+      console.log('⚠️ TimeFrame WebSocket is disabled. Enable it first with enableWebSocket().');
+      this.notifyListeners('connection', { 
+        status: 'error', 
+        error: 'WebSocket is disabled' 
+      });
+      return;
+    }
+
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       console.log('WebSocket already connected');
       return;
@@ -83,18 +94,40 @@ class TimeFrameWebSocketService {
 
       this.ws.onerror = (error) => {
         let errorMessage = 'WebSocket connection failed';
+        let errorDetails: any = {};
         
+        // Better error handling for different error types
         if (error instanceof ErrorEvent) {
-          errorMessage = error.message || errorMessage;
+          errorMessage = error.message || 'WebSocket ErrorEvent occurred';
+          errorDetails = {
+            type: 'ErrorEvent',
+            message: error.message,
+            filename: error.filename,
+            lineno: error.lineno,
+            colno: error.colno
+          };
+        } else if (error instanceof Event) {
+          errorMessage = `WebSocket ${error.type} event occurred`;
+          errorDetails = {
+            type: 'Event',
+            eventType: error.type,
+            target: error.target?.constructor?.name || 'WebSocket',
+            timeStamp: error.timeStamp
+          };
         } else if (error && typeof error === 'object') {
-          errorMessage = error.toString();
+          errorMessage = JSON.stringify(error);
+          errorDetails = error;
+        } else if (typeof error === 'string') {
+          errorMessage = error;
+          errorDetails = { message: error };
         }
         
         console.error('❌ TimeFrame WebSocket error:', errorMessage);
         console.error('Error details:', {
-          type: error?.type || 'unknown',
+          ...errorDetails,
           url: this.WS_URL,
           readyState: this.ws?.readyState,
+          reconnectAttempts: this.reconnectAttempts,
           timestamp: new Date().toISOString()
         });
         
@@ -240,6 +273,24 @@ class TimeFrameWebSocketService {
   resetReconnectionAttempts(): void {
     this.reconnectAttempts = 0;
     console.log('🔄 Reconnection attempts reset');
+  }
+
+  // Enable WebSocket connections
+  enableWebSocket(): void {
+    this.isEnabled = true;
+    console.log('✅ TimeFrame WebSocket enabled');
+  }
+
+  // Disable WebSocket connections
+  disableWebSocket(): void {
+    this.isEnabled = false;
+    this.disconnect();
+    console.log('❌ TimeFrame WebSocket disabled');
+  }
+
+  // Check if WebSocket is enabled
+  get isWebSocketEnabled(): boolean {
+    return this.isEnabled;
   }
 }
 
