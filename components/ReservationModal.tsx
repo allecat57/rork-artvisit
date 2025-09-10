@@ -24,6 +24,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useReservationStore } from "@/store/useReservationStore";
 import { useProfileStore } from "@/store/useProfileStore";
 import { useStripe } from "@/context/StripeContext";
+import { trpc } from "@/lib/trpc";
 
 const { height } = Dimensions.get("window");
 
@@ -74,6 +75,7 @@ export default function ReservationModal({
   const { addReservation } = useReservationStore();
   const { getCurrentPaymentMethod, setPaymentMethod } = useProfileStore();
   const { processPayment, isLoading: stripeLoading } = useStripe();
+  const sendConfirmationEmail = trpc.email.sendConfirmation.useMutation();
   
   // Use the provided venue or allow selection from venues list
   const currentVenue = venue || selectedVenue;
@@ -226,6 +228,45 @@ export default function ReservationModal({
         
         // Add to reservation store
         addReservation(reservation);
+        
+        // Send confirmation email
+        if (user?.email) {
+          try {
+            await sendConfirmationEmail.mutateAsync({
+              email: user.email,
+              subject: `Reservation Confirmation - ${currentVenue.name}`,
+              message: `Dear ${user.name || 'Guest'},
+
+Your reservation has been confirmed!
+
+Reservation Details:
+• Venue: ${currentVenue.name}
+• Date: ${selectedDate.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+• Time: ${selectedTimeSlot}
+• Party Size: ${partySize} ${partySize === 1 ? 'person' : 'people'}
+• Total Amount: ${reservationTotal.toFixed(2)}
+• Confirmation Code: ${newConfirmationCode}
+
+Please arrive 15 minutes before your scheduled time and bring a valid ID.
+
+If you need to modify or cancel your reservation, please contact us or use the app.
+
+Thank you for choosing ${currentVenue.name}!
+
+Best regards,
+The ${currentVenue.name} Team`
+            });
+            console.log('✅ Confirmation email sent successfully');
+          } catch (emailError) {
+            console.error('❌ Failed to send confirmation email:', emailError);
+            // Don't fail the reservation if email fails
+          }
+        }
         
         if (onReserve) {
           onReserve(currentVenue, selectedDate, selectedTimeSlot, partySize);
@@ -553,7 +594,7 @@ export default function ReservationModal({
         </Text>
         
         <Text style={[typography.body, styles.confirmationText]}>
-          Your reservation has been successfully booked. You will receive a confirmation email shortly.
+          Your reservation has been successfully booked. {user?.email ? 'A confirmation email has been sent to your email address.' : 'Please save your confirmation code for your records.'}
         </Text>
         
         <View style={styles.confirmationDetails}>
