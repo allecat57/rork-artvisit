@@ -19,8 +19,11 @@ import VenueModal from "@/components/VenueModal";
 import GalleryModal from "@/components/GalleryModal";
 import { useVenueStore } from "@/store/useVenueStore";
 import { useGalleries } from "@/hooks/useGalleries";
+import { useLocationMuseums } from "@/hooks/useLocationMuseums";
+import { useLocationStore } from "@/store/useLocationStore";
 import { categories } from "@/mocks/categories";
 import { Venue } from "@/types/venue";
+import { LocationBasedMuseum } from "@/utils/location-museum-service";
 
 // Define colors directly to avoid import issues
 const colors = {
@@ -41,21 +44,38 @@ const fontFamily = Platform.select({
 export default function ExploreScreen() {
   const { venues, isLoading, fetchVenues } = useVenueStore();
   const { galleries, loading: galleriesLoading, error: galleriesError, refetch: refetchGalleries, isUsingMockData } = useGalleries();
+  const { 
+    nearbyMuseums, 
+    featuredMuseums, 
+    loading: museumsLoading, 
+    error: museumsError,
+    refetch: refetchMuseums,
+    searchMuseums,
+    clearCacheAndRefetch: clearMuseumCache
+  } = useLocationMuseums(25); // 25 mile radius
+  const { currentLocation, getCurrentLocation } = useLocationStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredVenues, setFilteredVenues] = useState<Venue[]>([]);
   const [filteredGalleries, setFilteredGalleries] = useState<any[]>([]);
+  const [filteredMuseums, setFilteredMuseums] = useState<LocationBasedMuseum[]>([]);
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [selectedGallery, setSelectedGallery] = useState<any>(null);
   const [venueModalVisible, setVenueModalVisible] = useState(false);
   const [galleryModalVisible, setGalleryModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'venues' | 'galleries'>('venues');
+  const [activeTab, setActiveTab] = useState<'venues' | 'galleries' | 'museums'>('museums');
 
   useEffect(() => {
     // Load venues on component mount
     console.log('🔄 Explore screen mounted, loading venues...');
     fetchVenues();
-  }, [fetchVenues]);
+    
+    // Get user location if not available
+    if (!currentLocation) {
+      console.log('📍 Getting user location...');
+      getCurrentLocation();
+    }
+  }, [fetchVenues, currentLocation, getCurrentLocation]);
 
   // Also trigger loading when the screen comes into focus
   useEffect(() => {
@@ -86,11 +106,17 @@ export default function ExploreScreen() {
         gallery.category?.toLowerCase().includes(searchQuery.toLowerCase())
       );
       setFilteredGalleries(filteredG);
+      
+      // Search museums
+      searchMuseums(searchQuery).then(results => {
+        setFilteredMuseums(results);
+      });
     } else {
       setFilteredVenues(venues);
       setFilteredGalleries(galleries);
+      setFilteredMuseums(nearbyMuseums);
     }
-  }, [searchQuery, venues, galleries]);
+  }, [searchQuery, venues, galleries, nearbyMuseums, searchMuseums]);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -127,6 +153,12 @@ export default function ExploreScreen() {
           {/* Tab Selector */}
           <View style={styles.tabContainer}>
             <TouchableOpacity 
+              style={[styles.tabButton, activeTab === 'museums' && styles.activeTab]}
+              onPress={() => setActiveTab('museums')}
+            >
+              <Text style={[styles.tabText, activeTab === 'museums' && styles.activeTabText]}>Museums</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
               style={[styles.tabButton, activeTab === 'venues' && styles.activeTab]}
               onPress={() => setActiveTab('venues')}
             >
@@ -140,6 +172,16 @@ export default function ExploreScreen() {
             </TouchableOpacity>
           </View>
           
+          {/* Location Status */}
+          {currentLocation && (
+            <View style={styles.locationBanner}>
+              <MapPin size={14} color={colors.accent} />
+              <Text style={styles.locationText}>
+                Showing results near {currentLocation.city || 'your location'}
+              </Text>
+            </View>
+          )}
+          
           {/* Test Buttons */}
           <View style={styles.testButtonsContainer}>
             <TouchableOpacity 
@@ -147,6 +189,12 @@ export default function ExploreScreen() {
               onPress={() => router.push('/timeframe-test')}
             >
               <Text style={styles.testButtonText}>🏛️ Test TimeFrame</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.testButton, styles.locationButton]}
+              onPress={() => router.push('/location-services-test')}
+            >
+              <Text style={styles.testButtonText}>📍 Location Services</Text>
             </TouchableOpacity>
           </View>
           
@@ -157,6 +205,7 @@ export default function ExploreScreen() {
               setRefreshing(true);
               await fetchVenues();
               await refetchGalleries();
+              await clearMuseumCache();
               setRefreshing(false);
             }}
             disabled={refreshing}
@@ -185,12 +234,27 @@ export default function ExploreScreen() {
               </TouchableOpacity>
             </View>
           )}
+          
+          {museumsError && (
+            <View style={styles.errorBanner}>
+              <Text style={styles.errorText}>
+                ⚠️ Museums: {museumsError}
+              </Text>
+              <TouchableOpacity style={styles.retryButton} onPress={refetchMuseums}>
+                <RefreshCw size={14} color={colors.accent} />
+                <Text style={styles.retryText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </>
       )}
 
-      {((activeTab === 'venues' && featuredVenues.length > 0) || searchQuery) && (
+      {((activeTab === 'venues' && featuredVenues.length > 0) || 
+        (activeTab === 'museums' && featuredMuseums.length > 0) || 
+        searchQuery) && (
         <Text style={styles.sectionTitle}>
-          {searchQuery ? "Featured Results" : "Featured Venues"}
+          {searchQuery ? "Featured Results" : 
+           activeTab === 'museums' ? "Featured Museums" : "Featured Venues"}
         </Text>
       )}
     </View>
@@ -260,6 +324,44 @@ export default function ExploreScreen() {
       </View>
     </TouchableOpacity>
   );
+  
+  const renderMuseumItem = ({ item }: { item: LocationBasedMuseum }) => (
+    <TouchableOpacity
+      style={styles.galleryCard}
+      onPress={() => handleVenuePress(item)}
+      activeOpacity={0.7}
+    >
+      <View style={styles.cardContent}>
+        <View style={styles.galleryHeader}>
+          <Text style={styles.galleryName}>{item.name}</Text>
+          <View style={styles.ratingContainer}>
+            <Star size={14} color={colors.accent} fill={colors.accent} />
+            <Text style={styles.rating}>{item.rating.toFixed(1)}</Text>
+          </View>
+        </View>
+        
+        <View style={styles.locationContainer}>
+          <MapPin size={14} color={colors.textSecondary} />
+          <Text style={styles.location}>{item.location}</Text>
+          {item.distanceText && (
+            <Text style={styles.distance}>• {item.distanceText}</Text>
+          )}
+        </View>
+        
+        <Text style={styles.description} numberOfLines={2}>
+          {item.description}
+        </Text>
+        
+        <View style={styles.metaContainer}>
+          <View style={styles.hoursContainer}>
+            <Clock size={12} color={colors.textSecondary} />
+            <Text style={styles.hours}>{item.openingHours}</Text>
+          </View>
+          <Text style={styles.category}>{item.type}</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
 
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
@@ -275,7 +377,7 @@ export default function ExploreScreen() {
     </View>
   );
 
-  if (isLoading || galleriesLoading) {
+  if (isLoading || galleriesLoading || museumsLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.accent} />
@@ -287,13 +389,26 @@ export default function ExploreScreen() {
   const renderContent = () => {
     if (searchQuery) {
       // Show combined search results
-      const allResults = [...filteredVenues, ...filteredGalleries];
+      const allResults = [...filteredVenues, ...filteredGalleries, ...filteredMuseums];
       if (allResults.length === 0) {
         return renderEmptyState();
       }
       
       return (
         <View>
+          {filteredMuseums.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>Museums</Text>
+              <FlatList
+                data={filteredMuseums}
+                keyExtractor={(item: LocationBasedMuseum) => `museum-${item.id}`}
+                renderItem={renderMuseumItem}
+                scrollEnabled={false}
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
+              />
+            </>
+          )}
+          
           {filteredVenues.length > 0 && (
             <>
               <Text style={styles.sectionTitle}>Venues</Text>
@@ -318,6 +433,51 @@ export default function ExploreScreen() {
                 ItemSeparatorComponent={() => <View style={styles.separator} />}
               />
             </>
+          )}
+        </View>
+      );
+    }
+    
+    if (activeTab === 'museums') {
+      return (
+        <View>
+          {featuredMuseums.length > 0 && (
+            <FlatList
+              data={featuredMuseums}
+              keyExtractor={(item: LocationBasedMuseum) => `featured-museum-${item.id}`}
+              renderItem={({ item }) => (
+                <FeaturedVenueCard venue={item} onPress={() => handleVenuePress(item)} />
+              )}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.featuredContainer}
+            />
+          )}
+          
+          {nearbyMuseums.length > 0 && (
+            <>
+              <Text style={styles.sectionTitle}>
+                {currentLocation ? 'Museums Near You' : 'All Museums'}
+              </Text>
+              <FlatList
+                data={nearbyMuseums}
+                keyExtractor={(item: LocationBasedMuseum) => item.id}
+                renderItem={renderMuseumItem}
+                scrollEnabled={false}
+                ItemSeparatorComponent={() => <View style={styles.separator} />}
+              />
+            </>
+          )}
+          
+          {nearbyMuseums.length === 0 && (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyTitle}>No museums found</Text>
+              <Text style={styles.emptyDescription}>
+                {currentLocation 
+                  ? 'No museums found in your area. Try expanding your search radius.'
+                  : 'Enable location services to find museums near you.'}
+              </Text>
+            </View>
           )}
         </View>
       );
@@ -638,6 +798,9 @@ const styles = StyleSheet.create({
   timeframeButton: {
     backgroundColor: '#AC8901', // TimeFrame gold color
   },
+  locationButton: {
+    backgroundColor: '#10b981', // Green color for location
+  },
   refreshButton: {
     backgroundColor: '#2563eb', // Blue color for refresh
     marginTop: 8,
@@ -646,6 +809,25 @@ const styles = StyleSheet.create({
   testButtonText: {
     color: colors.background,
     fontSize: 14,
+    fontWeight: "600" as const,
+  },
+  locationBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: colors.card,
+    borderRadius: 8,
+    padding: 8,
+    marginTop: 8,
+    gap: 6,
+  },
+  locationText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: "500" as const,
+  },
+  distance: {
+    fontSize: 12,
+    color: colors.accent,
     fontWeight: "600" as const,
   },
 });

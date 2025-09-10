@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { mockApiResponses } from '@/mocks/timeframe-data';
+import { calculateDistance } from '@/utils/calculateDistance';
 
 const BASE_URL = 'https://18849333-83fa-4dea-9464-e6ba0f0654bf-00-3dsp6vm1uqkpn.kirk.replit.dev';
 const USE_MOCK_DATA = false; // Set to true for development/testing - using mock data for now
@@ -45,6 +46,91 @@ class TimeFrameAPI {
       data,
       timestamp: Date.now()
     });
+  }
+
+  // Get galleries near a location
+  async getGalleriesNearLocation(
+    latitude?: number,
+    longitude?: number,
+    radius: number = 50, // miles
+    useCache: boolean = true
+  ) {
+    const cacheKey = latitude && longitude 
+      ? `galleries-location-${latitude}-${longitude}-${radius}`
+      : 'galleries-all';
+    
+    if (useCache) {
+      const cached = this.getCachedData(cacheKey);
+      if (cached) {
+        console.log('📦 Using cached location-based galleries data');
+        return cached;
+      }
+    }
+    
+    // For now, return all galleries and let the client filter by location
+    // In a real implementation, the API would handle location filtering
+    const allGalleries = await this.getGalleries(useCache);
+    
+    if (latitude && longitude && allGalleries.success) {
+      // Client-side filtering by distance (in a real app, this would be server-side)
+      
+      const filteredGalleries = allGalleries.data.filter((gallery: any) => {
+        if (!gallery.coordinates) return false;
+        
+        const distance = calculateDistance(
+          latitude,
+          longitude,
+          gallery.coordinates.latitude,
+          gallery.coordinates.longitude
+        );
+        
+        return distance <= radius;
+      });
+      
+      const result = {
+        ...allGalleries,
+        data: filteredGalleries,
+        count: filteredGalleries.length
+      };
+      
+      this.setCachedData(cacheKey, result);
+      return result;
+    }
+    
+    return allGalleries;
+  }
+
+  // Get galleries by city
+  async getGalleriesByCity(city: string, useCache: boolean = true) {
+    const cacheKey = `galleries-city-${city.toLowerCase()}`;
+    
+    if (useCache) {
+      const cached = this.getCachedData(cacheKey);
+      if (cached) {
+        console.log(`📦 Using cached galleries data for city: ${city}`);
+        return cached;
+      }
+    }
+    
+    const allGalleries = await this.getGalleries(useCache);
+    
+    if (allGalleries.success) {
+      const cityGalleries = allGalleries.data.filter((gallery: any) => 
+        gallery.city?.toLowerCase().includes(city.toLowerCase()) ||
+        gallery.location?.toLowerCase().includes(city.toLowerCase())
+      );
+      
+      const result = {
+        ...allGalleries,
+        data: cityGalleries,
+        count: cityGalleries.length
+      };
+      
+      this.setCachedData(cacheKey, result);
+      return result;
+    }
+    
+    return allGalleries;
   }
 
   // Get all galleries and museums
@@ -144,6 +230,42 @@ class TimeFrameAPI {
       this.setCachedData(cacheKey, data);
       return data;
     }
+  }
+
+  // Search galleries by query
+  async searchGalleries(query: string, useCache: boolean = true) {
+    const cacheKey = `galleries-search-${query.toLowerCase()}`;
+    
+    if (useCache) {
+      const cached = this.getCachedData(cacheKey);
+      if (cached) {
+        console.log(`📦 Using cached search results for: ${query}`);
+        return cached;
+      }
+    }
+    
+    const allGalleries = await this.getGalleries(useCache);
+    
+    if (allGalleries.success) {
+      const lowercaseQuery = query.toLowerCase();
+      const searchResults = allGalleries.data.filter((gallery: any) => 
+        gallery.name?.toLowerCase().includes(lowercaseQuery) ||
+        gallery.description?.toLowerCase().includes(lowercaseQuery) ||
+        gallery.location?.toLowerCase().includes(lowercaseQuery) ||
+        gallery.city?.toLowerCase().includes(lowercaseQuery)
+      );
+      
+      const result = {
+        ...allGalleries,
+        data: searchResults,
+        count: searchResults.length
+      };
+      
+      this.setCachedData(cacheKey, result);
+      return result;
+    }
+    
+    return allGalleries;
   }
 
   // Test connection

@@ -7,6 +7,14 @@ export const mockTimeFrameGalleries = [
     name: "Modern Art Collective",
     description: "Contemporary art gallery featuring emerging artists",
     location: "New York, NY",
+    coordinates: {
+      latitude: 40.7128,
+      longitude: -74.0060
+    },
+    address: "123 Broadway, New York, NY 10001",
+    city: "New York",
+    state: "NY",
+    country: "USA",
     established: 2020,
     artworks: [
       {
@@ -44,6 +52,14 @@ export const mockTimeFrameGalleries = [
     name: "Heritage Gallery",
     description: "Showcasing traditional and classical art forms",
     location: "Boston, MA",
+    coordinates: {
+      latitude: 42.3601,
+      longitude: -71.0589
+    },
+    address: "456 Newbury Street, Boston, MA 02115",
+    city: "Boston",
+    state: "MA",
+    country: "USA",
     established: 1985,
     artworks: [
       {
@@ -81,6 +97,14 @@ export const mockTimeFrameGalleries = [
     name: "Avant-Garde Studio",
     description: "Experimental and cutting-edge contemporary art",
     location: "Los Angeles, CA",
+    coordinates: {
+      latitude: 34.0522,
+      longitude: -118.2437
+    },
+    address: "789 Melrose Avenue, Los Angeles, CA 90046",
+    city: "Los Angeles",
+    state: "CA",
+    country: "USA",
     established: 2018,
     artworks: [
       {
@@ -118,6 +142,14 @@ export const mockTimeFrameGalleries = [
     name: "Classical Arts Museum",
     description: "Dedicated to preserving and showcasing classical art from ancient civilizations",
     location: "Washington, DC",
+    coordinates: {
+      latitude: 38.9072,
+      longitude: -77.0369
+    },
+    address: "1000 Constitution Ave NW, Washington, DC 20560",
+    city: "Washington",
+    state: "DC",
+    country: "USA",
     established: 1962,
     artworks: [
       {
@@ -155,6 +187,14 @@ export const mockTimeFrameGalleries = [
     name: "Photography Center",
     description: "Contemporary photography gallery featuring both emerging and established photographers",
     location: "San Francisco, CA",
+    coordinates: {
+      latitude: 37.7749,
+      longitude: -122.4194
+    },
+    address: "555 Mission Street, San Francisco, CA 94105",
+    city: "San Francisco",
+    state: "CA",
+    country: "USA",
     established: 2015,
     artworks: [
       {
@@ -192,6 +232,14 @@ export const mockTimeFrameGalleries = [
     name: "Sculpture Garden Gallery",
     description: "Indoor and outdoor gallery space dedicated to contemporary sculpture",
     location: "Seattle, WA",
+    coordinates: {
+      latitude: 47.6062,
+      longitude: -122.3321
+    },
+    address: "200 Pine Street, Seattle, WA 98101",
+    city: "Seattle",
+    state: "WA",
+    country: "USA",
     established: 2010,
     artworks: [
       {
