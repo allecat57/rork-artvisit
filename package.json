@@ -75,3 +75,4 @@
   },
   "private": true
 }
+npm uninstall @rork-ai/toolkit-sdk 
