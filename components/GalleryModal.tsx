@@ -113,9 +113,12 @@ export default function GalleryModal({ visible, gallery, onClose }: GalleryModal
         name: gallery.name,
         location: gallery.location,
         type: gallery.category || 'Gallery',
+        description: gallery.description || 'A beautiful gallery space.',
         rating: gallery.rating || 4.8,
         imageUrl: gallery.image || 'https://images.unsplash.com/photo-1577720580479-7d839d829c73?ixlib=rb-4.0.3&auto=format&fit=crop&w=1024&q=80',
         openingHours: gallery.hours || '10:00 AM - 6:00 PM',
+        distance: '0 mi',
+        admission: 'Free',
         featured: false,
         category: gallery.category || 'Gallery'
       };

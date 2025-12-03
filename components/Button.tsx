@@ -88,7 +88,7 @@ export default function Button({
         <View style={styles.loadingContainer}>
           <ActivityIndicator 
             size="small" 
-            color={variant === "primary" ? colors.primary : colors.accent} 
+            color={variant === "primary" ? colors.background : colors.accent} 
           />
           <Text style={[getTextStyle(), styles.loadingText]}>{title}</Text>
         </View>
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   
   // Text color variants
   primaryButtonText: {
-    color: colors.primary,
+    color: colors.background,
   },
   secondaryButtonText: {
     color: colors.text,

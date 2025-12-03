@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: colors.primary.secondary
+    borderBottomColor: colors.primary.border
   },
   title: {
     ...typography.heading2,

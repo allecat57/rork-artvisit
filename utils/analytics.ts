@@ -55,6 +55,14 @@ export const setUserId = (userId: string | null) => {
   // For now, we'll just log to console
 };
 
+export const setAnalyticsEnabled = (enabled: boolean) => {
+  // Set analytics enabled state for debugging
+  console.log(`Analytics Enabled: ${enabled}`);
+  
+  // In a real app, you would integrate with Firebase Analytics, Mixpanel, etc.
+  // For now, we'll just log to console
+};
+
 export const logError = (error: Error, fatal: boolean = false) => {
   // Log error for debugging
   console.log(`Analytics Error: ${error.message}`, { fatal, stack: error.stack });
@@ -86,6 +94,14 @@ export const Events = {
   LOGOUT: 'logout',
   OPEN_HELP_CENTER: 'open_help_center',
   ADD_TO_CART: 'add_to_cart',
+  CONTACT_SUPPORT: 'contact_support',
+} as const;
+
+// User property keys
+export const UserProperties = {
+  LOCATION_ENABLED: 'location_enabled',
+  SUBSCRIPTION_TIER: 'subscription_tier',
+  NOTIFICATION_ENABLED: 'notification_enabled',
 } as const;
 
 // Default export for convenience
@@ -97,7 +113,9 @@ export default {
   setUserProperty,
   setUserProperties,
   setUserId,
+  setAnalyticsEnabled,
   logError,
   sendAnalyticsEvent,
   Events,
+  UserProperties,
 };

@@ -15,7 +15,7 @@ export const CartButton = () => {
     if (user) {
       router.push("/shop/cart");
     } else {
-      router.push("/auth/login");
+      router.push("/login");
     }
   };
 

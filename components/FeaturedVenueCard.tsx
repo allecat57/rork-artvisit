@@ -89,7 +89,7 @@ export default function FeaturedVenueCard({
         <View style={styles.topContainer}>
           {featured && (
             <View style={styles.featuredBadge}>
-              <Award size={14} color={colors.primary} />
+              <Award size={14} color={colors.background} />
               <Text style={styles.featuredText}>Featured</Text>
             </View>
           )}
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   featuredText: {
     ...typography.caption,
     fontFamily,
-    color: colors.primary,
+    color: colors.background,
     fontWeight: "600",
     marginLeft: 4,
   },

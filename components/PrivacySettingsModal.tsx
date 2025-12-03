@@ -114,7 +114,7 @@ const PrivacySettingsModal = ({ visible, onClose }: PrivacySettingsModalProps) =
                   value={localDataCollection}
                   onValueChange={setLocalDataCollection}
                   trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localDataCollection ? colors.primary.secondary : '#f4f3f4'}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localDataCollection ? colors.secondary : '#f4f3f4'}
                 />
               </View>
               
@@ -129,7 +129,7 @@ const PrivacySettingsModal = ({ visible, onClose }: PrivacySettingsModalProps) =
                   value={localLocationTracking}
                   onValueChange={setLocalLocationTracking}
                   trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localLocationTracking ? colors.primary.secondary : '#f4f3f4'}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localLocationTracking ? colors.secondary : '#f4f3f4'}
                 />
               </View>
               
@@ -144,7 +144,7 @@ const PrivacySettingsModal = ({ visible, onClose }: PrivacySettingsModalProps) =
                   value={localPersonalization}
                   onValueChange={setLocalPersonalization}
                   trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localPersonalization ? colors.primary.secondary : '#f4f3f4'}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localPersonalization ? colors.secondary : '#f4f3f4'}
                 />
               </View>
             </View>
@@ -169,7 +169,7 @@ const PrivacySettingsModal = ({ visible, onClose }: PrivacySettingsModalProps) =
                   value={localAnalyticsEnabled}
                   onValueChange={setLocalAnalyticsEnabled}
                   trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localAnalyticsEnabled ? colors.primary.secondary : '#f4f3f4'}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localAnalyticsEnabled ? colors.secondary : '#f4f3f4'}
                 />
               </View>
             </View>

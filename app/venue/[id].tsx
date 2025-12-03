@@ -141,7 +141,7 @@ export default function VenueDetailScreen() {
             <Button
               title="Reserve Visit"
               onPress={handleReserve}
-              icon={<Calendar size={18} color={colors.primary} />}
+              icon={<Calendar size={18} color={colors.background} />}
               analyticsEventName="reserve_button_click_from_detail"
               analyticsProperties={{
                 venue_id: id,
@@ -166,7 +166,7 @@ export default function VenueDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.background,
   },
   scrollView: {
     flex: 1,
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     marginTop: -20,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.background,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },

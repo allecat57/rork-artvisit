@@ -124,7 +124,7 @@ export default function EventRegistrationModal({
           // Create registration in Supabase
           const confirmationCode = Math.random().toString(36).substring(2, 10).toUpperCase();
           
-          const { data, error } = await supabase
+          const { error } = await supabase
             .from(TABLES.EVENT_REGISTRATIONS)
             .insert([
               {
@@ -180,7 +180,7 @@ export default function EventRegistrationModal({
       }
       
       // If Supabase is not configured or failed, use the local store
-      const registration = registerForEvent(event.id, numberOfTickets);
+      const registration = registerForEvent(event.id, numberOfTickets, user.id);
       
       if (registration) {
         Alert.alert(

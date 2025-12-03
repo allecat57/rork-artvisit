@@ -157,7 +157,7 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
                     }
                   }}
                   trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localPushEnabled ? colors.primary.secondary : '#f4f3f4'}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localPushEnabled ? colors.secondary : '#f4f3f4'}
                 />
               </View>
               
@@ -172,7 +172,7 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
                   value={localEmailEnabled}
                   onValueChange={setLocalEmailEnabled}
                   trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localEmailEnabled ? colors.primary.secondary : '#f4f3f4'}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localEmailEnabled ? colors.secondary : '#f4f3f4'}
                 />
               </View>
             </View>
@@ -215,7 +215,7 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
                   value={localReservationReminders}
                   onValueChange={setLocalReservationReminders}
                   trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localReservationReminders ? colors.primary.secondary : '#f4f3f4'}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localReservationReminders ? colors.secondary : '#f4f3f4'}
                 />
               </View>
               
@@ -233,7 +233,7 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
                   value={localFavoriteUpdates}
                   onValueChange={setLocalFavoriteUpdates}
                   trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localFavoriteUpdates ? colors.primary.secondary : '#f4f3f4'}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localFavoriteUpdates ? colors.secondary : '#f4f3f4'}
                 />
               </View>
               
@@ -251,7 +251,7 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
                   value={localPromotions}
                   onValueChange={setLocalPromotions}
                   trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localPromotions ? colors.primary.secondary : '#f4f3f4'}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localPromotions ? colors.secondary : '#f4f3f4'}
                 />
               </View>
               
@@ -269,7 +269,7 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
                   value={localOrderUpdates}
                   onValueChange={setLocalOrderUpdates}
                   trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localOrderUpdates ? colors.primary.secondary : '#f4f3f4'}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localOrderUpdates ? colors.secondary : '#f4f3f4'}
                 />
               </View>
               
@@ -287,7 +287,7 @@ const NotificationsModal = ({ visible, onClose }: NotificationsModalProps) => {
                   value={localMessageNotifications}
                   onValueChange={setLocalMessageNotifications}
                   trackColor={{ false: colors.primary.muted, true: colors.primary.accent }}
-                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localMessageNotifications ? colors.primary.secondary : '#f4f3f4'}
+                  thumbColor={Platform.OS === 'ios' ? '#FFFFFF' : localMessageNotifications ? colors.secondary : '#f4f3f4'}
                 />
               </View>
             </View>

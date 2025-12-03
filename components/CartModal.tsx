@@ -15,7 +15,7 @@ export const CartModal: React.FC<CartModalProps> = ({ visible, onClose }) => {
 
   const renderItem = ({ item }: { item: { product: Product; quantity: number } }) => (
     <View style={styles.itemContainer}>
-      <Text style={styles.itemName}>{item.product.name}</Text>
+      <Text style={styles.itemName}>{item.product.name || item.product.title}</Text>
       <Text>Qty: {item.quantity}</Text>
       <Text>${item.product.price.toFixed(2)}</Text>
       <TouchableOpacity onPress={() => removeFromCart(item.product.id)}>
