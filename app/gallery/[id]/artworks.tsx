@@ -4,11 +4,24 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Filter, Search } from 'lucide-react-native';
 import colors from '../../../constants/colors';
-import { GalleryAnalytics } from '../../../utils/artvisit-integration';
 import * as Analytics from '../../../utils/analytics';
 
-// Mock data - in a real app, fetch this from your API
-const galleries = [
+interface Artwork {
+  id: string;
+  title: string;
+  artist: string;
+  year: string;
+  image: string;
+}
+
+interface Gallery {
+  id: string;
+  name: string;
+  location: string;
+  artworks: Artwork[];
+}
+
+const galleries: Gallery[] = [
   {
     id: '1',
     name: 'Modern Art Gallery',
@@ -40,36 +53,27 @@ export default function GalleryArtworksScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
-  const textColor = isDark ? colors.light : colors.dark;
-  const bgColor = isDark ? colors.dark : colors.light;
+  const textColor = colors.text;
+  const bgColor = colors.background;
   
-  const [gallery, setGallery] = useState(null);
-  const [artworks, setArtworks] = useState([]);
-  const [analytics, setAnalytics] = useState(null);
+  const [gallery, setGallery] = useState<Gallery | null>(null);
+  const [artworks, setArtworks] = useState<Artwork[]>([]);
+  const [viewStartTime] = useState(Date.now());
   
   useEffect(() => {
-    // Find gallery from mock data
     const foundGallery = galleries.find(g => g.id === id);
     
     if (foundGallery) {
       setGallery(foundGallery);
       setArtworks(foundGallery.artworks);
       
-      // Initialize analytics
-      const galleryAnalytics = new GalleryAnalytics({
-        id: foundGallery.id,
-        name: foundGallery.name,
-        location: foundGallery.location
+      Analytics.logEvent('view_all_artworks', {
+        gallery_id: foundGallery.id,
+        gallery_name: foundGallery.name,
+        artwork_count: foundGallery.artworks.length
       });
       
-      setAnalytics(galleryAnalytics);
-      
-      // Track interaction
-      galleryAnalytics.trackInteraction('view_all_artworks');
-      
-      // Log screen view to TimeFrame Analytics
-      Analytics.sendToTimeFrameAnalytics('screen_view', {
-        screen_name: 'Gallery Artworks',
+      Analytics.logScreenView('Gallery Artworks', {
         screen_class: 'GalleryArtworksScreen',
         gallery_id: foundGallery.id,
         gallery_name: foundGallery.name,
@@ -78,12 +82,15 @@ export default function GalleryArtworksScreen() {
     }
     
     return () => {
-      // Track time spent when leaving
-      if (analytics) {
-        analytics.trackTimeSpent();
+      const timeSpent = Math.floor((Date.now() - viewStartTime) / 1000);
+      if (foundGallery) {
+        Analytics.logEvent('gallery_time_spent', {
+          gallery_id: foundGallery.id,
+          time_seconds: timeSpent
+        });
       }
     };
-  }, [id]);
+  }, [id, viewStartTime]);
   
   if (!gallery) {
     return (
@@ -97,25 +104,25 @@ export default function GalleryArtworksScreen() {
     router.back();
   };
   
-  const handleArtworkPress = (artwork) => {
-    if (analytics) {
-      analytics.trackArtworkView(artwork.id, artwork.title);
-    }
-    router.push(`/gallery/${gallery.id}/artwork/${artwork.id}`);
+  const handleArtworkPress = (artwork: Artwork) => {
+    Analytics.logEvent('artwork_view_from_list', {
+      artwork_id: artwork.id,
+      artwork_title: artwork.title,
+      gallery_id: gallery.id
+    });
+    router.push(`/gallery/${gallery.id}/artwork/${artwork.id}` as any);
   };
   
   const handleFilter = () => {
-    if (analytics) {
-      analytics.trackInteraction('filter_artworks');
-    }
-    // Implement filter functionality
+    Analytics.logEvent('filter_artworks', {
+      gallery_id: gallery.id
+    });
   };
   
   const handleSearch = () => {
-    if (analytics) {
-      analytics.trackInteraction('search_artworks');
-    }
-    // Implement search functionality
+    Analytics.logEvent('search_artworks', {
+      gallery_id: gallery.id
+    });
   };
 
   return (
@@ -191,7 +198,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: 'bold' as const,
   },
   headerActions: {
     flexDirection: 'row',
@@ -206,7 +213,7 @@ const styles = StyleSheet.create({
   },
   galleryName: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: 'bold' as const,
   },
   artworkCount: {
     fontSize: 14,
@@ -230,14 +237,14 @@ const styles = StyleSheet.create({
   artworkImage: {
     width: '100%',
     height: 160,
-    resizeMode: 'cover',
+    resizeMode: 'cover' as const,
   },
   artworkInfo: {
     padding: 12,
   },
   artworkTitle: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: 'bold' as const,
     marginBottom: 4,
   },
   artworkArtist: {

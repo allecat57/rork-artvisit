@@ -1,14 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, useColorScheme } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Heart, Share2, ArrowLeft, Info, DollarSign } from 'lucide-react-native';
 import colors from '../../../../constants/colors';
-import { GalleryAnalytics } from '../../../../utils/artvisit-integration';
 import * as Analytics from '../../../../utils/analytics';
 
-// Mock data - in a real app, fetch this from your API
-const artworks = [
+interface Artwork {
+  id: string;
+  galleryId: string;
+  title: string;
+  artist: string;
+  year: string;
+  medium: string;
+  dimensions: string;
+  description: string;
+  price: string;
+  image: string;
+}
+
+interface Gallery {
+  id: string;
+  name: string;
+  location: string;
+}
+
+const artworks: Artwork[] = [
   {
     id: '101',
     galleryId: '1',
@@ -59,8 +76,7 @@ const artworks = [
   }
 ];
 
-// Mock gallery data
-const galleries = [
+const galleries: Gallery[] = [
   { id: '1', name: 'Modern Art Gallery', location: 'New York, NY' },
   { id: '2', name: 'Classical Art Museum', location: 'London, UK' }
 ];
@@ -68,41 +84,32 @@ const galleries = [
 export default function ArtworkDetailScreen() {
   const { id: galleryId, artworkId } = useLocalSearchParams();
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const textColor = isDark ? colors.light : colors.dark;
-  const bgColor = isDark ? colors.dark : colors.light;
+  const textColor = colors.text;
+  const bgColor = colors.background;
   
-  const [artwork, setArtwork] = useState(null);
-  const [gallery, setGallery] = useState(null);
-  const [analytics, setAnalytics] = useState(null);
+  const [artwork, setArtwork] = useState<Artwork | null>(null);
+  const [gallery, setGallery] = useState<Gallery | null>(null);
+  const [viewStartTime] = useState(Date.now());
   const [isFavorite, setIsFavorite] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   
   useEffect(() => {
-    // Find artwork and gallery from mock data
     const foundArtwork = artworks.find(a => a.id === artworkId);
     const foundGallery = galleries.find(g => g.id === galleryId);
     
-    setArtwork(foundArtwork);
-    setGallery(foundGallery);
+    setArtwork(foundArtwork || null);
+    setGallery(foundGallery || null);
     
     if (foundGallery && foundArtwork) {
-      // Initialize analytics
-      const galleryAnalytics = new GalleryAnalytics({
-        id: foundGallery.id,
-        name: foundGallery.name,
-        location: foundGallery.location
+      Analytics.logEvent('artwork_view', {
+        artwork_id: foundArtwork.id,
+        artwork_title: foundArtwork.title,
+        gallery_id: foundGallery.id,
+        gallery_name: foundGallery.name,
+        artist: foundArtwork.artist
       });
       
-      setAnalytics(galleryAnalytics);
-      
-      // Track artwork view
-      galleryAnalytics.trackArtworkView(foundArtwork.id, foundArtwork.title);
-      
-      // Log screen view to TimeFrame Analytics
-      Analytics.sendToTimeFrameAnalytics('screen_view', {
-        screen_name: 'Artwork Detail',
+      Analytics.logScreenView('Artwork Detail', {
         screen_class: 'ArtworkDetailScreen',
         gallery_id: foundGallery.id,
         gallery_name: foundGallery.name,
@@ -113,12 +120,15 @@ export default function ArtworkDetailScreen() {
     }
     
     return () => {
-      // Track time spent when leaving
-      if (analytics) {
-        analytics.trackTimeSpent(artworkId);
+      const timeSpent = Math.floor((Date.now() - viewStartTime) / 1000);
+      if (foundArtwork) {
+        Analytics.logEvent('artwork_time_spent', {
+          artwork_id: foundArtwork.id,
+          time_seconds: timeSpent
+        });
       }
     };
-  }, [galleryId, artworkId]);
+  }, [galleryId, artworkId, viewStartTime]);
   
   if (!artwork || !gallery) {
     return (
@@ -133,53 +143,57 @@ export default function ArtworkDetailScreen() {
   };
   
   const handleFavoriteToggle = () => {
+    if (!artwork) return;
     setIsFavorite(!isFavorite);
-    if (analytics) {
-      analytics.trackInteraction('favorite_toggle', artwork.id, { 
-        is_favorite: !isFavorite,
-        artwork_title: artwork.title
-      });
-    }
+    Analytics.logEvent('favorite_toggle', {
+      interaction_type: 'favorite_toggle',
+      artwork_id: artwork.id,
+      is_favorite: !isFavorite,
+      artwork_title: artwork.title
+    });
   };
   
   const handleShare = () => {
-    if (analytics) {
-      analytics.trackInteraction('share', artwork.id, { 
-        artwork_title: artwork.title,
-        artist: artwork.artist
-      });
-    }
-    // Implement share functionality
+    if (!artwork) return;
+    Analytics.logEvent('share', {
+      interaction_type: 'share',
+      artwork_id: artwork.id,
+      artwork_title: artwork.title,
+      artist: artwork.artist
+    });
   };
   
   const handlePurchase = () => {
-    if (analytics) {
-      // Track purchase intent
-      analytics.trackInteraction('purchase_intent', artwork.id, {
-        artwork_title: artwork.title,
-        price: artwork.price
-      });
+    if (!artwork) return;
+    
+    Analytics.logEvent('purchase_intent', {
+      interaction_type: 'purchase_intent',
+      artwork_id: artwork.id,
+      artwork_title: artwork.title,
+      price: artwork.price
+    });
+    
+    const priceValue = artwork.price.startsWith('$') 
+      ? parseFloat(artwork.price.replace('$', '').replace(',', '')) 
+      : 0;
       
-      // In a real app, this would navigate to a purchase flow
-      // For demo purposes, we'll simulate a completed purchase
-      const priceValue = artwork.price.startsWith('$') 
-        ? parseFloat(artwork.price.replace('$', '').replace(',', '')) 
-        : 0;
-        
-      if (priceValue > 0) {
-        analytics.trackPurchase(artwork.id, priceValue, 'USD');
-      }
+    if (priceValue > 0) {
+      Analytics.logEvent('artwork_purchase', {
+        artwork_id: artwork.id,
+        price: priceValue,
+        currency: 'USD'
+      });
     }
-    // Navigate to purchase flow or show purchase modal
   };
   
   const toggleDescription = () => {
+    if (!artwork) return;
     setShowFullDescription(!showFullDescription);
-    if (analytics) {
-      analytics.trackInteraction('toggle_description', artwork.id, {
-        expanded: !showFullDescription
-      });
-    }
+    Analytics.logEvent('toggle_description', {
+      interaction_type: 'toggle_description',
+      artwork_id: artwork.id,
+      expanded: !showFullDescription
+    });
   };
 
   return (
@@ -197,8 +211,8 @@ export default function ArtworkDetailScreen() {
             >
               <Heart 
                 size={24} 
-                color={isFavorite ? colors.primary : textColor} 
-                fill={isFavorite ? colors.primary : 'transparent'} 
+                color={isFavorite ? colors.accent : textColor} 
+                fill={isFavorite ? colors.accent : 'transparent'} 
               />
             </TouchableOpacity>
             
@@ -254,13 +268,13 @@ export default function ArtworkDetailScreen() {
           
           <View style={styles.priceContainer}>
             <View style={styles.priceRow}>
-              <DollarSign size={20} color={colors.primary} />
+              <DollarSign size={20} color={colors.accent} />
               <Text style={[styles.price, { color: textColor }]}>{artwork.price}</Text>
             </View>
             
             {artwork.price !== 'Not for sale' && (
               <TouchableOpacity 
-                style={[styles.purchaseButton, { backgroundColor: colors.primary }]}
+                style={[styles.purchaseButton, { backgroundColor: colors.accent }]}
                 onPress={handlePurchase}
               >
                 <Text style={styles.purchaseButtonText}>Purchase</Text>
@@ -271,10 +285,12 @@ export default function ArtworkDetailScreen() {
           <TouchableOpacity 
             style={[styles.infoButton, { borderColor: textColor }]}
             onPress={() => {
-              if (analytics) {
-                analytics.trackInteraction('view_artwork_details', artwork.id);
+              if (artwork) {
+                Analytics.logEvent('view_artwork_details', {
+                  interaction_type: 'view_artwork_details',
+                  artwork_id: artwork.id
+                });
               }
-              // Show more details or navigate to details screen
             }}
           >
             <Info size={18} color={textColor} />
@@ -321,7 +337,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: 'bold' as const,
     marginBottom: 4,
   },
   artist: {
@@ -341,7 +357,7 @@ const styles = StyleSheet.create({
   },
   detailLabel: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: 'bold' as const,
     width: 100,
   },
   detailValue: {
@@ -353,7 +369,7 @@ const styles = StyleSheet.create({
   },
   descriptionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: 'bold' as const,
     marginBottom: 8,
   },
   description: {
@@ -364,7 +380,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   readMoreText: {
-    color: colors.primary,
+    color: colors.accent,
     fontSize: 14,
   },
   priceContainer: {
@@ -379,7 +395,7 @@ const styles = StyleSheet.create({
   },
   price: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: 'bold' as const,
     marginLeft: 4,
   },
   purchaseButton: {
@@ -389,7 +405,7 @@ const styles = StyleSheet.create({
   },
   purchaseButtonText: {
     color: '#fff',
-    fontWeight: 'bold',
+    fontWeight: 'bold' as const,
     fontSize: 16,
   },
   infoButton: {
