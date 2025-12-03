@@ -41,7 +41,6 @@ import * as CalendarAPI from "expo-calendar";
 import { formatDate, formatTime } from "@/utils/date";
 import Button from "@/components/Button";
 import EventRegistrationModal from "@/components/EventRegistrationModal";
-import { supabase, isSupabaseConfigured, TABLES } from "@/config/supabase";
 import { Event } from "@/types/event";
 
 export default function EventDetailsScreen() {
@@ -65,56 +64,7 @@ export default function EventDetailsScreen() {
 
   const currentProfile = getCurrentProfile();
 
-  // Fetch event from Supabase if configured
-  useEffect(() => {
-    const fetchEventFromSupabase = async () => {
-      if (!isSupabaseConfigured()) return;
-      
-      try {
-        const { data, error } = await supabase
-          .from(TABLES.EVENTS)
-          .select('*')
-          .eq('id', eventId)
-          .single();
-        
-        if (error) {
-          console.error("Error fetching event from Supabase:", error.message || error);
-          return;
-        }
-        
-        if (data) {
-          // Convert Supabase data to our format
-          const fetchedEvent: Event = {
-            id: data.id,
-            title: data.title,
-            description: data.description || '',
-            image: data.image_url || '',
-            date: data.events_date, // Use events_date from Supabase
-            endDate: data.end_date || data.events_date,
-            location: data.location,
-            price: data.price,
-            capacity: data.capacity,
-            remainingSpots: data.remaining_spots,
-            accessLevel: data.access_level,
-            featured: data.is_featured || false,
-            tags: data.tags || [],
-            type: data.type
-          };
-          
-          setEvent(fetchedEvent);
-          setRemainingSpots(fetchedEvent.remainingSpots);
-        }
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error("Error in fetchEventFromSupabase:", errorMessage);
-      }
-    };
-    
-    // If Supabase is configured, fetch the event
-    if (isSupabaseConfigured()) {
-      fetchEventFromSupabase();
-    }
-  }, [eventId]);
+
 
   useEffect(() => {
     // Check if event is favorited
@@ -128,23 +78,8 @@ export default function EventDetailsScreen() {
       if (!user || !event) return;
       
       try {
-        // If Supabase is configured, check registration in Supabase
-        if (isSupabaseConfigured()) {
-          const { data, error } = await supabase
-            .from(TABLES.EVENT_REGISTRATIONS)
-            .select('*')
-            .eq('user_id', user.id)
-            .eq('event_id', eventId);
-          
-          if (error) {
-            console.error("Error checking registration in Supabase:", error.message || error);
-          }
-          
-          setIsRegistered(data && data.length > 0 || false);
-        } else {
-          const isUserRegistered = isUserRegisteredForEvent(eventId, user.id);
-          setIsRegistered(isUserRegistered);
-        }
+        const isUserRegistered = isUserRegisteredForEvent(eventId, user.id);
+        setIsRegistered(isUserRegistered);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
         console.error("Error checking registration:", errorMessage);
@@ -190,45 +125,14 @@ export default function EventDetailsScreen() {
             style: "destructive",
             onPress: async () => {
               try {
-                // If Supabase is configured, delete registration from Supabase
-                if (isSupabaseConfigured()) {
-                  const { error } = await supabase
-                    .from(TABLES.EVENT_REGISTRATIONS)
-                    .delete()
-                    .eq('user_id', user.id)
-                    .eq('event_id', eventId);
-                  
-                  if (error) {
-                    console.error("Error cancelling registration in Supabase:", error.message || error);
-                    Alert.alert("Error", "Failed to cancel registration. Please try again.");
-                    return;
-                  }
-                  
-                  // Update event remaining spots in Supabase
-                  if (event) {
-                    const { error: updateError } = await supabase
-                      .from(TABLES.EVENTS)
-                      .update({ remaining_spots: event.remainingSpots + 1 })
-                      .eq('id', eventId);
-                    
-                    if (updateError) {
-                      console.error("Error updating event spots in Supabase:", updateError.message || updateError);
-                    } else {
-                      setRemainingSpots(prev => prev + 1);
-                    }
-                  }
-                  
+                const success = cancelRegistration(eventId, user.id);
+                
+                if (success) {
                   setIsRegistered(false);
+                  setRemainingSpots(prev => prev + 1);
                   Alert.alert("Success", "Your registration has been cancelled.");
                 } else {
-                  const success = cancelRegistration(eventId, user.id);
-                  
-                  if (success) {
-                    setIsRegistered(false);
-                    Alert.alert("Success", "Your registration has been cancelled.");
-                  } else {
-                    Alert.alert("Error", "Failed to cancel registration. Please try again.");
-                  }
+                  Alert.alert("Error", "Failed to cancel registration. Please try again.");
                 }
                 
                 // Log analytics event
@@ -278,25 +182,6 @@ export default function EventDetailsScreen() {
     }
     
     try {
-      // If Supabase is configured, add to waitlist in Supabase
-      if (isSupabaseConfigured()) {
-        const { error } = await supabase
-          .from('event_waitlists')
-          .insert([
-            {
-              event_id: eventId,
-              user_id: user.id,
-              created_at: new Date().toISOString()
-            }
-          ]);
-        
-        if (error) {
-          console.error("Error joining waitlist in Supabase:", error.message || error);
-          Alert.alert("Error", "Unable to join waitlist. Try again later.");
-          return;
-        }
-      }
-      
       setWaitlistStatus(true);
       Alert.alert(
         "Added to Waitlist",
@@ -390,20 +275,6 @@ export default function EventDetailsScreen() {
     
     try {
       if (isFavorited) {
-        // If Supabase is configured, remove favorite from Supabase
-        if (isSupabaseConfigured()) {
-          const { error } = await supabase
-            .from(TABLES.FAVORITES)
-            .delete()
-            .eq('user_id', user.id)
-            .eq('item_id', event.id)
-            .eq('item_type', 'event');
-          
-          if (error) {
-            console.error("Error removing favorite from Supabase:", error.message || error);
-          }
-        }
-        
         removeFavorite(event.id);
         setIsFavorited(false);
         
@@ -413,30 +284,6 @@ export default function EventDetailsScreen() {
           event_title: event.title
         });
       } else {
-        // If Supabase is configured, add favorite to Supabase
-        if (isSupabaseConfigured()) {
-          const { error } = await supabase
-            .from(TABLES.FAVORITES)
-            .insert([
-              {
-                user_id: user.id,
-                item_id: event.id,
-                item_type: 'event',
-                item_data: {
-                  title: event.title,
-                  image: event.image,
-                  date: event.date,
-                  type: "event"
-                },
-                created_at: new Date().toISOString()
-              }
-            ]);
-          
-          if (error) {
-            console.error("Error adding favorite to Supabase:", error.message || error);
-          }
-        }
-        
         addFavorite({
           id: event.id,
           name: event.title,

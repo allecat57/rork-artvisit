@@ -2,12 +2,7 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Analytics from "@/utils/analytics";
-import { 
-  fetchGalleries, 
-  fetchGalleryById, 
-  createGallery,
-  isSupabaseConfigured 
-} from "@/config/supabase";
+
 
 // Gallery interface
 export interface Gallery {
@@ -39,7 +34,8 @@ export interface Artwork {
   updated_at: string;
 }
 
-// No mock data - using only Supabase data
+// Mock data - Supabase removed
+const mockGalleries: Gallery[] = [];
 
 interface GalleryState {
   galleries: Gallery[];
@@ -82,21 +78,13 @@ export const useGalleryStore = create<GalleryState>()(
         try {
           set({ isLoading: true, error: null });
           
-          let galleries: Gallery[];
-          
-          if (isSupabaseConfigured()) {
-            galleries = await fetchGalleries();
-          } else {
-            // No galleries available if Supabase is not configured
-            galleries = [];
-          }
+          const galleries: Gallery[] = mockGalleries;
           
           set({ galleries, isLoading: false });
           
-          // Log analytics event
           Analytics.logEvent('galleries_fetched', {
             count: galleries.length,
-            source: isSupabaseConfigured() ? 'supabase' : 'mock'
+            source: 'mock'
           });
         } catch (error: any) {
           console.error('Error fetching galleries:', error);
@@ -117,23 +105,15 @@ export const useGalleryStore = create<GalleryState>()(
         try {
           set({ isLoading: true, error: null });
           
-          let gallery: Gallery | null = null;
-          
-          if (isSupabaseConfigured()) {
-            gallery = await fetchGalleryById(id);
-          } else {
-            // No galleries available if Supabase is not configured
-            gallery = null;
-          }
+          const gallery: Gallery | null = mockGalleries.find(g => g.id === id) || null;
           
           if (gallery) {
             set({ selectedGallery: gallery, isLoading: false });
             
-            // Log analytics event
             Analytics.logEvent('gallery_viewed', {
               gallery_id: gallery.id,
               gallery_name: gallery.name,
-              source: isSupabaseConfigured() ? 'supabase' : 'mock'
+              source: 'mock'
             });
           } else {
             set({ error: 'Gallery not found', isLoading: false });
@@ -154,23 +134,14 @@ export const useGalleryStore = create<GalleryState>()(
         try {
           set({ isLoading: true, error: null });
           
-          let artworks: Artwork[];
-          
-          if (isSupabaseConfigured()) {
-            // No artwork fetching available in current Supabase config
-            artworks = [];
-          } else {
-            // No artworks available if Supabase is not configured
-            artworks = [];
-          }
+          const artworks: Artwork[] = [];
           
           set({ artworks, isLoading: false });
           
-          // Log analytics event
           Analytics.logEvent('artworks_fetched', {
             gallery_id: galleryId,
             count: artworks.length,
-            source: isSupabaseConfigured() ? 'supabase' : 'mock'
+            source: 'mock'
           });
           
           return artworks;
@@ -179,7 +150,7 @@ export const useGalleryStore = create<GalleryState>()(
           set({ 
             error: error.message || 'Failed to fetch artworks',
             isLoading: false,
-            artworks: [] // No fallback data
+            artworks: []
           });
           return [];
         }
@@ -189,15 +160,7 @@ export const useGalleryStore = create<GalleryState>()(
         try {
           set({ isLoading: true, error: null });
           
-          let artwork: Artwork | null = null;
-          
-          if (isSupabaseConfigured()) {
-            // No artwork fetching available in current Supabase config
-            artwork = null;
-          } else {
-            // No artworks available if Supabase is not configured
-            artwork = null;
-          }
+          const artwork: Artwork | null = null;
           
           set({ error: 'Artwork not found', isLoading: false });
           
@@ -216,35 +179,23 @@ export const useGalleryStore = create<GalleryState>()(
         try {
           set({ isLoading: true, error: null });
           
-          let gallery: Gallery | null = null;
+          const gallery: Gallery = {
+            id: `gallery-${Date.now()}`,
+            ...galleryData,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
           
-          if (isSupabaseConfigured()) {
-            gallery = await createGallery(galleryData);
-            
-            // Refresh galleries list
-            const galleries = await fetchGalleries();
-            set({ galleries });
-          } else {
-            // Create mock gallery
-            gallery = {
-              id: `gallery-${Date.now()}`,
-              ...galleryData,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            };
-            
-            set(state => ({
-              galleries: [gallery!, ...state.galleries]
-            }));
-          }
+          set(state => ({
+            galleries: [gallery, ...state.galleries]
+          }));
           
           set({ isLoading: false });
           
-          // Log analytics event
           Analytics.logEvent('gallery_created', {
-            gallery_id: gallery?.id,
-            gallery_name: gallery?.name,
-            source: isSupabaseConfigured() ? 'supabase' : 'mock'
+            gallery_id: gallery.id,
+            gallery_name: gallery.name,
+            source: 'mock'
           });
           
           return gallery;
@@ -262,39 +213,25 @@ export const useGalleryStore = create<GalleryState>()(
         try {
           set({ isLoading: true, error: null });
           
-          let artwork: Artwork | null = null;
+          const artwork: Artwork = {
+            id: `artwork-${Date.now()}`,
+            ...artworkData,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
           
-          if (isSupabaseConfigured()) {
-            // No artwork creation available in current Supabase config
-            artwork = null;
-            
-            // No artwork refresh available
-            set({ artworks: [] });
-          } else {
-            // Create mock artwork
-            artwork = {
-              id: `artwork-${Date.now()}`,
-              ...artworkData,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString(),
-            };
-            
-            set(state => ({
-              artworks: [artwork!, ...state.artworks]
-            }));
-          }
+          set(state => ({
+            artworks: [artwork, ...state.artworks]
+          }));
           
           set({ isLoading: false });
           
-          // Log analytics event
-          if (artwork) {
-            Analytics.logEvent('artwork_created', {
-              artwork_id: artwork.id,
-              artwork_title: artwork.title,
-              gallery_id: artwork.gallery_id,
-              source: isSupabaseConfigured() ? 'supabase' : 'mock'
-            });
-          }
+          Analytics.logEvent('artwork_created', {
+            artwork_id: artwork.id,
+            artwork_title: artwork.title,
+            gallery_id: artwork.gallery_id,
+            source: 'mock'
+          });
           
           return artwork;
         } catch (error: any) {

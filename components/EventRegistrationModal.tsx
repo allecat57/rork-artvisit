@@ -18,7 +18,6 @@ import { useEventsStore } from "@/store/useEventsStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useProfileStore } from "@/store/useProfileStore";
 import * as Analytics from "@/utils/analytics";
-import { supabase, isSupabaseConfigured, TABLES } from "@/config/supabase";
 import { bookEvent } from "@/utils/bookingApi";
 
 interface EventRegistrationModalProps {
@@ -81,105 +80,6 @@ export default function EventRegistrationModal({
         return;
       }
       
-      // If Supabase is configured, register through Supabase
-      if (isSupabaseConfigured()) {
-        try {
-          // First check if already registered
-          const { data: existingReg, error: checkError } = await supabase
-            .from(TABLES.EVENT_REGISTRATIONS)
-            .select('*')
-            .eq('user_id', user.id)
-            .eq('event_id', event.id);
-          
-          if (checkError) {
-            console.log("Supabase table doesn't exist or error checking registration:", checkError.message);
-            // Fall back to local registration
-          } else if (existingReg && existingReg.length > 0) {
-            Alert.alert("Already Registered", "You are already registered for this event.");
-            setIsLoading(false);
-            onClose();
-            return;
-          }
-          
-          // Process payment since all events now have a price
-          let paymentIntentId;
-          if (paymentMethod) {
-            // In a real app, this would call your payment processing API
-            // For this demo, we'll use the bookEvent utility which handles payments
-            const bookingResult = await bookEvent({
-              userId: user.id,
-              eventId: event.id,
-              numberOfTickets,
-              paymentMethodId: paymentMethod.stripePaymentMethodId,
-              price: event.price
-            });
-            
-            if (!bookingResult.success) {
-              throw new Error(bookingResult.message || "Payment failed");
-            }
-            
-            paymentIntentId = bookingResult.paymentIntentId;
-          }
-          
-          // Create registration in Supabase
-          const confirmationCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-          
-          const { error } = await supabase
-            .from(TABLES.EVENT_REGISTRATIONS)
-            .insert([
-              {
-                event_id: event.id,
-                user_id: user.id,
-                registration_date: new Date().toISOString(),
-                number_of_tickets: numberOfTickets,
-                total_price: totalPrice,
-                confirmation_code: confirmationCode,
-                payment_intent_id: paymentIntentId,
-                payment_method_id: paymentMethod?.stripePaymentMethodId
-              }
-            ])
-            .select();
-          
-          if (error) {
-            console.log("Supabase table doesn't exist or error creating registration:", error.message);
-            // Fall back to local registration
-          } else {
-            // Update event remaining spots in Supabase
-            const { error: updateError } = await supabase
-              .from(TABLES.EVENTS)
-              .update({ remaining_spots: event.remainingSpots - numberOfTickets })
-              .eq('id', event.id);
-            
-            if (updateError) {
-              console.log("Supabase table doesn't exist or error updating event spots:", updateError.message);
-            }
-            
-            // Log analytics event
-            Analytics.logEvent("register_for_event", {
-              event_id: event.id,
-              user_id: user.id,
-              tickets: numberOfTickets,
-              price: totalPrice,
-              method: "supabase"
-            });
-            
-            Alert.alert(
-              "Registration Successful",
-              `You have successfully registered for ${event.title}. Your confirmation code is ${confirmationCode}.`
-            );
-            
-            onClose();
-            setIsLoading(false);
-            return;
-          }
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
-          console.log("Supabase error, falling back to local registration:", errorMessage);
-          // Continue to local registration below
-        }
-      }
-      
-      // If Supabase is not configured or failed, use the local store
       const registration = registerForEvent(event.id, numberOfTickets, user.id);
       
       if (registration) {

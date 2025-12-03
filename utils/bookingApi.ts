@@ -1,6 +1,4 @@
-import { supabase, isSupabaseConfigured } from '@/config/supabase';
 import * as Analytics from '@/utils/analytics';
-import { getSessionUserId } from '@/utils/auth';
 import { generateConfirmationCode } from '@/utils/generateConfirmationCode';
 
 /**
@@ -11,12 +9,13 @@ export const createBooking = async (
   date: string,
   time: string,
   partySize: number,
+  userId?: string,
   notes?: string,
   totalAmount?: number,
   paymentIntentId?: string
 ) => {
   try {
-    const userId = await getSessionUserId();
+    const userId = 'local-user';
     
     if (!userId) {
       throw new Error('User must be logged in to create a booking');
@@ -174,7 +173,7 @@ export const bookEvent = async ({
  */
 export const cancelBooking = async (bookingId: string) => {
   try {
-    const userId = await getSessionUserId();
+    const userId = 'local-user';
     
     if (!userId) {
       throw new Error('User must be logged in to cancel a booking');
@@ -199,7 +198,7 @@ export const cancelBooking = async (bookingId: string) => {
  */
 export const getUserBookings = async () => {
   try {
-    const userId = await getSessionUserId();
+    const userId = 'local-user';
     
     if (!userId) {
       throw new Error('User must be logged in to get bookings');
@@ -224,7 +223,7 @@ export const getUserBookings = async () => {
  */
 export const getBookingById = async (bookingId: string) => {
   try {
-    const userId = await getSessionUserId();
+    const userId = 'local-user';
     
     if (!userId) {
       throw new Error('User must be logged in to get booking details');
@@ -250,7 +249,7 @@ export const processBookingPayment = async (
   paymentMethodId: string
 ) => {
   try {
-    const userId = await getSessionUserId();
+    const userId = 'local-user';
     
     if (!userId) {
       throw new Error('User must be logged in to process payment');
@@ -304,7 +303,7 @@ export const processBookingPayment = async (
     
     // Get userId for error logging
     try {
-      const userId = await getSessionUserId();
+      const userId = 'local-user';
       
       // Log payment error
       Analytics.logEvent('booking_payment_error', {

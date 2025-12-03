@@ -5,7 +5,7 @@ import { Event, EventRegistration, AccessLevel } from "@/types/event";
 import { events } from "@/mocks/events";
 import { generateConfirmationCode } from "@/utils/generateConfirmationCode";
 import * as Analytics from "@/utils/analytics";
-import { supabase, isSupabaseConfigured, fetchEvents as fetchEventsFromSupabase } from "@/config/supabase";
+
 
 interface EventsState {
   // Event data
@@ -59,45 +59,7 @@ export const useEventsStore = create<EventsState>()(
         try {
           console.log("Fetching events...");
           
-          if (isSupabaseConfigured()) {
-            try {
-              console.log("Fetching events from Supabase...");
-              const supabaseEvents = await fetchEventsFromSupabase();
-              
-              if (supabaseEvents && supabaseEvents.length > 0) {
-                // Transform Supabase events to match our Event type
-                const transformedEvents: Event[] = supabaseEvents.map(event => ({
-                  id: event.id,
-                  title: event.title,
-                  description: event.description || '',
-                  date: event.events_date, // Use events_date from Supabase
-                  endDate: event.end_date || event.events_date,
-                  location: event.location,
-                  price: event.price,
-                  capacity: event.capacity,
-                  remainingSpots: event.remaining_spots,
-                  image: event.image_url || '',
-                  type: event.type,
-                  accessLevel: event.access_level as AccessLevel,
-                  tags: event.tags || [],
-                  featured: event.is_featured || false
-                }));
-                
-                set({ allEvents: transformedEvents, loading: false });
-                console.log(`✅ Loaded ${transformedEvents.length} events from Supabase`);
-                
-                Analytics.logEvent("fetch_events", {
-                  count: transformedEvents.length,
-                  source: "supabase"
-                });
-                return;
-              }
-            } catch (supabaseError) {
-              console.warn("Failed to fetch from Supabase, falling back to mock data:", supabaseError);
-            }
-          }
-          
-          // Fallback to mock data
+          // Use mock data
           console.log("Using mock events data");
           set({ allEvents: events, loading: false });
           

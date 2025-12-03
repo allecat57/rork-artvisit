@@ -163,7 +163,7 @@ export default function ExploreScreen() {
           </View>
         )}
 
-        {/* Galleries from Supabase */}
+        {/* Latest Galleries */}
         {galleries.length > 0 && !searchQuery && !selectedCategory && (
           <View style={styles.section}>
             <Text style={[typography.heading3, styles.sectionTitle]}>Latest Galleries</Text>

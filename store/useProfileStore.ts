@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SUBSCRIPTION_PLANS } from "@/config/stripe";
 import * as Analytics from "@/utils/analytics";
-import { supabase, isSupabaseConfigured, TABLES } from "@/config/supabase";
+
 import { AccessLevel } from "@/types/event";
 
 // Subscription interface
