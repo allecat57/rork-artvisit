@@ -79,6 +79,7 @@ export const bookVenue = async ({
       dateString, 
       timeSlot, 
       partySize, 
+      userId,
       notes, 
       totalAmount, 
       paymentIntentId

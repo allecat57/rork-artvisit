@@ -2,7 +2,6 @@ import React from 'react';
 import { Dimensions, Platform } from 'react-native';
 import { PanGestureHandler, PanGestureHandlerGestureEvent } from 'react-native-gesture-handler';
 import Animated, {
-  useAnimatedGestureHandler,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -65,42 +64,31 @@ export default function SwipeNavigator({ children }: SwipeNavigatorProps) {
     }
   };
 
-  const gestureHandler = useAnimatedGestureHandler<PanGestureHandlerGestureEvent>({
-    onStart: () => {
-      if (!isWeb) {
-        console.log('Swipe gesture started');
-      }
-    },
-    onActive: (event) => {
-      if (!isWeb) {
-        translateX.value = event.translationX;
-      }
-    },
-    onEnd: (event) => {
-      if (!isWeb) {
-        const { translationX, velocityX } = event;
-        
-        // Determine swipe direction and threshold
-        const shouldSwipe = Math.abs(translationX) > SWIPE_THRESHOLD || Math.abs(velocityX) > 500;
-        
-        if (shouldSwipe) {
-          if (translationX > 0) {
-            // Swiping right (go to previous tab)
-            runOnJS(navigateToTab)('right');
-          } else {
-            // Swiping left (go to next tab)
-            runOnJS(navigateToTab)('left');
-          }
+  const gestureHandler = (event: PanGestureHandlerGestureEvent) => {
+    'worklet';
+    if (isWeb) return;
+
+    const { translationX, velocityX, state } = event.nativeEvent;
+    
+    if (state === 2) {
+      translateX.value = translationX;
+    } else if (state === 5) {
+      const shouldSwipe = Math.abs(translationX) > SWIPE_THRESHOLD || Math.abs(velocityX) > 500;
+      
+      if (shouldSwipe) {
+        if (translationX > 0) {
+          runOnJS(navigateToTab)('right');
+        } else {
+          runOnJS(navigateToTab)('left');
         }
-        
-        // Reset animation
-        translateX.value = withSpring(0, {
-          damping: 20,
-          stiffness: 300,
-        });
       }
-    },
-  });
+      
+      translateX.value = withSpring(0, {
+        damping: 20,
+        stiffness: 300,
+      });
+    }
+  };
 
   const animatedStyle = useAnimatedStyle(() => {
     if (isWeb) {

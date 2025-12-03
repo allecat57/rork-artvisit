@@ -59,8 +59,7 @@ export default function SubscriptionModal({
   
   const { 
     createSubscription, 
-    updateSubscription, 
-    isLoading: isStripeLoading 
+    updateSubscription
   } = useStripe();
   
   // Ensure user has a default subscription
@@ -885,7 +884,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   currentSubscriptionInfo: {
-    backgroundColor: colors.primary.secondary,
+    backgroundColor: colors.secondary,
     borderRadius: 12,
     padding: 16,
     marginTop: 8,
