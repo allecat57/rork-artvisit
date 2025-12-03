@@ -164,7 +164,7 @@ export default function ExampleUsagePage() {
             variant="primary"
             style={styles.button}
             analyticsEventName="button_component_click"
-            analyticsParams={{ component: "Button", screen: "example_usage" }}
+            analyticsProperties={{ component: "Button", screen: "example_usage" }}
           />
           
           <Button 

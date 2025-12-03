@@ -80,13 +80,7 @@ export default function CategoryScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <VenueCard
-            id={item.id}
-            name={item.name}
-            type={item.type}
-            imageUrl={item.imageUrl}
-            rating={item.rating}
-            distance={item.distance}
-            openingHours={item.openingHours}
+            venue={item}
             onPress={() => handleVenuePress(item.id)}
           />
         )}

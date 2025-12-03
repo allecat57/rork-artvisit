@@ -9,14 +9,16 @@ import { getVenueById } from "@/mocks/venues";
 
 interface ReservationCardProps {
   reservation: Reservation;
+  onPress?: () => void;
   onCancel: () => void;
-  onEdit: () => void;
+  onModify?: () => void;
 }
 
 export default function ReservationCard({ 
   reservation, 
+  onPress,
   onCancel,
-  onEdit 
+  onModify 
 }: ReservationCardProps) {
   const venue = getVenueById(reservation.venueId);
   
@@ -71,7 +73,12 @@ export default function ReservationCard({
   };
 
   return (
-    <View style={styles.container}>
+    <TouchableOpacity 
+      style={styles.container}
+      onPress={onPress}
+      activeOpacity={onPress ? 0.9 : 1}
+      disabled={!onPress}
+    >
       <View style={styles.imageContainer}>
         <Image
           source={{ uri: venue.imageUrl }}
@@ -141,19 +148,21 @@ export default function ReservationCard({
                 </Text>
               </TouchableOpacity>
               
-              <TouchableOpacity 
-                style={[styles.actionButton, styles.editButton]}
-                onPress={onEdit}
-              >
-                <Text style={[styles.actionButtonText, { color: colors.accent }]}>
-                  Modify
-                </Text>
-              </TouchableOpacity>
+              {onModify && (
+                <TouchableOpacity 
+                  style={[styles.actionButton, styles.editButton]}
+                  onPress={onModify}
+                >
+                  <Text style={[styles.actionButtonText, { color: colors.accent }]}>
+                    Modify
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           )}
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

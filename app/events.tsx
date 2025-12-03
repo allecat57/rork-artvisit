@@ -5,6 +5,7 @@ import { Filter, Calendar, Search } from "lucide-react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useEventsStore } from "@/store/useEventsStore";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useProfileStore } from "@/store/useProfileStore";
 import EventCard from "@/components/EventCard";
 import SubscriptionRequiredCard from "@/components/SubscriptionRequiredCard";
 import SearchBar from "@/components/SearchBar";
@@ -16,7 +17,7 @@ import * as Analytics from "@/utils/analytics";
 
 export default function EventsScreen() {
   const router = useRouter();
-  const { allEvents, isLoading, fetchEvents, getAccessibleEvents, getFeaturedEvents, getUpcomingEvents } = useEventsStore();
+  const { allEvents, loading, fetchEvents } = useEventsStore();
   const { user } = useAuthStore();
   
   const [searchQuery, setSearchQuery] = useState("");
@@ -25,8 +26,10 @@ export default function EventsScreen() {
   const [showSubscriptionCard, setShowSubscriptionCard] = useState(false);
   const [requiredLevel, setRequiredLevel] = useState<AccessLevel>(AccessLevel.ESSENTIAL);
   
-  // Get user's subscription level - default to null if no subscription
-  const userSubscriptionLevel = user?.subscription?.id as AccessLevel || null;
+  // Get user's subscription level from profile instead of user
+  const { getCurrentProfile } = useProfileStore();
+  const currentProfile = getCurrentProfile();
+  const userSubscriptionLevel = currentProfile?.subscription?.level as AccessLevel || null;
   
   useEffect(() => {
     // Fetch events when component mounts
@@ -39,9 +42,21 @@ export default function EventsScreen() {
     });
   }, []);
   
+  // Get accessible events based on subscription
+  const accessibleEvents = React.useMemo(() => {
+    if (!userSubscriptionLevel) return [];
+    
+    return allEvents.filter((event: Event) => {
+      if (userSubscriptionLevel >= AccessLevel.COLLECTOR) {
+        return true;
+      }
+      return event.accessLevel <= userSubscriptionLevel;
+    });
+  }, [allEvents, userSubscriptionLevel]);
+  
   // Filter events based on search query and filter type
   const filteredEvents = React.useMemo(() => {
-    let events = getAccessibleEvents();
+    let events = accessibleEvents;
     
     // Apply search filter
     if (searchQuery) {
@@ -61,7 +76,7 @@ export default function EventsScreen() {
     }
     
     return events;
-  }, [searchQuery, filterType, allEvents, userSubscriptionLevel]);
+  }, [searchQuery, filterType, accessibleEvents]);
   
   // Get unique event types for filter
   const eventTypes = React.useMemo(() => {
@@ -178,7 +193,7 @@ export default function EventsScreen() {
   
   // Render featured events section
   const renderFeaturedEvents = () => {
-    const featuredEvents = getFeaturedEvents();
+    const featuredEvents = accessibleEvents.filter((event: Event) => event.featured);
     
     if (featuredEvents.length === 0) {
       return null;
@@ -213,7 +228,7 @@ export default function EventsScreen() {
   
   // Render upcoming events section
   const renderUpcomingEvents = () => {
-    const upcomingEvents = getUpcomingEvents();
+    const upcomingEvents = accessibleEvents.filter((event: Event) => new Date(event.date) > new Date()).slice(0, 5);
     
     if (upcomingEvents.length === 0) {
       return null;
@@ -287,7 +302,7 @@ export default function EventsScreen() {
           message={searchQuery ? `No events matching "${searchQuery}"` : "There are no events available at this time."}
         />
       ) : (
-        filteredEvents.map((event) => (
+        filteredEvents.map((event: Event) => (
           <EventCard 
             key={event.id}
             event={event} 
@@ -305,7 +320,7 @@ export default function EventsScreen() {
       {renderSearchBar()}
       {renderFilters()}
       
-      {isLoading ? (
+      {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.accent} />
           <Text style={styles.loadingText}>Loading events...</Text>

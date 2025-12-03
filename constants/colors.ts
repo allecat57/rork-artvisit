@@ -38,6 +38,7 @@ export interface AppColors {
   muted: string;
   constructive: string;
   destructive: string;
+  secondary: string;
   
   // Status object
   status: {
@@ -88,6 +89,7 @@ const colors: AppColors = {
   muted: "#808080",
   constructive: "#10B981",
   destructive: "#EF4444",
+  secondary: "#1a4037",
   
   // Status object for backward compatibility
   status: {

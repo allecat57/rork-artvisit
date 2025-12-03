@@ -205,7 +205,7 @@ export default function ReservationsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primary.background,
   },
   header: {
     paddingHorizontal: 20,

@@ -119,7 +119,7 @@ export default function EventDetailsScreen() {
   useEffect(() => {
     // Check if event is favorited
     if (event) {
-      const favorited = isFavorite("event", event.id);
+      const favorited = isFavorite(event.id);
       setIsFavorited(favorited);
     }
     
@@ -140,7 +140,7 @@ export default function EventDetailsScreen() {
             console.error("Error checking registration in Supabase:", error.message || error);
           }
           
-          setIsRegistered(data && data.length > 0);
+          setIsRegistered(data && data.length > 0 || false);
         } else {
           const isUserRegistered = isUserRegisteredForEvent(eventId, user.id);
           setIsRegistered(isUserRegistered);
@@ -404,7 +404,7 @@ export default function EventDetailsScreen() {
           }
         }
         
-        removeFavorite("event", event.id);
+        removeFavorite(event.id);
         setIsFavorited(false);
         
         // Log analytics event
@@ -437,11 +437,19 @@ export default function EventDetailsScreen() {
           }
         }
         
-        addFavorite("event", event.id, {
-          title: event.title,
-          image: event.image,
-          date: event.date,
-          type: "event"
+        addFavorite({
+          id: event.id,
+          name: event.title,
+          imageUrl: event.image,
+          type: event.type,
+          rating: 4.5,
+          distance: "0 miles",
+          openingHours: "",
+          location: event.location,
+          admission: event.price === 0 ? "Free" : `${event.price}`,
+          featured: event.featured || false,
+          category: "event",
+          description: event.description
         });
         setIsFavorited(true);
         

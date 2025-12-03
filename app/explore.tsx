@@ -11,14 +11,15 @@ import FeaturedVenueCard from "@/components/FeaturedVenueCard";
 import { venues, featuredVenues } from "@/mocks/venues";
 import { categories } from "@/mocks/categories";
 import { useLocationStore } from "@/store/useLocationStore";
-import { fetchGalleries } from "@/hooks/useGalleries";
+import { useGalleries } from "@/hooks/useGalleries";
 import * as Analytics from "@/utils/analytics";
 
 export default function ExploreScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [filteredVenues, setFilteredVenues] = useState(venues);
-  const [galleries, setGalleries] = useState([]);
+  const [galleries, setGalleries] = useState<any[]>([]);
+  const { galleries: galleriesData, loading: galleriesLoading } = useGalleries();
   
   const { location, requestLocation } = useLocationStore();
 
@@ -26,8 +27,10 @@ export default function ExploreScreen() {
     // Request location when component mounts
     requestLocation();
     
-    // Fetch galleries from Supabase
-    fetchGalleries().then(setGalleries);
+    // Set galleries from hook
+    if (galleriesData && galleriesData.length > 0) {
+      setGalleries(galleriesData);
+    }
     
     // Log screen view
     Analytics.logEvent("screen_view", { screen_name: "explore" });
@@ -133,7 +136,7 @@ export default function ExploreScreen() {
                 <CategoryCard
                   key={category.id}
                   category={category}
-                  selected={selectedCategory === category.id}
+                  isSelected={selectedCategory === category.id}
                   onPress={() => handleCategorySelect(category.id)}
                 />
               ))}

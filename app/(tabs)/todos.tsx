@@ -22,7 +22,7 @@ export default function TodosScreen() {
   
   const isDark = colorScheme === 'dark';
   const textColor = '#AC8901';
-  const bgColor = isDark ? colors.background.dark : colors.background.light;
+  const bgColor = colors.background;
   const accentColor = colors.accent;
 
   useEffect(() => {
@@ -125,7 +125,7 @@ export default function TodosScreen() {
 
   const renderTodoItem = ({ item }: { item: Todo }) => (
     <TouchableOpacity 
-      style={[styles.todoItem, { backgroundColor: isDark ? colors.card.dark : colors.card.light }]}
+      style={[styles.todoItem, { backgroundColor: colors.card }]}
       onPress={() => toggleTodoStatus(item.id, item.completed)}
     >
       <View style={styles.todoContent}>

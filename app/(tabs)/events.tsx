@@ -29,14 +29,15 @@ export default function EventsScreen() {
   } = useEventsStore();
   
   const { user } = useAuthStore();
-  const { profile } = useProfileStore();
+  const { getCurrentProfile } = useProfileStore();
   
   const [searchQuery, setSearchQuery] = useState("");
 
   // Get subscription level from profile to prevent re-renders
   const subscriptionLevel = useMemo(() => {
-    return profile?.subscription_name || 'free';
-  }, [profile?.subscription_name]);
+    const profile = getCurrentProfile();
+    return profile?.subscription?.name?.toLowerCase() || 'free';
+  }, [getCurrentProfile]);
   
   // Memoize accessible events to prevent infinite re-renders
   const accessibleEvents = useMemo(() => {
