@@ -11,7 +11,7 @@ export const createBooking = async (
   partySize: number,
   userId?: string,
   notes?: string,
-  totalAmount?: number,
+  totalAmount?: string,
   paymentIntentId?: string
 ) => {
   try {
@@ -81,7 +81,7 @@ export const bookVenue = async ({
       partySize, 
       userId,
       notes, 
-      totalAmount, 
+      totalAmount?.toString(),
       paymentIntentId
     );
     

@@ -45,8 +45,8 @@ export const STRIPE_ENDPOINTS = {
 
 // Helper function to check if Stripe is properly configured
 export const isStripeConfigured = () => {
-  const testKey: string = 'pk_test_your_key_here';
+  const testKey = 'pk_test_your_key_here' as const;
   return STRIPE_PUBLISHABLE_KEY && 
     STRIPE_PUBLISHABLE_KEY.startsWith('pk_') && 
-    STRIPE_PUBLISHABLE_KEY !== testKey;
+    (STRIPE_PUBLISHABLE_KEY as string) !== testKey;
 };

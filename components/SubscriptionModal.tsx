@@ -884,7 +884,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   currentSubscriptionInfo: {
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.primary.surface,
     borderRadius: 12,
     padding: 16,
     marginTop: 8,

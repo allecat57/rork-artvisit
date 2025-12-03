@@ -22,7 +22,7 @@ export const useWebSocket = (url: string, options: UseWebSocketOptions = {}) => 
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
   
   const ws = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
 
@@ -71,7 +71,7 @@ export const useWebSocket = (url: string, options: UseWebSocketOptions = {}) => 
           
           reconnectTimeoutRef.current = setTimeout(() => {
             connect();
-          }, reconnectInterval);
+          }, reconnectInterval) as any;
         }
       };
 
